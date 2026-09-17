@@ -1,0 +1,106 @@
+:root {
+  --nen: #fbfaf7;
+  --nen-phu: #f1efe9;
+  --chu: #1f2328;
+  --chu-mo: #6b7078;
+  --vien: #dcd9d2;
+  --nhan: #2f6fdb;
+  --dung: #1a7f4b;
+  --sai: #c2412d;
+  --nhap: #a86b00;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --nen: #16181c;
+    --nen-phu: #20242a;
+    --chu: #e6e6e3;
+    --chu-mo: #9aa0a8;
+    --vien: #343a42;
+    --nhan: #7aa7ff;
+    --dung: #4cc38a;
+    --sai: #ff8a73;
+    --nhap: #e0a93b;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--nen);
+  color: var(--chu);
+  font: 17px/1.65 system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+header, main, footer { max-width: 780px; margin: 0 auto; padding: 0 16px; }
+header { padding-top: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--vien); }
+footer { color: var(--chu-mo); font-size: 14px; padding-block: 32px; }
+main { padding-bottom: 64px; }
+a { color: var(--nhan); }
+.logo { font-weight: 700; text-decoration: none; color: var(--chu); }
+h1 small { color: var(--chu-mo); font-weight: 400; font-size: 0.6em; }
+h2 { margin-top: 2.2em; }
+code, pre, textarea { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 14px; }
+pre { background: var(--nen-phu); padding: 12px; border-radius: 8px; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; }
+th, td { border: 1px solid var(--vien); padding: 6px 10px; }
+.katex-display { overflow-x: auto; overflow-y: hidden; }
+button {
+  font: inherit; font-size: 15px; padding: 6px 14px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--nhan); background: var(--nhan); color: var(--nen);
+}
+button.phu { background: transparent; color: var(--nhan); margin-left: 8px; }
+button:disabled { opacity: 0.5; cursor: default; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--nhan); outline-offset: 2px;
+}
+
+.duong-dan { color: var(--chu-mo); font-size: 14px; margin-bottom: 0; }
+.nhan-nhap { color: var(--nhap); font-size: 13px; font-weight: 600; }
+.tien-do { color: var(--dung); margin-left: 8px; }
+.ok { color: var(--dung); }
+.canh-bao { color: var(--sai); }
+
+.lo-trinh li { margin: 4px 0; }
+.lo-trinh .chua-co { color: var(--chu-mo); }
+
+.the-khai-niem { background: var(--nen-phu); border-radius: 10px; padding: 4px 18px; margin: 16px 0; }
+.the-khai-niem summary { cursor: pointer; font-weight: 600; margin-bottom: 12px; }
+
+.viz { margin: 24px 0; padding: 16px; border: 1px solid var(--vien); border-radius: 10px; }
+.viz svg { width: 100%; height: auto; display: block; margin: 8px 0; }
+.viz figcaption { font-size: 15px; font-variant-numeric: tabular-nums; }
+.viz-dieu-khien { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; margin: 8px 0; }
+.viz-dieu-khien label { display: flex; flex-direction: column; font-size: 14px; }
+.viz-dieu-khien input[type='range'] { width: 200px; }
+.truc { stroke: var(--vien); }
+.nhan { fill: var(--chu-mo); font-size: 13px; }
+.duong-cong { fill: none; stroke: var(--chu); stroke-width: 2; }
+.duong-di { stroke: var(--sai); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.diem-cu { fill: var(--sai); opacity: 0.5; }
+.diem-hien-tai { fill: var(--sai); }
+.tiep-tuyen { stroke: var(--nhan); stroke-width: 2.5; }
+
+.quiz fieldset { border: 1px solid var(--vien); border-radius: 10px; margin: 16px 0; padding: 8px 16px 16px; }
+.quiz fieldset.dung { border-color: var(--dung); }
+.quiz fieldset.sai { border-color: var(--sai); }
+.quiz legend { color: var(--chu-mo); font-size: 14px; padding: 0 6px; }
+.quiz label { display: flex; gap: 8px; align-items: baseline; margin: 6px 0; cursor: pointer; }
+.quiz label.la-dap-an { color: var(--dung); font-weight: 600; }
+.quiz input[type='text'] { font: inherit; padding: 4px 8px; width: 140px; margin-right: 8px; background: var(--nen); color: var(--chu); border: 1px solid var(--vien); border-radius: 6px; }
+.giai-thich { background: var(--nen-phu); padding: 8px 12px; border-radius: 8px; }
+
+.code-runner textarea {
+  width: 100%; padding: 12px; border-radius: 8px; tab-size: 4;
+  background: var(--nen-phu); color: var(--chu); border: 1px solid var(--vien);
+}
+.ket-qua ul { list-style: none; padding: 0; }
+.ket-qua .loi { color: var(--sai); }
+
+.tai-lieu { list-style: none; padding: 0; }
+.tai-lieu li { display: flex; gap: 14px; margin: 16px 0; align-items: flex-start; }
+.tai-lieu img { border-radius: 6px; flex-shrink: 0; }
+.tai-lieu p { margin: 4px 0; }
+@media (max-width: 520px) {
+  .tai-lieu li { flex-direction: column; }
+}

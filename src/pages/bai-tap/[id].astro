@@ -1,0 +1,29 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import CodeRunner from '../../components/CodeRunner.tsx';
+import { getCollection, getEntry, render } from 'astro:content';
+import { hienThi } from '../../lib';
+
+export async function getStaticPaths() {
+  const ds = (await getCollection('baiTap')).filter(hienThi);
+  return ds.map((b) => ({ params: { id: b.id }, props: { b } }));
+}
+
+const { b } = Astro.props;
+const { Content } = await render(b);
+const khaiNiem = await getEntry('khaiNiem', b.data.khai_niem);
+const pyFiles = import.meta.glob<string>('/content/bai-tap/*/{starter,tests}.py', { query: '?raw', import: 'default', eager: true });
+const starter = pyFiles[`/content/bai-tap/${b.id}/starter.py`];
+const tests = pyFiles[`/content/bai-tap/${b.id}/tests.py`];
+---
+<Layout tieuDe={b.data.tieu_de}>
+  <p class="duong-dan"><a href="/">Lộ trình</a> › {khaiNiem && <a href={`/khai-niem/${khaiNiem.id}`}>{khaiNiem.data.ten_vi}</a>}</p>
+  <h1>{b.data.tieu_de}</h1>
+  {b.data.trang_thai === 'nhap' && <p class="nhan-nhap">Bản nháp — chưa được duyệt</p>}
+  <article><Content /></article>
+  <CodeRunner client:load id={b.id} starter={starter} tests={tests} />
+  <details>
+    <summary>Xem các test sẽ chấm</summary>
+    <pre>{tests}</pre>
+  </details>
+</Layout>

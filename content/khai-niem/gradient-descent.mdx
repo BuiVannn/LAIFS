@@ -1,0 +1,116 @@
+---
+ten_vi: Gradient Descent
+ten_en: Gradient Descent
+tang: 2
+thu_tu: 12
+tien_quyet: [dao-ham-rieng-gradient, ham-mat-mat]
+trang_thai: nhap
+dinh_nghia: >-
+  Thuật toán tìm cực tiểu của một hàm (thường là hàm mất mát) bằng cách lặp đi lặp lại:
+  tính độ dốc tại điểm hiện tại, rồi bước một bước nhỏ theo hướng ngược với độ dốc.
+truc_giac: >-
+  Bạn đứng trên sườn núi trong sương mù dày, không nhìn thấy đáy thung lũng. Cách duy nhất
+  là dò dưới chân xem hướng nào dốc xuống, bước một bước theo hướng đó, rồi dò lại.
+  Độ dốc là đạo hàm, độ dài bước là learning rate.
+hieu_nham:
+  - "Gradient chỉ hướng đi LÊN dốc nhanh nhất, vì vậy phải trừ đi gradient (đi ngược hướng) mới xuống được."
+  - "Learning rate càng lớn chưa chắc càng nhanh: quá lớn thì nhảy qua đáy, dao động hoặc phân kỳ (loss tăng vọt)."
+  - "Gradient descent không đảm bảo tìm được cực tiểu toàn cục: với hàm không lồi nó có thể dừng ở cực tiểu cục bộ, tuỳ điểm xuất phát."
+  - "Bước đi tự nhỏ lại khi gần đáy dù learning rate cố định, vì độ dốc (gradient) nhỏ dần."
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=sDv4f4s2SB8
+    tieu_de: Gradient Descent, Step-by-Step
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Tính tay từng bước trên ví dụ hồi quy tuyến tính, rất chậm và rõ. Nên xem đầu tiên.
+  - url: https://www.youtube.com/watch?v=IHZwWFHWa-w
+    tieu_de: Gradient descent, how neural networks learn
+    tac_gia: 3Blue1Brown
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Hình ảnh hoá gradient descent trong mạng neuron với hàng nghìn tham số. Xem sau khi đã hiểu bản một biến.
+  - url: https://www.youtube.com/watch?v=VMj-3S1tku0
+    tieu_de: "The spelled-out intro to neural networks and backpropagation: building micrograd"
+    tac_gia: Andrej Karpathy
+    loai: video
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Tự code gradient descent và backprop từ số 0 bằng Python. Dài (~2.5 giờ), dành cho khi muốn đào sâu.
+---
+
+import GradientDescent1D from '../../src/viz/GradientDescent1D.tsx';
+
+## Bài toán: tìm đáy
+
+Huấn luyện một mô hình ML thực chất là đi tìm bộ tham số (ví dụ $w$) làm cho **hàm mất mát** (loss function) $L(w)$ nhỏ nhất. Loss nhỏ nghĩa là mô hình dự đoán sai ít.
+
+Với hàm đơn giản như $L(w) = w^2$, ta nhìn là biết đáy ở $w = 0$. Nhưng mô hình thật có hàng triệu tham số, không thể vẽ ra hay giải trực tiếp. Ta cần một cách **mò dần** xuống đáy. Đó là gradient descent.
+
+## Ý tưởng: đi ngược độ dốc
+
+Đạo hàm $L'(w)$ cho biết độ dốc tại điểm đang đứng:
+
+- $L'(w) > 0$: đi sang phải thì loss **tăng**, vậy nên đi sang **trái** (giảm $w$)
+- $L'(w) < 0$: đi sang phải thì loss **giảm**, vậy nên **tăng** $w$
+
+Cả hai trường hợp gói gọn trong một công thức cập nhật:
+
+$$
+w \leftarrow w - \eta \cdot L'(w)
+$$
+
+trong đó $\eta$ (đọc là "eta") là **learning rate**: bước đi dài hay ngắn.
+
+## Tính tay 3 bước
+
+Lấy $L(w) = w^2$, nên $L'(w) = 2w$. Chọn $\eta = 0.1$, xuất phát từ $w = 2.5$:
+
+| Bước | $w$ | $L'(w) = 2w$ | $w$ mới $= w - 0.1 \cdot L'(w)$ |
+|---|---|---|---|
+| 1 | 2.5 | 5.0 | 2.0 |
+| 2 | 2.0 | 4.0 | 1.6 |
+| 3 | 1.6 | 3.2 | 1.28 |
+
+Để ý: bước 1 đi được 0.5, bước 3 chỉ còn 0.32. **Càng gần đáy, dốc càng thoải, bước tự ngắn lại**, dù $\eta$ không đổi.
+
+## Tự thử
+
+<GradientDescent1D client:visible />
+
+Gợi ý thí nghiệm:
+
+1. **Parabol**, learning rate `0.01`: đến đáy nhưng rất chậm.
+2. Learning rate `0.9`: nhảy qua nhảy lại hai bên đáy nhưng vẫn hội tụ.
+3. Learning rate `1.0`: nhảy qua lại mãi giữa $2.5$ và $-2.5$, không bao giờ tới đáy. Vì sao? (Gợi ý: tính $w - 1.0 \cdot 2w$.)
+4. Learning rate `1.05`: phân kỳ, càng chạy càng xa đáy.
+5. **Hàm nhiều cực tiểu**, xuất phát `w₀ = 2.8`: kẹt ở đáy bên phải, dù đáy bên trái sâu hơn. Thử xuất phát từ `-1`.
+
+## Khi có nhiều tham số
+
+Mô hình thật có nhiều tham số $w_1, w_2, \dots$. Khi đó thay đạo hàm bằng **gradient**, tức là vector gồm các đạo hàm riêng:
+
+$$
+\nabla L = \left( \frac{\partial L}{\partial w_1}, \frac{\partial L}{\partial w_2}, \dots \right)
+\qquad
+\mathbf{w} \leftarrow \mathbf{w} - \eta \, \nabla L(\mathbf{w})
+$$
+
+Ý tưởng giữ nguyên: mỗi tham số tự bước ngược hướng dốc của riêng nó, tất cả **cùng lúc**.
+
+## Khi nào dừng?
+
+Thường dừng khi một trong các điều kiện xảy ra:
+
+- Chạy đủ số bước (epoch) định trước
+- Loss gần như không giảm nữa
+- Gradient gần bằng 0
+
+## Tóm tắt
+
+- Gradient descent: lặp lại $w \leftarrow w - \eta \nabla L$ để đi xuống đáy hàm mất mát.
+- Learning rate quá nhỏ thì chậm, quá lớn thì dao động hoặc phân kỳ.
+- Với hàm không lồi, kết quả phụ thuộc điểm xuất phát.
+- Tiếp theo: [Learning rate](/khai-niem/learning-rate), [SGD & mini-batch](/khai-niem/sgd-mini-batch).

@@ -1,0 +1,35 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import { hienThi, TEN_TANG } from '../lib';
+
+const khaiNiem = (await getCollection('khaiNiem')).sort((a, b) => a.data.thu_tu - b.data.thu_tu);
+const cacTang = [...new Set(khaiNiem.map((k) => k.data.tang))].sort();
+const coNoiDung = (k: (typeof khaiNiem)[number]) => hienThi(k) && !!k.body?.trim();
+---
+<Layout>
+  <h1>Lộ trình học</h1>
+  <p>Đọc khái niệm → xem trực quan → làm trắc nghiệm → tự code. Khái niệm mờ là chưa có nội dung.</p>
+  {cacTang.map((t) => (
+    <section>
+      <h2>Tầng {t}: {TEN_TANG[t]}</h2>
+      <ol class="lo-trinh">
+        {khaiNiem.filter((k) => k.data.tang === t).map((k) => (
+          <li class={coNoiDung(k) ? '' : 'chua-co'}>
+            {coNoiDung(k) ? <a href={`/khai-niem/${k.id}`}>{k.data.ten_vi}</a> : <span>{k.data.ten_vi}</span>}
+            {k.data.trang_thai === 'nhap' && coNoiDung(k) && <small class="nhan-nhap">nháp</small>}
+            <small class="tien-do" data-quiz={k.id}></small>
+          </li>
+        ))}
+      </ol>
+    </section>
+  ))}
+</Layout>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-quiz]').forEach((el) => {
+    try {
+      const kq = JSON.parse(localStorage.getItem(`quiz:${el.dataset.quiz}`) ?? 'null');
+      if (kq) el.textContent = `quiz ${kq.dung}/${kq.tong}`;
+    } catch {}
+  });
+</script>

@@ -1,0 +1,85 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Quiz from '../../components/Quiz.tsx';
+import { getCollection, getEntry, render } from 'astro:content';
+import { hienThi, TEN_TANG } from '../../lib';
+
+export async function getStaticPaths() {
+  const ds = (await getCollection('khaiNiem')).filter((k) => hienThi(k) && k.body?.trim());
+  return ds.map((k) => ({ params: { id: k.id }, props: { k } }));
+}
+
+const { k } = Astro.props;
+const d = k.data;
+const { Content } = await render(k);
+const tatCa = await getCollection('khaiNiem');
+const tienQuyet = d.tien_quyet.map((id) => tatCa.find((x) => x.id === id)).filter((x) => x !== undefined);
+const quiz = await getEntry('quiz', k.id);
+const baiTap = (await getCollection('baiTap')).filter((b) => b.data.khai_niem === k.id && hienThi(b));
+const ytId = (url: string) => new URL(url).searchParams.get('v');
+const MUC_DO = { nhap_mon: 'Nhập môn', sau: 'Đào sâu', toan_nang: 'Toán nặng' };
+---
+<Layout tieuDe={d.ten_vi}>
+  <p class="duong-dan"><a href="/">Lộ trình</a> › Tầng {d.tang}: {TEN_TANG[d.tang]}</p>
+  <h1>{d.ten_vi} {d.ten_en && d.ten_en !== d.ten_vi && <small>({d.ten_en})</small>}</h1>
+  {d.trang_thai === 'nhap' && <p class="nhan-nhap">Bản nháp — chưa được duyệt</p>}
+
+  <aside class="the-khai-niem">
+    {d.dinh_nghia && <p><b>Định nghĩa.</b> {d.dinh_nghia}</p>}
+    {d.truc_giac && <p><b>Hiểu ý.</b> {d.truc_giac}</p>}
+    {tienQuyet.length > 0 && (
+      <p><b>Cần biết trước:</b> {tienQuyet.map((t, i) => <>{i > 0 && ', '}<a href={`/khai-niem/${t.id}`}>{t.data.ten_vi}</a></>)}</p>
+    )}
+    {d.hieu_nham.length > 0 && (
+      <details>
+        <summary>Hay hiểu nhầm</summary>
+        <ul>{d.hieu_nham.map((h) => <li>{h}</li>)}</ul>
+      </details>
+    )}
+  </aside>
+
+  <article><Content /></article>
+
+  {quiz && hienThi(quiz) && (
+    <section>
+      <h2>Trắc nghiệm</h2>
+      <Quiz client:visible id={k.id} cauHoi={quiz.data.cau_hoi} />
+    </section>
+  )}
+
+  {baiTap.length > 0 && (
+    <section>
+      <h2>Luyện code</h2>
+      <ul>
+        {baiTap.map((b) => (
+          <li><a href={`/bai-tap/${b.id}`}>{b.data.tieu_de}</a> {'●'.repeat(b.data.do_kho)}{'○'.repeat(3 - b.data.do_kho)} <small class="tien-do" data-bai={b.id}></small></li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {d.tai_lieu.length > 0 && (
+    <section>
+      <h2>Đào sâu</h2>
+      <ul class="tai-lieu">
+        {d.tai_lieu.map((t) => (
+          <li>
+            {t.loai === 'video' && ytId(t.url) && (
+              <a href={t.url} target="_blank" rel="noopener"><img src={`https://i.ytimg.com/vi/${ytId(t.url)}/mqdefault.jpg`} alt="" width="160" height="90" loading="lazy" /></a>
+            )}
+            <div>
+              <a href={t.url} target="_blank" rel="noopener"><b>{t.tieu_de}</b></a>
+              <br /><small>{t.tac_gia} · {MUC_DO[t.muc_do]} · {t.ngon_ngu.toUpperCase()}{t.moc && ` · ${t.moc}`}</small>
+              <p>{t.ghi_chu}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+</Layout>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-bai]').forEach((el) => {
+    try { if (localStorage.getItem(`bai-tap:${el.dataset.bai}`)) el.textContent = '✓ đã đạt'; } catch {}
+  });
+</script>
