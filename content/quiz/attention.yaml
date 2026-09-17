@@ -1,0 +1,105 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: Cơ chế chú ý ra đời để giải quyết vấn đề nào của seq2seq?
+    lua_chon:
+      - Cả câu nguồn bị nén vào một vector ngữ cảnh kích thước cố định nên câu dài bị mất thông tin
+      - Bộ giải mã chạy quá chậm
+      - Hàm softmax không ổn định về số
+      - Mô hình không xử lý được câu nguồn và câu đích khác độ dài
+    dap_an: 0
+    giai_thich: "Đúng một vấn đề: nút thắt ngữ cảnh. Việc câu nguồn và câu đích khác độ dài thì seq2seq thường đã giải quyết được rồi. Còn về tốc độ, attention thực ra TỐN hơn seq2seq thường vì mỗi bước giải mã phải chấm điểm lại toàn bộ câu nguồn."
+
+  - id: q2
+    loai: mot
+    do_kho: 1
+    de: Ở một bước giải mã, tổng các trọng số chú ý trên mọi từ nguồn bằng bao nhiêu?
+    lua_chon:
+      - Bằng 1, vì chúng là đầu ra của softmax
+      - Bằng số từ nguồn
+      - Bằng độ dài vector ngữ cảnh
+      - Không cố định, tuỳ điểm chấm được
+    dap_an: 0
+    giai_thich: "Softmax luôn cho một phân bố xác suất: mọi trọng số không âm và cộng lại đúng bằng 1, bất kể điểm thô to nhỏ hay âm dương thế nào. Đây là phép kiểm tra đầu tiên khi tự code attention — nếu tổng khác 1 là có lỗi."
+
+  - id: q3
+    loai: so
+    do_kho: 1
+    de: "Chấm điểm bằng tích vô hướng. Trạng thái nguồn h = (−1,5; −1,5) và trạng thái giải mã s = (−1; −1). Điểm e = h · s bằng bao nhiêu?"
+    dap_an: 3
+    sai_so: 0.001
+    giai_thich: "e = (−1,5)×(−1) + (−1,5)×(−1) = 1,5 + 1,5 = 3. Hai vector cùng hướng (dù cùng hướng âm) cho tích vô hướng dương và lớn, nên từ nguồn này sẽ nhận trọng số chú ý cao."
+
+  - id: q4
+    loai: so
+    do_kho: 2
+    de: "Câu nguồn 3 từ, điểm chấm được là (3; 0; −2,25). Biết e³ = 20,0855, e⁰ = 1, e^(−2,25) = 0,1054. Trọng số chú ý của từ nguồn THỨ NHẤT bằng bao nhiêu? (làm tròn 4 chữ số)"
+    dap_an: 0.9478
+    sai_so: 0.0005
+    giai_thich: "Tổng mẫu số = 20,0855 + 1 + 0,1054 = 21,1909. Trọng số thứ nhất = 20,0855 / 21,1909 ≈ 0,9478. Hai trọng số còn lại là 0,0472 và 0,0050; cộng cả ba được 1."
+
+  - id: q5
+    loai: so
+    do_kho: 2
+    de: "Bộ mã hoá có trạng thái ẩn 256 chiều. Câu nguồn gồm 9 từ, câu đích gồm 12 từ. Vector ngữ cảnh cₜ của MỘT bước giải mã chứa bao nhiêu số?"
+    dap_an: 256
+    sai_so: 0.001
+    giai_thich: "cₜ = Σⱼ αⱼ·hⱼ là tổng có trọng số của các hⱼ, mà mỗi hⱼ có shape (256,), nên cₜ cũng có shape (256,) — trung bình có trọng số không làm đổi shape. Số 9 chỉ quyết định có bao nhiêu số hạng trong tổng, số 12 quyết định ta tính bao nhiêu vector cₜ khác nhau (12 cái), chứ không ảnh hưởng tới shape của từng cái."
+
+  - id: q6
+    loai: so
+    do_kho: 2
+    de: "Vẫn câu nguồn 9 từ và câu đích 12 từ. Toàn bộ ma trận trọng số chú ý của câu này chứa bao nhiêu số?"
+    dap_an: 108
+    sai_so: 0.001
+    giai_thich: "Ma trận có shape (số từ đích, số từ nguồn) = (12, 9), tức 12 × 9 = 108 số: mỗi bước giải mã một hàng, mỗi hàng 9 trọng số cộng lại bằng 1. Đây chính là cái ta vẽ thành heatmap căn chỉnh."
+
+  - id: q7
+    loai: nhieu
+    do_kho: 2
+    de: So với seq2seq cơ bản, seq2seq có attention khác ở những điểm nào? (chọn tất cả ý đúng)
+    lua_chon:
+      - Bộ giải mã đọc toàn bộ các trạng thái h₁…h₍T₎ thay vì chỉ một vector
+      - Mỗi bước giải mã có một vector ngữ cảnh riêng, tính lại từ đầu
+      - Mỗi bước giải mã tốn nhiều tính toán hơn vì phải chấm điểm cả T từ nguồn
+      - Không cần bộ mã hoá nữa
+    dap_an: [0, 1, 2]
+    giai_thich: "Attention vẫn hoàn toàn cần bộ mã hoá — thậm chí cần NHIỀU hơn, vì nó dùng cả T trạng thái chứ không chỉ trạng thái cuối. Thứ bị bỏ đi là cái phễu ép tất cả vào một vector, và cái giá là chi phí O(T·k) mỗi bước thay vì O(k)."
+
+  - id: q8
+    loai: mot
+    do_kho: 2
+    de: "Dịch `con mèo đen` → `the black cat`, heatmap cho thấy khi sinh `black` mô hình dồn 0,9867 trọng số vào từ nguồn THỨ BA (`đen`) chứ không phải từ thứ hai. Kết luận nào đúng?"
+    lua_chon:
+      - Mô hình đang bị lỗi, trọng số chú ý phải nằm trên đường chéo
+      - Bình thường, vì trật tự từ hai ngôn ngữ khác nhau và attention không hề bị ép theo đường chéo
+      - Trọng số bị tính sai vì tổng hàng khác 1
+      - Phải đổi hàm chấm điểm sang kiểu additive mới đúng
+    dap_an: 1
+    giai_thich: "Tiếng Việt đặt tính từ sau danh từ (mèo đen), tiếng Anh đặt trước (black cat), nên đường căn chỉnh bắt chéo. Attention hoàn toàn tự do chọn từ nguồn nào ở bước nào — đó chính là điểm mạnh của nó với các cặp ngôn ngữ khác trật tự từ."
+
+  - id: q9
+    loai: mot
+    do_kho: 2
+    de: Hàm chấm điểm nào ĐÒI HỎI trạng thái mã hoá và trạng thái giải mã phải có cùng số chiều?
+    lua_chon:
+      - "Dot-product: eⱼ = hⱼ · sₜ"
+      - "Bilinear: eⱼ = hⱼᵀ W sₜ"
+      - "Additive (Bahdanau): eⱼ = vᵀ tanh(W₁hⱼ + W₂sₜ)"
+      - Cả ba đều đòi cùng số chiều
+    dap_an: 0
+    giai_thich: "Tích vô hướng chỉ định nghĩa được khi hai vector cùng số chiều. Bilinear có ma trận W ở giữa làm cầu nối, còn additive có W₁ và W₂ chiếu riêng mỗi bên về cùng một không gian, nên cả hai đều nhận số chiều khác nhau. Đổi lại, dot-product không thêm tham số nào và chạy nhanh nhất."
+
+  - id: q10
+    loai: nhieu
+    do_kho: 3
+    de: Những phát biểu nào về trọng số chú ý là ĐÚNG? (chọn tất cả ý đúng)
+    lua_chon:
+      - Chúng được học gián tiếp qua mục tiêu dịch đúng, không cần nhãn căn chỉnh từ–từ nào
+      - Nếu chia mọi điểm cho một số τ rất lớn trước khi softmax, trọng số phẳng dần và cₜ gần như trung bình cộng cả câu nguồn
+      - Trọng số cao ở một từ nguồn chứng minh mô hình đã hiểu đúng nghĩa từ đó
+      - Toàn bộ phép tính điểm → softmax → trộn đều khả vi nên lan truyền ngược chạy qua được
+    dap_an: [0, 1, 3]
+    giai_thich: "Ý 3 sai: trọng số chỉ cho biết vector nào được cộng vào với tỉ trọng lớn, đó là một manh mối chứ không phải bằng chứng về sự 'hiểu'. Ba ý còn lại đúng: attention khả vi nên học được cùng cả mạng mà không cần nhãn căn chỉnh, và chia điểm cho τ lớn làm softmax phẳng ra, kéo mô hình quay về gần đúng nút thắt ngữ cảnh của seq2seq."

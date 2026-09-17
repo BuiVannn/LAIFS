@@ -1,0 +1,170 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: "Dịch few-shot bằng LLM nghĩa là gì?"
+    lua_chon:
+      - Huấn luyện lại LLM trên vài nghìn cặp câu
+      - Đặt vài cặp câu mẫu (nguồn — đích) ngay trong prompt để mô hình bắt chước
+      - Chỉ dịch vài câu một lần để tiết kiệm token
+      - Dùng một mô hình nhỏ hơn cho nhanh
+    dap_an: 1
+    giai_thich: >-
+      Few-shot là học trong ngữ cảnh (in-context learning): trọng số mô hình KHÔNG đổi, bạn
+      chỉ đặt ví dụ vào prompt. Huấn luyện lại trên dữ liệu là fine-tune, một việc khác hẳn
+      về chi phí và cách triển khai.
+
+  - id: q2
+    loai: nhieu
+    do_kho: 2
+    de: Đâu là điểm mạnh thật sự của LLM so với mô hình NMT chuyên dụng cổ điển? (chọn tất cả ý đúng)
+    lua_chon:
+      - Đọc được cả tài liệu dài nên giữ được mạch đại từ, xưng hô, ngữ cảnh giữa các câu
+      - Điều khiển được văn phong bằng lời ("dịch trang trọng", "giữ giọng hài")
+      - Ép thuật ngữ dễ, chỉ cần nhét bảng thuật ngữ vào prompt
+      - Chi phí và độ trễ luôn thấp hơn
+      - Không bao giờ bịa nội dung
+    dap_an: [0, 1, 2]
+    giai_thich: >-
+      Ba ý đầu là ưu thế thật. Ý thứ tư sai: LLM thường đắt hơn và chậm hơn NMT chuyên dụng
+      khi chạy khối lượng lớn. Ý cuối sai hoàn toàn: ảo giác chính là chế độ hỏng đặc trưng
+      của LLM, đặc biệt ở ngôn ngữ ít tài nguyên.
+
+  - id: q3
+    loai: mot
+    do_kho: 2
+    de: >-
+      Bảng thuật ngữ đầy đủ của công ty bạn có 40 000 mục, không nhét hết vào prompt được.
+      Cách xử lý thường dùng là gì?
+    lua_chon:
+      - Chia bảng thành 40 prompt và gọi mô hình 40 lần cho mỗi câu
+      - Truy xuất (RAG) chỉ những mục thuật ngữ khớp với câu nguồn đang dịch, rồi nhét phần đó vào prompt
+      - Bỏ bảng thuật ngữ, tin vào kiến thức sẵn có của mô hình
+      - Fine-tune mô hình trên bảng thuật ngữ rồi bỏ prompt đi
+    dap_an: 1
+    giai_thich: >-
+      Đây là RAG thuật ngữ: quét câu nguồn, tìm các mục thuật ngữ khớp và vài cặp câu tương
+      tự nhất trong kho dịch cũ (tf-idf + cosine hoặc embedding), chỉ đưa những thứ đó vào
+      prompt. Court & Elsner 2024 thử đúng cách này cho Quechua → Tây Ban Nha với từ điển,
+      mô tả ngữ pháp và ví dụ song ngữ.
+
+  - id: q4
+    loai: so
+    do_kho: 2
+    de: >-
+      Theo Findings of WMT25, Gemini 2.5 Pro vào cụm dẫn đầu ở bao nhiêu cặp ngôn ngữ (trên
+      tổng số 16 cặp được người chấm)?
+    dap_an: 14
+    sai_so: 0.5
+    giai_thich: >-
+      14 trên 16 cặp, và ở 10 trong số đó nó ngang bằng hoặc vượt bản dịch của người. Đây là
+      kết quả theo đánh giá của NGƯỜI (giao thức ESA), khác hẳn bảng xếp hạng theo chỉ số tự
+      động của cùng cuộc thi.
+
+  - id: q5
+    loai: mot
+    do_kho: 2
+    de: >-
+      Ở WMT25, theo chỉ số tự động (AutoRank) hệ Shy-hunyuan-MT xếp nhất ở gần như mọi cặp,
+      nhưng khi người chấm thì ở cặp Anh → Bhojpuri nó chỉ được 1.7 điểm và xếp cuối. Bài học
+      chính là gì?
+    lua_chon:
+      - Đánh giá của người luôn sai vì chủ quan
+      - Không nên tin bảng xếp hạng tự động một mình, nhất là ở ngôn ngữ ít tài nguyên
+      - Chỉ số tự động chỉ dùng được cho tiếng Anh
+      - Hệ Shy-hunyuan-MT bị lỗi kỹ thuật
+    dap_an: 1
+    giai_thich: >-
+      Ban tổ chức nêu khả năng hệ này được tối ưu trực tiếp theo tín hiệu của các chỉ số tự
+      động, nên ăn điểm cao ở đúng những chỉ số đó. Đây là lý do WMT vẫn coi đánh giá của
+      người là kết quả chính thức, và là lý do bạn nên luôn kèm một vòng chấm tay.
+
+  - id: q6
+    loai: nhieu
+    do_kho: 3
+    de: WMT25 ghi nhận những chế độ hỏng nào ở các cặp ngôn ngữ rất ít tài nguyên? (chọn tất cả ý đúng)
+    lua_chon:
+      - Hệ thống xuất ra phần lớn đầu ra bằng một ngôn ngữ láng giềng nhiều dữ liệu hơn (tiếng Swahili thay vì tiếng Maasai)
+      - Hệ thống trả về tiếng Ả Rập chuẩn hiện đại thay vì phương ngữ Ai Cập được yêu cầu
+      - Bản dịch do NGƯỜI làm cũng bị chấm điểm rất thấp, cho thấy chính quy trình chấm cũng kém tin cậy
+      - Các thước đo neural phải bị loại bỏ, chỉ giữ chrF++ cho Bhojpuri và Maasai
+      - Mô hình từ chối dịch và báo lỗi
+    dap_an: [0, 1, 2, 3]
+    giai_thich: >-
+      Bốn ý đầu đều được ghi trong bài Findings. Ý cuối sai, và đó chính là vấn đề: mô hình
+      KHÔNG từ chối. Nó sinh ra thứ nghe giống bản dịch — trôi chảy, tự tin, sai. Với tiếng
+      Maasai, bản dịch của người chỉ được 9.6 điểm ESA dù người bản ngữ xác nhận là đọc hiểu
+      được và nghe tự nhiên.
+
+  - id: q7
+    loai: mot
+    do_kho: 2
+    de: >-
+      Vì sao "ảo giác" (hallucination) nguy hiểm hơn một lỗi dịch thông thường, nhất là khi
+      người dùng không biết ngôn ngữ đích?
+    lua_chon:
+      - Vì nó làm chậm mô hình
+      - Vì đầu ra trôi chảy và tự tin nên không có dấu hiệu nào để người đọc nghi ngờ nội dung là bịa
+      - Vì nó luôn xảy ra ở mọi câu
+      - Vì nó làm hỏng dữ liệu huấn luyện gốc
+    dap_an: 1
+    giai_thich: >-
+      Koehn & Knowles 2017 đã cảnh báo đúng điều này với NMT ít dữ liệu: đầu ra "trôi chảy
+      nhưng không liên quan gì tới đầu vào", và người dùng dịch để nắm ý sẽ bị dẫn dắt bởi
+      nội dung bịa. Một câu dịch sai ngữ pháp thì người đọc còn nghi ngờ; một câu mượt mà mà
+      sai nội dung thì không.
+
+  - id: q8
+    loai: mot
+    do_kho: 2
+    de: >-
+      Cùng một tài liệu, bản tiếng Việt thường tốn nhiều token hơn bản tiếng Anh khi gọi API.
+      Hệ quả thực tế nào ĐÚNG?
+    lua_chon:
+      - Chỉ tốn tiền hơn, ngoài ra không ảnh hưởng gì
+      - Tốn tiền hơn, chạy chậm hơn, và nhét được ít ngữ cảnh hơn trong cùng cửa sổ ngữ cảnh
+      - Chất lượng dịch tự động cao hơn vì mô hình có nhiều token để suy nghĩ
+      - Không đáng kể vì tiếng Việt dùng chữ Latin
+    dap_an: 1
+    giai_thich: >-
+      Số token quyết định cả ba thứ: giá, độ trễ, và lượng nội dung nhét vừa cửa sổ. Petrov
+      et al. 2023 đo được độ dài token của cùng một đoạn văn chênh nhau tới 15 lần giữa các
+      ngôn ngữ; Ahia et al. 2023 chỉ ra người nói nhiều ngôn ngữ đang trả nhiều tiền hơn để
+      nhận kết quả tệ hơn. Dùng chữ Latin không cứu được, vì dấu thanh và cách viết rời theo
+      âm tiết vẫn làm tiếng Việt bị cắt vụn.
+
+  - id: q9
+    loai: mot
+    do_kho: 3
+    de: >-
+      Bạn cần dịch 5 triệu câu mô tả sản phẩm Anh → Việt mỗi tháng, ngân sách chặt, và cần
+      đầu ra ổn định để hậu kiểm tự động. Lựa chọn hợp lý nhất?
+    lua_chon:
+      - Gọi LLM mạnh nhất cho từng câu, vì nó đứng đầu WMT25
+      - Dùng mô hình NMT chuyên dụng cho khối lượng chính, chỉ đưa phần khó hoặc nhạy cảm qua LLM
+      - Dịch pivot qua tiếng Trung để rẻ hơn
+      - Không dịch, để nguyên tiếng Anh
+    dap_an: 1
+    giai_thich: >-
+      Ở khối lượng lớn, tiêu chí là chi phí, độ trễ và tính ổn định — đó là sân của NMT chuyên
+      dụng. Ưu thế của LLM (ngữ cảnh dài, văn phong, ép thuật ngữ) đáng tiền ở phần nội dung
+      khó, chứ không đáng cho 5 triệu câu mô tả ngắn giống nhau. Cách ghép này (hoặc chưng cất
+      LLM thành mô hình nhỏ) là mô hình triển khai phổ biến.
+
+  - id: q10
+    loai: mot
+    do_kho: 2
+    de: >-
+      Ở cặp Anh → Bhojpuri của WMT25, mô hình chuyên dụng NLLB đạt 75.6 điểm, xếp trên
+      CommandA (72.6), ONLINE-B (67.2) và Gemma-3-27B (56.0). Điều này gợi ý gì?
+    lua_chon:
+      - NLLB tốt hơn mọi LLM ở mọi cặp ngôn ngữ
+      - Ở ngôn ngữ ít tài nguyên, một mô hình được huấn luyện chuyên cho ngôn ngữ đó vẫn cạnh tranh được với nhiều LLM lớn
+      - Các LLM trong bảng đều bị lỗi cấu hình
+      - Điểm số ở ngôn ngữ ít tài nguyên không có ý nghĩa gì
+    dap_an: 1
+    giai_thich: >-
+      Cũng ở cặp này, Gemini-2.5-Pro đạt 94.9 và đứng nhất, nên NLLB KHÔNG thắng mọi LLM. Ý
+      đúng khiêm tốn hơn: việc được huấn luyện có chủ đích cho ngôn ngữ hiếm vẫn đáng giá, và
+      "LLM đứng đầu bảng tổng" không có nghĩa là mọi LLM đều hơn mọi mô hình chuyên dụng.

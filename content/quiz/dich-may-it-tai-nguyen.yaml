@@ -1,0 +1,162 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: Back-translation trong dịch máy là gì?
+    lua_chon:
+      - Dịch một câu sang ngôn ngữ đích rồi dịch ngược lại để kiểm tra chất lượng
+      - Dùng mô hình ngược để dịch dữ liệu ĐƠN NGỮ phía đích sang phía nguồn, tạo cặp câu huấn luyện giả
+      - Huấn luyện mô hình theo thứ tự ngược từ câu cuối lên câu đầu
+      - Lan truyền ngược gradient qua bộ giải mã
+    dap_an: 1
+    giai_thich: >-
+      Back-translation lấy văn bản đơn ngữ phía ĐÍCH (thứ thường có sẵn nhiều), dịch ngược
+      sang phía nguồn bằng một mô hình phụ, rồi ghép thành cặp (nguồn giả, đích thật). Lựa
+      chọn đầu tiên là cách dùng từ này trong kiểm tra chất lượng thủ công, không phải kỹ
+      thuật huấn luyện. Lựa chọn cuối là lan truyền ngược, một khái niệm khác hẳn.
+
+  - id: q2
+    loai: mot
+    do_kho: 2
+    de: >-
+      Vì sao cặp câu do back-translation sinh ra vẫn hữu ích dù phía nguồn là văn bản máy
+      dịch, tức là có lỗi?
+    lua_chon:
+      - Vì lỗi của máy thường trùng với lỗi của người nên mô hình học được cả hai
+      - Vì phía đích là câu do người viết, và đó mới là thứ mô hình phải học cách SINH RA; nhiễu ở đầu vào dễ tha thứ hơn nhiễu ở đầu ra
+      - Vì mô hình tự động phát hiện và bỏ qua các câu nguồn sai
+      - Vì số lượng lớn luôn bù được chất lượng thấp
+    dap_an: 1
+    giai_thich: >-
+      Đây là điểm tinh tế nhất của back-translation: hướng của lỗi. Mô hình chỉ cần ĐỌC phía
+      nguồn nhưng phải SINH RA phía đích. Đặt câu người viết ở phía đích nghĩa là mọi thứ mô
+      hình học cách sinh ra đều sạch. Đó cũng là lý do self-training (đặt câu máy sinh ở phía
+      đích) rủi ro hơn nhiều.
+
+  - id: q3
+    loai: so
+    do_kho: 1
+    de: >-
+      Bạn có 20 000 cặp câu Việt–Mường thật và 200 000 câu tiếng Mường đơn ngữ. Sau khi
+      back-translate toàn bộ dữ liệu đơn ngữ và trộn với dữ liệu thật, bạn có bao nhiêu cặp
+      câu để huấn luyện?
+    dap_an: 220000
+    sai_so: 0.5
+    giai_thich: >-
+      20 000 cặp thật + 200 000 cặp giả = 220 000 cặp. Nhưng chú ý: gấp 11 lần số cặp KHÔNG
+      có nghĩa là gấp 11 lần chất lượng — 200 000 cặp kia có phía nguồn do máy sinh, và nếu
+      tỉ lệ giả áp đảo quá mức thì mô hình có thể tệ đi. Thực tế người ta thường lọc bớt và
+      cân tỉ lệ trộn.
+
+  - id: q4
+    loai: nhieu
+    do_kho: 2
+    de: Những rủi ro nào có thật khi dùng back-translation ở cặp ngôn ngữ RẤT ít dữ liệu? (chọn tất cả ý đúng)
+    lua_chon:
+      - Mô hình ngược quá yếu nên câu nguồn giả sinh ra gần như vô nghĩa
+      - Trộn quá nhiều cặp giả so với cặp thật có thể làm mô hình tệ đi
+      - Dữ liệu đơn ngữ có thể lệch miền so với việc bạn cần dịch
+      - Back-translation làm mất dữ liệu song ngữ thật đang có
+    dap_an: [0, 1, 2]
+    giai_thich: >-
+      Ba rủi ro đầu đều thật. Ý cuối sai: back-translation chỉ THÊM dữ liệu, không xoá gì.
+      Về rủi ro thứ nhất, Edunov et al. 2018 nói rõ rằng cách sinh bằng sampling hay beam có
+      nhiễu mạnh hơn beam thường "in all but resource poor settings" — nghĩa là ở hoàn cảnh
+      thật sự nghèo dữ liệu, beam thường an toàn hơn.
+
+  - id: q5
+    loai: mot
+    do_kho: 2
+    de: >-
+      Bạn có đúng 20 000 cặp câu Việt–Mường và một GPU. Nước đi đầu tiên hợp lý nhất là gì?
+    lua_chon:
+      - Huấn luyện một Transformer từ đầu trên 20 000 cặp câu đó
+      - Fine-tune một mô hình dịch đa ngữ có sẵn (NLLB-200, mBART, M2M-100) trên 20 000 cặp đó
+      - Thu thập thêm 20 000 cặp nữa rồi mới bắt đầu
+      - Viết luật dịch thủ công bằng từ điển
+    dap_an: 1
+    giai_thich: >-
+      Huấn luyện từ đầu trên vài chục nghìn cặp gần như chắc chắn thất bại: Koehn & Knowles
+      2017 đo được NMT chỉ đạt 1.6 BLEU ở mốc dữ liệu nhỏ nhất. Mô hình đa ngữ đã học sẵn
+      cấu trúc chung của ngôn ngữ từ hàng trăm ngôn ngữ khác, nên 20 000 cặp của bạn chỉ
+      phải dạy nó "tiếng Mường trông thế nào" chứ không phải "ngôn ngữ là gì". mBART báo cáo
+      mức cải thiện "tới 12 điểm BLEU cho MT ít tài nguyên".
+
+  - id: q6
+    loai: mot
+    do_kho: 2
+    de: Nhược điểm cốt lõi của cách dịch pivot (ví dụ Mường → Việt → Nhật) là gì?
+    lua_chon:
+      - Chạy chậm gấp đôi vì phải gọi hai mô hình
+      - "Lỗi cộng dồn: chặng hai chỉ thấy bản dịch trung gian, không thấy câu gốc, nên không thể sửa lỗi của chặng một"
+      - Không dùng được nếu ngôn ngữ trung gian không phải tiếng Anh
+      - Cần nhiều dữ liệu hơn cách dịch thẳng
+    dap_an: 1
+    giai_thich: >-
+      Chậm gấp đôi là bất tiện, nhưng lỗi cộng dồn mới là vấn đề chất lượng: sắc thái, đại từ
+      xưng hô, thể lịch sự mất ở chặng trung gian thì chặng sau không có cách nào khôi phục.
+      Đây chính là động cơ của M2M-100: nhóm tác giả cho thấy dịch THẲNG giữa các cặp không
+      có tiếng Anh cho "hơn 10 BLEU" so với đi vòng qua tiếng Anh.
+
+  - id: q7
+    loai: nhieu
+    do_kho: 2
+    de: Đâu là khác biệt ĐÚNG giữa back-translation và self-training (forward translation)? (chọn tất cả ý đúng)
+    lua_chon:
+      - Back-translation dùng dữ liệu đơn ngữ phía đích; self-training dùng dữ liệu đơn ngữ phía nguồn
+      - Ở back-translation phía đích là câu người viết; ở self-training phía đích là câu máy sinh
+      - Self-training rủi ro hơn vì mô hình học lại chính lỗi của mình
+      - Self-training luôn cho kết quả tốt hơn back-translation
+    dap_an: [0, 1, 2]
+    giai_thich: >-
+      Ba ý đầu là ba mặt của cùng một khác biệt. Ý cuối sai: chính vì đặt câu máy sinh ở phía
+      đích mà self-training dễ khuếch đại lỗi hơn, nên nó thường được dùng bổ sung chứ không
+      thay thế back-translation.
+
+  - id: q8
+    loai: mot
+    do_kho: 3
+    de: >-
+      Bạn có 500 000 cặp câu Việt–Anh cào từ web, và cần một hệ dịch hồ sơ bệnh án. Ngân
+      sách tính toán chỉ đủ huấn luyện trên 50 000 cặp. Nên làm gì?
+    lua_chon:
+      - Lấy ngẫu nhiên 50 000 cặp cho công bằng
+      - Lấy 50 000 cặp đầu tiên trong file cho nhanh
+      - Chấm điểm mọi câu theo độ giống một mẫu văn bản y tế (tf-idf + cosine, hoặc chênh lệch perplexity) rồi lấy 50 000 cặp giống nhất
+      - Lấy 50 000 cặp DÀI nhất vì câu dài chứa nhiều thông tin hơn
+    dap_an: 2
+    giai_thich: >-
+      Đây là chọn dữ liệu theo miền. Khi ngân sách bị giới hạn, chọn đúng miền quan trọng hơn
+      lấy nhiều: 50 000 câu đúng miền thường hơn hẳn 500 000 câu tạp nham. Lấy ngẫu nhiên giữ
+      nguyên tỉ lệ lệch miền của kho gốc; lấy câu dài nhất chỉ tạo thiên lệch về độ dài.
+
+  - id: q9
+    loai: so
+    do_kho: 1
+    de: >-
+      Theo bài báo NLLB (bản Nature 2024), mô hình NLLB-200 cải thiện chất lượng dịch trung
+      bình bao nhiêu PHẦN TRĂM BLEU so với các mô hình tốt nhất trước đó?
+    dap_an: 44
+    sai_so: 0.5
+    giai_thich: >-
+      Trung bình 44% cải thiện theo BLEU, đo trên FLORES-200 với hơn 40 000 hướng dịch. Lưu ý
+      đây là mức cải thiện TƯƠNG ĐỐI (phần trăm), không phải cộng thêm 44 điểm BLEU — một
+      nhầm lẫn rất phổ biến khi đọc lướt.
+
+  - id: q10
+    loai: mot
+    do_kho: 3
+    de: >-
+      Hai hệ dịch Việt → Mường chênh nhau 1 BLEU trên bộ test 300 câu. Kết luận nào hợp lý?
+    lua_chon:
+      - Hệ cao điểm hơn chắc chắn tốt hơn, cứ chọn nó
+      - Chênh lệch này có thể chỉ là ngẫu nhiên; cần khoảng tin cậy (bootstrap) và người bản ngữ chấm tay trước khi kết luận
+      - Phải bỏ cả hai hệ vì điểm quá thấp
+      - Nên đổi sang đo bằng số câu dịch đúng hoàn toàn
+    dap_an: 1
+    giai_thich: >-
+      Bộ test nhỏ thì điểm nhiễu, và 1 BLEU trên 300 câu rất dễ nằm trong khoảng dao động
+      ngẫu nhiên. Cách làm đúng: báo cáo khoảng tin cậy bằng bootstrap resampling, chia test
+      theo miền để xem hệ nào hỏng ở đâu, và cho vài trăm câu qua người bản ngữ chấm — nhất
+      là ở ngôn ngữ mà thước đo tự động chưa được kiểm chứng.

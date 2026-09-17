@@ -1,0 +1,218 @@
+---
+ten_vi: "Mô hình chuỗi sang chuỗi (seq2seq)"
+ten_en: "Sequence-to-Sequence (Encoder–Decoder)"
+tang: 5
+thu_tu: 35
+tien_quyet: ["embedding", "mlp"]
+trang_thai: nhap
+dinh_nghia: >-
+  Kiến trúc mạng neuron nhận vào một chuỗi và sinh ra một chuỗi khác, có thể khác độ dài, gồm hai
+  phần: bộ mã hoá (encoder) đọc hết câu nguồn rồi nén thành một vector ngữ cảnh cố định, và bộ
+  giải mã (decoder) sinh câu đích từng từ một, mỗi từ dựa vào vector ngữ cảnh đó và các từ đã sinh.
+truc_giac: >-
+  Giống một người phiên dịch nghe hết cả câu tiếng Việt, gấp sổ lại, ghi nhớ ý trong đầu, rồi mới
+  bắt đầu nói tiếng Anh mà không được nhìn lại câu gốc lần nào nữa. "Ý nhớ trong đầu" chính là
+  vector ngữ cảnh: một dãy số có kích thước cố định, dù câu gốc dài ba từ hay ba mươi từ.
+hieu_nham:
+  - "Câu đích KHÔNG cần cùng độ dài với câu nguồn. Bộ giải mã tự quyết định dừng khi nào bằng cách sinh ra token kết thúc <eos>, nên 3 từ tiếng Việt có thể ra 5 từ tiếng Anh."
+  - "Vector ngữ cảnh có kích thước CỐ ĐỊNH (bằng số chiều trạng thái ẩn), không lớn lên theo độ dài câu. Đây chính là nút thắt khiến seq2seq cơ bản dịch câu dài rất kém."
+  - "Bộ mã hoá và bộ giải mã là hai mạng riêng, với hai bộ trọng số riêng; chúng chỉ gặp nhau ở vector ngữ cảnh."
+  - "Bộ giải mã không sinh thẳng ra từ. Mỗi bước nó cho một phân bố xác suất softmax trên TOÀN BỘ từ vựng đích, rồi ta mới chọn từ từ phân bố đó."
+  - "Khi huấn luyện, đầu vào của bộ giải mã ở mỗi bước là từ ĐÚNG trong câu tham chiếu (teacher forcing), không phải từ mà mô hình vừa đoán."
+y_chinh:
+  - "Seq2seq = bộ mã hoá (chuỗi → một vector ngữ cảnh) + bộ giải mã (vector ngữ cảnh → chuỗi), hai mạng riêng nối nhau qua vector đó"
+  - "Bộ mã hoá là RNN chạy qua từng từ: h₍t₎ = tanh(W_h·h₍t−1₎ + W_x·x₍t₎ + b); vector ngữ cảnh c = h₍T₎, trạng thái ẩn cuối"
+  - "c có shape cố định (k,) dù câu nguồn dài bao nhiêu — nút thắt ngữ cảnh (bottleneck)"
+  - "Bộ giải mã sinh từng từ: mỗi bước cho một phân bố softmax trên từ vựng đích, chọn một từ, rồi đưa lại vào bước sau; dừng khi sinh <eos>"
+  - "Huấn luyện bằng teacher forcing (đưa từ đúng vào bước sau) + loss cross-entropy trên từng vị trí"
+  - "Câu càng dài thì thông tin từ đầu câu càng mờ đi trong c; đây là lý do cơ chế chú ý ra đời"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=L8HKweZIOmg
+    tieu_de: "Sequence-to-Sequence (seq2seq) Encoder-Decoder Neural Networks, Clearly Explained!!!"
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Dựng cả mô hình dịch máy đồ chơi bằng tay, từng con số một, trên một câu 4 từ. Nên xem đầu tiên.
+  - url: https://arxiv.org/abs/1409.3215
+    tieu_de: Sequence to Sequence Learning with Neural Networks
+    tac_gia: "Ilya Sutskever, Oriol Vinyals, Quoc V. Le"
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Bài báo gốc (2014) đặt nền cho seq2seq. Đọc mục 2–3 là đủ hiểu kiến trúc; phần còn lại là kết quả thực nghiệm.
+  - url: https://d2l.ai/chapter_recurrent-modern/seq2seq.html
+    tieu_de: "Dive into Deep Learning — 10.7. Sequence-to-Sequence Learning for Machine Translation"
+    tac_gia: "Aston Zhang, Zachary C. Lipton, Mu Li, Alexander J. Smola"
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Sách mở, có hình kiến trúc rõ ràng và code chạy được. Đọc khi muốn thấy chi tiết teacher forcing và masking.
+---
+
+import NutThatNguCanh from '../../src/viz/NutThatNguCanh.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Bài toán: vào một chuỗi, ra một chuỗi khác
+
+Các mô hình đã học cho tới giờ nhận **một vector** rồi trả **một số** hoặc **một nhãn**. Dịch máy không như vậy:
+
+> `con mèo đen` → `the black cat`
+
+Đầu vào là một chuỗi, đầu ra cũng là một chuỗi, và **hai chuỗi không nhất thiết bằng nhau về độ dài**:
+
+> `tôi ăn cơm rồi` (4 từ) → `I have already eaten` (4 từ)
+> `nhà tôi` (2 từ) → `my house` (2 từ) nhưng `nhà tôi ở Hà Nội` (5 từ) → `I live in Hanoi` (4 từ)
+
+Một MLP có số đầu vào và số đầu ra cố định, không xử lý được việc này. **Seq2seq** là kiến trúc đầu tiên giải quyết trọn vẹn: *chuỗi vào, chuỗi ra, độ dài tuỳ ý*.
+
+## Hai nửa: bộ mã hoá và bộ giải mã
+
+Ý tưởng là tách làm hai mạng:
+
+| Phần | Việc của nó | Vào | Ra |
+|---|---|---|---|
+| **Bộ mã hoá** (encoder) | đọc hết câu nguồn, nén lại thành "ý" | chuỗi embedding tiếng Việt | **một** vector ngữ cảnh $c$ |
+| **Bộ giải mã** (decoder) | từ "ý" đó, nói lại bằng tiếng Anh | $c$ + các từ đã sinh | từng từ tiếng Anh, một từ mỗi bước |
+
+Cả hai thường là **RNN**: một mạng đọc chuỗi theo thứ tự, giữ một **trạng thái ẩn** $h$ và cập nhật nó sau mỗi từ.
+
+$$
+h_t = \tanh(W_h \, h_{t-1} + W_x \, x_t + b)
+$$
+
+Đọc công thức này như một câu: *"trí nhớ mới = trộn trí nhớ cũ với từ vừa đọc, rồi bóp về khoảng (−1, 1) bằng tanh"*. Cùng một bộ trọng số $W_h, W_x, b$ được dùng lại ở **mọi** bước, nên mạng chạy được với câu dài bao nhiêu cũng được.
+
+Sau khi đọc hết $T$ từ, ta lấy trạng thái cuối cùng làm **vector ngữ cảnh**:
+
+$$
+c = h_T
+$$
+
+<CauHoi cau="seq2seq/q2" />
+
+## Chạy tay bộ mã hoá trên "con mèo đen"
+
+Lấy một mô hình đồ chơi: embedding 2 chiều, trạng thái ẩn 2 chiều, $W_h = 0{,}9 I$, $W_x = I$, $b = 0$, $h_0 = (0, 0)$.
+
+Embedding ba từ nguồn (giả sử đã học được):
+
+$$
+x_{\text{con}} = (1,\, 0), \qquad x_{\text{mèo}} = (0,\, 1), \qquad x_{\text{đen}} = (1,\, 1)
+$$
+
+Mỗi bước làm đúng một việc: nhân trạng thái cũ với $0{,}9$, cộng embedding, lấy $\tanh$.
+
+| $t$ | từ | $x_t$ | $0{,}9\,h_{t-1} + x_t$ | $h_t = \tanh(\cdot)$ |
+|---|---|---|---|---|
+| 1 | con | (1, 0) | (1; 0) | **(0,7616; 0,0000)** |
+| 2 | mèo | (0, 1) | (0,6854; 1,0000) | **(0,5950; 0,7616)** |
+| 3 | đen | (1, 1) | (1,5355; 1,6854) | **(0,9114; 0,9336)** |
+
+Kiểm lại bước 2 cho chắc: $0{,}9 \times 0{,}7616 = 0{,}6854$, cộng $x_1 = 0$ vẫn là $0{,}6854$, và $\tanh(0{,}6854) = 0{,}5950$. Thành phần thứ hai: $0{,}9 \times 0 + 1 = 1$, $\tanh(1) = 0{,}7616$.
+
+Vậy vector ngữ cảnh của cả câu là
+
+$$
+c = h_3 = (0{,}9114;\ 0{,}9336)
+$$
+
+**Hai con số này là tất cả những gì bộ giải mã được biết về câu tiếng Việt.**
+
+## Bộ giải mã sinh từng từ
+
+Bộ giải mã là một RNN khác, khởi động từ $c$. Ở bước đầu nó chưa sinh được từ nào nên đầu vào là token bắt đầu `<bos>` với embedding $(0, 0)$. Lấy $W_s = I$ cho gọn:
+
+$$
+s_1 = \tanh(W_s\, c + W_y\, y_0) = \tanh(0{,}9114;\ 0{,}9336) = (0{,}7218;\ 0{,}7323)
+$$
+
+Giờ biến trạng thái $s_1$ thành **xác suất của từng từ trong từ vựng đích**. Từ vựng đồ chơi có 4 mục, mỗi mục một hàng của ma trận $V$ shape $(4, 2)$:
+
+$$
+V = \begin{pmatrix} 2 & 0 \\ 0 & 1 \\ -1 & 0 \\ 0 & -2 \end{pmatrix}
+\begin{matrix} \leftarrow \text{the} \\ \leftarrow \text{black} \\ \leftarrow \text{cat} \\ \leftarrow \texttt{<eos>} \end{matrix}
+$$
+
+Điểm thô (logit) của mỗi từ là tích vô hướng hàng đó với $s_1$:
+
+$$
+z = V s_1 = (1{,}4436;\ 0{,}7323;\ -0{,}7218;\ -1{,}4645)
+$$
+
+Rồi [softmax](/khai-niem/softmax) biến điểm thành xác suất. $e^{1{,}4436} = 4{,}2358$, $e^{0{,}7323} = 2{,}0798$, $e^{-0{,}7218} = 0{,}4859$, $e^{-1{,}4645} = 0{,}2312$; tổng $= 7{,}0326$:
+
+| từ | logit | $e^{\text{logit}}$ | xác suất |
+|---|---|---|---|
+| the | 1,4436 | 4,2358 | **0,6023** |
+| black | 0,7323 | 2,0798 | 0,2957 |
+| cat | −0,7218 | 0,4859 | 0,0691 |
+| `<eos>` | −1,4645 | 0,2312 | 0,0329 |
+
+Mô hình chọn từ có xác suất cao nhất: **the**. Bước sau, `the` được đưa ngược trở lại làm đầu vào của bộ giải mã, cho $s_2$, lại softmax, ra `black`, rồi `cat`, rồi `<eos>` thì dừng.
+
+Chú ý ba điều:
+
+- Từ vựng thật có vài chục nghìn mục, nên $V$ shape cỡ $(32000, 512)$ và mỗi bước là một softmax trên 32000 số.
+- **Độ dài câu đích do mô hình tự quyết**: nó dịch tới khi nào tự sinh `<eos>`.
+- Vector ngữ cảnh $c$ **không đổi** suốt quá trình sinh. Đây là điểm yếu chí mạng.
+
+<CauHoi cau="seq2seq/q5" />
+
+## Nút thắt ngữ cảnh
+
+Câu nguồn 3 từ hay 30 từ đều bị nén vào **đúng chừng ấy con số**. Càng đọc thêm từ mới, trạng thái ẩn càng bị ghi đè, và dấu vết của những từ đầu câu mờ dần.
+
+Ta đo được điều này: chạy bộ mã hoá hai lần trên cùng một câu, chỉ **đổi từ thứ nhất** (`mèo` → `chó`), rồi xem vector ngữ cảnh cuối cùng lệch đi bao nhiêu. Nếu $c$ còn "nhớ" từ đầu câu thì độ lệch phải đáng kể.
+
+<NutThatNguCanh
+  client:visible
+  n={2}
+  duDoan={{
+    de: "Câu nguồn dài dần từ 2 lên 20 từ. Dấu vết của từ ĐẦU câu trong vector ngữ cảnh c sẽ thế nào?",
+    lua_chon: ["Giữ gần như nguyên, vì c luôn có đủ chỗ", "Tăng lên, vì câu chứa nhiều thông tin hơn", "Giảm rất nhanh, gần như về 0"],
+    dap_an: 2,
+    giai_thich: "Mỗi bước, phần đóng góp của trạng thái cũ bị nhân với 0,9 rồi ép qua tanh (đạo hàm tanh luôn ≤ 1), nên ảnh hưởng của từ đầu câu co lại theo cấp số nhân. Ở n = 2 độ lệch còn 1,153; tới n = 10 chỉ còn 0,046; tới n = 20 còn 0,002 — tức là dưới 0,2% so với lúc câu chỉ có 1 từ. Câu tiếng Việt thật thường 20–30 từ, nên phần đầu câu coi như đã mất."
+  }}
+/>
+
+Bảng tự do, kéo thanh trượt để xem độ dài nào cũng được:
+
+<NutThatNguCanh client:visible />
+
+Hệ quả thực tế: seq2seq cơ bản dịch câu ngắn khá ổn nhưng **xuống dốc rõ rệt** khi câu dài ra, thường bỏ sót hoặc lặp lại phần đầu câu. Bài báo gốc của Sutskever và cộng sự thậm chí phải **đảo ngược thứ tự câu nguồn** khi huấn luyện, chỉ để những từ đầu câu nguồn nằm gần bộ giải mã hơn — một mẹo nói lên nút thắt này nghiêm trọng đến mức nào.
+
+## Huấn luyện: teacher forcing
+
+Khi huấn luyện, ta có sẵn cặp câu `con mèo đen` ↔ `the black cat`. Nếu để mô hình tự đưa từ vừa đoán vào bước sau, một lỗi ở bước 1 sẽ kéo sập cả câu và mạng gần như không học được gì lúc đầu.
+
+Cách làm chuẩn là **teacher forcing**: ở mỗi bước, đưa vào bộ giải mã **từ đúng** trong câu tham chiếu, bất kể mô hình vừa đoán gì.
+
+| Bước | Đầu vào bộ giải mã | Mục tiêu cần đoán |
+|---|---|---|
+| 1 | `<bos>` | the |
+| 2 | the | black |
+| 3 | black | cat |
+| 4 | cat | `<eos>` |
+
+Loss là tổng [cross-entropy](/khai-niem/cross-entropy) trên cả 4 vị trí, rồi [lan truyền ngược](/khai-niem/lan-truyen-nguoc) qua cả bộ giải mã lẫn bộ mã hoá — hai mạng được huấn luyện **cùng lúc**, dù chúng không dùng chung trọng số.
+
+Mặt trái: lúc huấn luyện mô hình luôn được "mớm" từ đúng, còn lúc dịch thật thì phải tự ăn từ mình vừa đoán. Chênh lệch giữa hai chế độ này gọi là *exposure bias*.
+
+<CauHoi cau="seq2seq/q8" />
+
+## Lúc dịch thật: chọn từ thế nào?
+
+Mỗi bước cho một phân bố xác suất, và có nhiều cách chọn:
+
+- **Greedy**: luôn lấy từ có xác suất cao nhất. Nhanh, nhưng một lựa chọn tham lam ở bước 1 có thể dẫn cả câu vào ngõ cụt.
+- **Beam search**: giữ song song $k$ câu dở dang có điểm cao nhất (thường $k = 4$ hoặc $5$), tới cuối mới chọn câu tốt nhất. Chậm hơn $k$ lần nhưng dịch tốt hơn rõ rệt, nên gần như mọi hệ dịch máy đều dùng.
+- **Lấy mẫu** theo xác suất: cho ra câu đa dạng hơn, hợp với sinh văn bản sáng tạo hơn là dịch.
+
+## Tóm tắt
+
+- Seq2seq gồm **bộ mã hoá** nén câu nguồn thành một vector ngữ cảnh $c$, và **bộ giải mã** sinh câu đích từng từ từ $c$.
+- Bộ mã hoá RNN: $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$, và $c = h_T$. Trên ví dụ `con mèo đen`: $c = (0{,}9114;\ 0{,}9336)$.
+- Bộ giải mã mỗi bước cho một softmax trên toàn bộ từ vựng đích, chọn một từ, đưa lại vào bước sau, dừng khi gặp `<eos>`. Nhờ vậy câu đích được **tự do về độ dài**.
+- Huấn luyện bằng teacher forcing + cross-entropy; lúc dịch dùng greedy hoặc beam search.
+- **Nút thắt**: $c$ có kích thước cố định nên câu càng dài, thông tin đầu câu càng mất. Lời giải cho đúng vấn đề này là [cơ chế chú ý](/khai-niem/attention) — cho bộ giải mã nhìn lại toàn bộ câu nguồn ở mỗi bước, thay vì chỉ một vector.

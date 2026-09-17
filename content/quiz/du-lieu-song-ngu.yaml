@@ -1,0 +1,135 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: "Corpus song ngữ (bitext) là gì?"
+    lua_chon:
+      - Một từ điển hai chiều giữa hai ngôn ngữ
+      - Tập các cặp câu đã ghép đôi, mỗi cặp gồm một câu nguồn và bản dịch của nó
+      - Hai kho văn bản độc lập, mỗi kho một ngôn ngữ
+      - Tập câu đã được tách từ bằng cùng một tokenizer
+    dap_an: 1
+    giai_thich: >-
+      Bitext là các CẶP câu đã căn chỉnh — đúng dạng mà mô hình seq2seq cần để học. Hai kho văn bản
+      độc lập không ghép đôi là dữ liệu ĐƠN ngữ, dùng theo cách khác (back-translation, tiền huấn luyện).
+
+  - id: q2
+    loai: mot
+    do_kho: 2
+    de: "Vì sao thêm dữ liệu song ngữ đôi khi làm mô hình dịch TỆ đi?"
+    lua_chon:
+      - Vì mô hình bị giới hạn số cặp câu tối đa
+      - Vì dữ liệu thêm vào có thể là cặp ghép lệch, đầu ra dịch máy hoặc sai ngôn ngữ, và mô hình học hết mà không phân biệt được
+      - Vì thêm dữ liệu luôn làm learning rate phải giảm
+      - Vì BLEU giảm khi tập huấn luyện lớn hơn
+    dap_an: 1
+    giai_thich: >-
+      Mô hình không có cách nào kiểm chứng dữ liệu của nó; một cặp ghép lệch được học nghiêm túc y
+      như một cặp đúng. Một triệu cặp sạch thường tốt hơn năm triệu cặp lẫn rác. Đó là lý do khâu
+      lọc chiếm phần lớn công sức của một dự án dịch máy.
+
+  - id: q3
+    loai: mot
+    do_kho: 2
+    de: "Vì sao căn chỉnh câu (sentence alignment) không đơn giản là ghép câu thứ i với câu thứ i?"
+    lua_chon:
+      - Vì hai ngôn ngữ luôn có số câu bằng nhau nhưng khác thứ tự
+      - Vì người dịch có thể tách một câu thành hai, gộp hai câu thành một, lược bỏ hoặc thêm câu
+      - Vì câu trong tài liệu không được đánh số
+      - Vì thuật toán căn chỉnh chỉ chạy được trên tiếng Anh
+    dap_an: 1
+    giai_thich: >-
+      Ngoài kiểu 1–1 còn có 1–2, 2–1, 1–0 và 0–1. Chỉ cần một chỗ 1–2 ở đầu tài liệu mà không xử lý
+      là toàn bộ phần sau lệch một câu, sinh ra hàng nghìn cặp rác trông rất giống dữ liệu thật.
+
+  - id: q4
+    loai: nhieu
+    do_kho: 2
+    de: "Những luật lọc rẻ tiền nào thường được chạy đầu tiên trên một corpus song ngữ crawl về? (chọn tất cả ý đúng)"
+    lua_chon:
+      - Bỏ cặp có một vế rỗng
+      - Bỏ cặp có tỉ lệ độ dài hai vế bất thường (ví dụ lệch hơn 3 lần)
+      - Bỏ cặp trùng lặp hoàn toàn
+      - Bỏ mọi cặp có câu dài hơn 10 từ
+    dap_an: [0, 1, 2]
+    giai_thich: >-
+      Ba luật đầu rẻ và loại được phần lớn rác. Ý cuối sai: câu dài là dữ liệu tốt và cần thiết;
+      chỉ nên cắt ở ngưỡng rất cao (khoảng 200–250 token) vì câu quá dài thường là lỗi căn chỉnh
+      nuốt nhiều câu vào một cặp.
+
+  - id: q5
+    loai: so
+    do_kho: 2
+    de: >-
+      Bạn lọc theo luật "tỉ lệ độ dài (tính bằng số từ) giữa vế dài và vế ngắn không được vượt quá 3".
+      Vế tiếng Anh có 5 từ, vế tiếng Việt có 18 từ. Tỉ lệ bằng bao nhiêu?
+    dap_an: 3.6
+    sai_so: 0.01
+    giai_thich: >-
+      18 / 5 = 3.6, vượt ngưỡng 3 nên cặp này bị loại. Tỉ lệ lệch lớn giữa Anh và Việt gần như
+      luôn là dấu hiệu ghép lệch, vì bản dịch Anh–Việt thường xấp xỉ nhau về số token.
+
+  - id: q6
+    loai: mot
+    do_kho: 3
+    de: "Rò rỉ tập test (test set leakage) trong dịch máy nghĩa là gì và vì sao nguy hiểm?"
+    lua_chon:
+      - Tập test bị lộ ra công chúng trước ngày thi, nên các đội có thể xem trước
+      - Câu trong tập test cũng có trong tập huấn luyện, nên mô hình chỉ cần nhớ chứ không cần dịch, làm mọi điểm đánh giá thành điểm giả
+      - Tập test quá nhỏ nên phương sai của điểm BLEU lớn
+      - Tập test lấy từ miền văn bản khác với tập huấn luyện
+    dap_an: 1
+    giai_thich: >-
+      Chuyện này rất dễ xảy ra khi cả tập test lẫn tập huấn luyện đều lấy từ web, vì cùng một bài
+      báo được đăng lại nhiều nơi. Cách phòng: chuẩn hoá rồi loại khỏi tập huấn luyện mọi cặp có
+      vế nguồn HOẶC vế đích trùng với tập test — một bản dịch khác đôi chút của cùng câu nguồn vẫn là rò rỉ.
+
+  - id: q7
+    loai: mot
+    do_kho: 3
+    de: >-
+      Trong back-translation để cải thiện mô hình dịch Anh→Việt, người ta dịch ngược kho đơn ngữ
+      TIẾNG VIỆT sang tiếng Anh bằng một mô hình Việt→Anh. Vì sao làm theo chiều đó chứ không
+      dịch kho tiếng Anh sang tiếng Việt?
+    lua_chon:
+      - Vì kho đơn ngữ tiếng Việt luôn lớn hơn kho tiếng Anh
+      - Vì làm vậy thì vế ĐÍCH (tiếng Việt) là câu người viết thật, mô hình học sinh ra tiếng Việt tự nhiên; nhiễu chỉ nằm ở phía đầu vào
+      - Vì mô hình Việt→Anh luôn chính xác hơn mô hình Anh→Việt
+      - Vì chỉ chiều đó mới tạo được cặp câu hợp lệ
+    dap_an: 1
+    giai_thich: >-
+      Mô hình học sinh ra vế đích, nên vế đích phải là văn bản người viết thật. Vế nguồn do máy sinh
+      có thể vụng về, nhưng mô hình chịu nhiễu ở đầu vào tốt hơn nhiều so với chịu nhiễu ở đầu ra.
+      Đây là ý tưởng của Sennrich và cộng sự (ACL 2016).
+
+  - id: q8
+    loai: mot
+    do_kho: 2
+    de: "Bộ dữ liệu PhoMT (EMNLP 2021) cho cặp Việt–Anh có bao nhiêu cặp câu?"
+    lua_chon:
+      - Khoảng 0.12 triệu
+      - Khoảng 3.02 triệu
+      - Khoảng 10.8 tỉ
+      - Khoảng 300 nghìn
+    dap_an: 1
+    giai_thich: >-
+      PhoMT có 3.02 triệu cặp câu, lớn hơn benchmark IWSLT15 En–Vi đúng 2.9 triệu cặp (vậy IWSLT15
+      khoảng 0.12 triệu). Con số 10.8 tỉ là của CCMatrix — tổng số cặp khai thác được cho 90 ngôn ngữ,
+      không phải riêng Việt–Anh.
+
+  - id: q9
+    loai: nhieu
+    do_kho: 3
+    de: "Vì sao huấn luyện mô hình dịch trên dữ liệu web crawl thô là rủi ro? (chọn tất cả ý đúng)"
+    lua_chon:
+      - Một phần lớn nội dung đa ngữ trên web chính là đầu ra của dịch máy, nên mô hình học lại lỗi của mô hình khác
+      - Kiểm toán thủ công cho thấy tỉ lệ dữ liệu sai rất cao ở các ngôn ngữ ít tài nguyên
+      - Dữ liệu crawl có thể chứa thông tin cá nhân và văn bản không có giấy phép cho phép huấn luyện
+      - Dữ liệu crawl luôn quá ít để huấn luyện được mô hình
+    dap_an: [0, 1, 2]
+    giai_thich: >-
+      Thompson và cộng sự (Findings of ACL 2024) cho thấy nội dung dịch máy chiếm tỉ trọng lớn trên
+      web ở các ngôn ngữ ít tài nguyên. Kreutzer và cộng sự (TACL 2022) cho người biết tiếng đọc mẫu
+      và tìm ra tỉ lệ rác rất cao ở nhiều bộ dữ liệu nổi tiếng. Vấn đề PII và giấy phép là có thật.
+      Ý cuối sai — crawl cho ra RẤT nhiều dữ liệu, vấn đề nằm ở chất lượng chứ không phải số lượng.

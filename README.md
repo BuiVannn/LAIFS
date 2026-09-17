@@ -36,4 +36,6 @@ Lưu trong localStorage (khoá `laifs:v1`, xem `src/tien-do.ts`): kết quả t�
 
 ## Quy trình duyệt
 
+Mục danh sách trong YAML chứa `: ` phải bọc nháy kép, nếu không cả file quiz sẽ không nạp được.
+
 AI/người soạn để `trang_thai: nhap` → người duyệt chạy qua checklist ở mục 7 của KHUNG-Y-TUONG.md → đổi thành `da_duyet`, điền `nguoi_duyet`.

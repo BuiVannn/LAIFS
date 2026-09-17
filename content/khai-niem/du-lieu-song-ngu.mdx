@@ -1,0 +1,215 @@
+---
+ten_vi: "Dữ liệu song ngữ"
+ten_en: "Parallel Corpora / Bitext"
+tang: 5
+thu_tu: 40
+tien_quyet: ["dich-may-nmt"]
+trang_thai: nhap
+dinh_nghia: >-
+  Corpus song ngữ (bitext) là tập hợp các cặp câu đã được ghép đôi: một câu ở ngôn ngữ nguồn và
+  bản dịch của nó ở ngôn ngữ đích. Đây là dữ liệu huấn luyện của mọi hệ dịch máy; chất lượng và
+  kích thước của nó quyết định chất lượng mô hình nhiều hơn kiến trúc mạng.
+truc_giac: >-
+  Mô hình dịch học bằng cách xem hàng triệu ví dụ "câu này bên kia nói thế nào". Nó không có cách
+  nào biết ví dụ nào là bản dịch thật của người, ví dụ nào là đầu ra của Google Dịch đã bị crawl
+  lại, ví dụ nào là hai câu chẳng liên quan bị ghép nhầm. Nó tin hết. Vì vậy dọn dữ liệu không
+  phải việc phụ — nó là phần lớn công việc.
+hieu_nham:
+  - "Nhiều dữ liệu hơn không luôn tốt hơn: thêm vài triệu cặp câu nhiễu có thể làm mô hình tệ đi so với chỉ dùng một triệu cặp sạch."
+  - "Dữ liệu web crawl không phải là dữ liệu miễn phí và sạch. Một phần lớn nội dung đa ngữ trên web chính là đầu ra dịch máy, nên huấn luyện trên đó là học lại lỗi của chính dịch máy."
+  - "Dữ liệu đơn ngữ (chỉ một thứ tiếng) vẫn dùng được cho dịch máy qua back-translation và tiền huấn luyện — không phải chỉ dữ liệu song ngữ mới có giá trị."
+  - "Rò rỉ tập test không chỉ xảy ra khi copy nguyên văn: cùng một câu xuất hiện ở hai nguồn crawl khác nhau, khác vài dấu câu, cũng đủ làm điểm đánh giá tăng ảo."
+y_chinh:
+  - Bitext là các cặp câu đã căn chỉnh; nguồn chính gồm kho tổng hợp (OPUS), văn bản dịch chính thức, và web crawl
+  - Căn chỉnh câu là bước biến hai tài liệu song song thành các cặp câu, và nó không phải lúc nào cũng 1-1
+  - Lọc nhiễu là bắt buộc — bỏ trùng lặp, tỉ lệ độ dài bất thường, sai ngôn ngữ, lệch nội dung, dịch máy sẵn
+  - Rò rỉ tập test làm mọi con số đánh giá vô nghĩa, nên phải lọc tập test ra khỏi tập huấn luyện trước khi huấn luyện
+  - "Dữ liệu đơn ngữ dùng được qua back-translation và tiền huấn luyện"
+  - "Kích thước thực tế chênh nhau hàng nghìn lần giữa các cặp ngôn ngữ; En–Vi ở mức vài triệu cặp"
+  - Bản quyền và đạo đức dữ liệu là vấn đề thật, không phải thủ tục
+tai_lieu:
+  - url: https://opus.nlpl.eu/
+    tieu_de: "OPUS — the open parallel corpus"
+    tac_gia: Jörg Tiedemann và cộng đồng OPUS
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Kho corpus song ngữ mở lớn nhất. Vào tra thử cặp en–vi để thấy có những nguồn nào và mỗi nguồn bao nhiêu cặp câu.
+  - url: https://aclanthology.org/2022.tacl-1.4/
+    tieu_de: "Quality at a Glance: An Audit of Web-Crawled Multilingual Datasets"
+    tac_gia: Kreutzer và cộng sự (TACL 2022)
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Người thật ngồi đọc mẫu từ các bộ dữ liệu đa ngữ nổi tiếng và tìm ra tỉ lệ rác rất lớn ở các ngôn ngữ ít tài nguyên. Đọc để hết ảo tưởng về dữ liệu crawl.
+  - url: https://aclanthology.org/2021.emnlp-main.369/
+    tieu_de: "PhoMT: A High-Quality and Large-Scale Benchmark Dataset for Vietnamese-English Machine Translation"
+    tac_gia: Doan và cộng sự (EMNLP 2021)
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Bộ dữ liệu Việt–Anh 3.02 triệu cặp câu. Đọc mục xây dựng dữ liệu để thấy quy trình crawl, căn chỉnh và lọc trong thực tế.
+---
+
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Bitext là gì
+
+Một **corpus song ngữ** (parallel corpus, hay bitext) là danh sách các cặp câu đã ghép đôi:
+
+| Tiếng Anh | Tiếng Việt |
+|---|---|
+| The meeting was postponed to next week. | Cuộc họp đã bị hoãn sang tuần sau. |
+| Please sign here. | Vui lòng ký vào đây. |
+| He didn't say anything. | Anh ấy không nói gì cả. |
+
+Chỉ vậy thôi. Mô hình seq2seq/Transformer học từ đúng dạng này: đưa vào câu trái, bắt sinh ra câu phải, so với đáp án, cập nhật trọng số.
+
+Điều quan trọng nhất về bitext: **mô hình không có cách nào kiểm chứng dữ liệu của nó**. Nếu bạn đưa vào một cặp câu bị ghép lệch, nó học cặp lệch đó nghiêm túc y như học một cặp đúng. Với vài triệu cặp, chất lượng trung bình của dữ liệu trở thành trần chất lượng của mô hình.
+
+<CauHoi cau="du-lieu-song-ngu/q1" />
+
+## Dữ liệu ở đâu ra
+
+### 1. Kho tổng hợp — OPUS
+
+[OPUS](https://opus.nlpl.eu/) là nơi đầu tiên nên đến. Nó gom hàng chục bộ corpus song ngữ mở về một chỗ, theo cặp ngôn ngữ, tải về được ngay. Với cặp en–vi bạn sẽ thấy những nguồn quen thuộc: phụ đề phim (OpenSubtitles), tài liệu tổ chức quốc tế, TED talks, bản địa hoá phần mềm (GNOME, KDE, Ubuntu), Wikipedia, tin tức tôn giáo, và các bộ crawl.
+
+Lưu ý ngay: các nguồn này **rất khác nhau về miền văn bản**. Phụ đề phim toàn câu nói ngắn, khẩu ngữ, nhiều tiếng lóng. Tài liệu pháp lý thì câu dài, trang trọng. Một mô hình luyện chủ yếu bằng phụ đề sẽ dịch hợp đồng rất kém, dù số cặp câu rất lớn.
+
+### 2. Văn bản dịch chính thức
+
+Nơi có bản dịch thật do người làm, chất lượng cao, thường có giấy phép rõ ràng:
+
+- Biên bản và văn kiện của tổ chức đa ngữ (Liên Hợp Quốc, Nghị viện châu Âu — nguồn kinh điển Europarl).
+- Văn bản pháp luật song ngữ, tài liệu kỹ thuật do doanh nghiệp dịch chính thức.
+- Sách và bài báo có bản dịch chính thức.
+
+Ưu điểm: sạch, câu dài, thuật ngữ nhất quán. Nhược điểm: ít, và miền rất hẹp (hành chính, pháp lý). Với tiếng Việt, nguồn dạng này mỏng hơn nhiều so với các thứ tiếng châu Âu.
+
+### 3. Web crawl và bitext mining
+
+Cách duy nhất để có dữ liệu ở quy mô lớn. Hai kiểu:
+
+**Crawl các trang song ngữ.** Nhiều website có bản tiếng Anh và bản tiếng Việt của cùng một trang. Dự án [ParaCrawl](https://aclanthology.org/2020.acl-main.417/) làm đúng việc này ở quy mô web, kèm công cụ mã nguồn mở cho cả căn chỉnh lẫn lọc.
+
+**Bitext mining.** Không cần trang song song. Lấy hai kho đơn ngữ khổng lồ, nhúng mọi câu vào một không gian vector đa ngữ (LASER, LaBSE), rồi tìm những cặp câu có vector gần nhau bất thường — đó nhiều khả năng là bản dịch của nhau. [CCMatrix](https://aclanthology.org/2021.acl-long.507/) làm thế trên 71 tỉ câu từ Common Crawl và khai thác được 10.8 tỉ cặp câu song song cho 90 ngôn ngữ, trong đó 2.9 tỉ cặp có một vế là tiếng Anh.
+
+Nghe ấn tượng, nhưng đây cũng chính là nguồn nhiễu lớn nhất. Xem phần lọc.
+
+## Căn chỉnh câu
+
+Crawl về bạn có **tài liệu** song song, không phải **câu** song song. Bước biến cái này thành cái kia gọi là **sentence alignment** (căn chỉnh câu).
+
+Vì sao không chỉ đơn giản là "câu thứ i bên này ghép câu thứ i bên kia"? Vì người dịch không dịch theo tỉ lệ 1-1:
+
+| Bên nguồn | Bên đích | Kiểu |
+|---|---|---|
+| 1 câu | 1 câu | 1–1, thường gặp nhất |
+| 1 câu dài | 2 câu ngắn | 1–2, người dịch tách câu |
+| 2 câu | 1 câu | 2–1, người dịch gộp |
+| 1 câu | không có | 1–0, bị lược bỏ |
+| không có | 1 câu | 0–1, người dịch thêm chú thích |
+
+Chỉ cần một chỗ 1–2 ở đầu tài liệu mà không xử lý, toàn bộ phần còn lại sẽ lệch một câu — và bạn có hàng nghìn cặp rác trông rất giống dữ liệu thật.
+
+Các cách làm, theo thứ tự lịch sử:
+
+- **Theo độ dài** (Gale & Church, 1993): câu dài thường dịch thành câu dài. Chỉ dùng số ký tự, không cần hiểu ngôn ngữ. Nhanh, ngạc nhiên là khá tốt với ngôn ngữ gần nhau.
+- **Theo từ điển** (Hunalign và tương tự): kết hợp độ dài với từ điển song ngữ để neo các điểm chắc chắn.
+- **Theo embedding** ([Vecalign](https://aclanthology.org/D19-1136/)): nhúng câu bằng mô hình đa ngữ rồi căn chỉnh theo độ tương đồng vector, chạy trong thời gian tuyến tính. Đây là cách phổ biến hiện nay, và xử lý tốt các cặp ngôn ngữ xa nhau như Anh–Việt.
+
+<CauHoi cau="du-lieu-song-ngu/q3" />
+
+## Lọc nhiễu: phần việc lớn nhất
+
+Đây là chỗ quyết định. Một pipeline lọc điển hình, từ rẻ đến đắt:
+
+**Luật rẻ tiền (chạy trước, loại được phần lớn rác).**
+
+- **Câu rỗng hoặc quá ngắn/quá dài.** Bỏ cặp có vế rỗng, và cặp mà một vế dài hơn 200–250 token (thường là lỗi căn chỉnh nuốt nhiều câu).
+- **Tỉ lệ độ dài bất thường.** Bản dịch Anh–Việt thường dài xấp xỉ nhau về số token. Nếu vế này dài gấp 3 lần vế kia, gần như chắc chắn là ghép lệch. Ngưỡng hay dùng là tỉ lệ 1:3 hoặc 1:4.
+- **Trùng lặp.** Crawl web sinh ra vô số bản sao. Bỏ trùng theo cặp (cả hai vế giống hệt) và cân nhắc bỏ trùng theo một vế (cùng câu nguồn nhưng hai bản dịch khác nhau — giữ một, hoặc giữ cả nếu muốn dạy mô hình sự đa dạng).
+- **Hai vế giống hệt nhau.** Cặp mà câu tiếng Anh và câu "tiếng Việt" y hệt nhau thường là menu, mã sản phẩm, tên riêng chưa dịch. Không dạy được gì.
+- **Sai ngôn ngữ.** Chạy bộ nhận dạng ngôn ngữ (langid, fastText) lên từng vế; vế "tiếng Việt" mà bị nhận là tiếng Anh thì loại.
+
+**Lọc theo mô hình (đắt hơn, chính xác hơn).**
+
+- **Điểm tương đồng đa ngữ.** Chấm mỗi cặp bằng LASER/LaBSE, bỏ các cặp dưới ngưỡng. Bắt được các cặp "cùng chủ đề nhưng không phải bản dịch của nhau".
+- **Bicleaner và tương tự** (từ hệ sinh thái ParaCrawl): mô hình phân loại chuyên chấm điểm chất lượng cặp câu.
+
+**Ba loại nhiễu đặc biệt khó, đáng gọi tên riêng:**
+
+### Dịch máy sẵn
+
+Đây là vấn đề nghiêm trọng và mới. Thompson và cộng sự ([Findings of ACL 2024](https://aclanthology.org/2024.findings-acl.103/)) cho thấy **một phần rất lớn nội dung trên web là sản phẩm của dịch máy**, và nội dung dịch máy đa ngữ này chiếm tỉ trọng lớn trong tổng nội dung web ở các ngôn ngữ ít tài nguyên. Họ còn tìm thấy thiên lệch chọn lọc: nội dung tiếng Anh chất lượng thấp được dịch máy hàng loạt sang nhiều thứ tiếng.
+
+Hậu quả: crawl web về để dạy mô hình dịch, bạn có nguy cơ đang dạy nó bắt chước một mô hình dịch khác — kèm theo mọi lỗi của mô hình đó. Vòng lặp này làm chất lượng đứng yên hoặc tệ đi, và nó tệ nhất đúng ở những ngôn ngữ cần giúp nhất.
+
+### Lệch nội dung
+
+Cặp câu trông hợp lệ nhưng không phải bản dịch: hai câu cùng chủ đề, hoặc bản dịch chỉ đúng một nửa. Kreutzer và cộng sự ([TACL 2022](https://aclanthology.org/2022.tacl-1.4/)) cho người biết tiếng ngồi đọc mẫu từ những bộ dữ liệu đa ngữ được dùng rộng rãi nhất, và tìm ra tỉ lệ dữ liệu sai rất cao ở nhiều ngôn ngữ ít tài nguyên — sai ngôn ngữ, không phải bản dịch, hoặc chỉ là rác. Bài học: **đừng tin nhãn của bộ dữ liệu, hãy tự đọc mẫu 100 cặp trước khi huấn luyện.** Việc này mất một giờ và có thể cứu bạn khỏi một tuần huấn luyện vô ích.
+
+### Rò rỉ tập test
+
+Nếu câu trong tập test cũng nằm trong tập huấn luyện, mô hình chỉ cần nhớ chứ không cần dịch, và điểm BLEU/COMET của bạn là điểm giả. Chuyện này **rất dễ xảy ra** khi cả tập test lẫn tập huấn luyện đều lấy từ web: cùng một bài báo được đăng lại ở nhiều nơi.
+
+Cách phòng: trước khi huấn luyện, chuẩn hoá (hạ chữ hoa, bỏ dấu câu thừa, gộp khoảng trắng) rồi loại khỏi tập huấn luyện mọi cặp có vế nguồn **hoặc** vế đích trùng với tập test. So cả hai vế, vì một bản dịch khác đôi chút của cùng câu nguồn vẫn là rò rỉ.
+
+<CauHoi cau="du-lieu-song-ngu/q6" />
+
+## Dữ liệu đơn ngữ dùng làm gì
+
+Dữ liệu đơn ngữ (chỉ tiếng Việt, hoặc chỉ tiếng Anh) nhiều hơn dữ liệu song ngữ hàng trăm lần và dễ kiếm hơn nhiều. Ba cách tận dụng:
+
+**Back-translation.** Cách hiệu quả và phổ biến nhất ([Sennrich và cộng sự, ACL 2016](https://aclanthology.org/P16-1009/)). Muốn dịch Anh→Việt tốt hơn, bạn:
+
+1. Huấn luyện một mô hình ngược, Việt→Anh, bằng bitext đang có.
+2. Lấy một kho câu **tiếng Việt** đơn ngữ lớn, dịch ngược sang tiếng Anh bằng mô hình đó.
+3. Ghép thành cặp giả (tiếng Anh máy sinh, tiếng Việt thật) và thêm vào dữ liệu huấn luyện Anh→Việt.
+
+Điểm tinh tế: vế **đích** (tiếng Việt) là câu người viết thật, chỉ vế nguồn là máy sinh. Mô hình học sinh ra tiếng Việt tự nhiên; nhiễu nằm ở phía đầu vào, nơi mô hình chịu đựng tốt hơn.
+
+**Tiền huấn luyện.** Các mô hình như mBART, mT5, và mọi LLM hiện nay đều học phần lớn từ văn bản đơn ngữ trước, rồi mới tinh chỉnh bằng bitext. Đây là lý do một mô hình chỉ cần vài chục nghìn cặp song ngữ vẫn dịch được kha khá.
+
+**Mô hình ngôn ngữ cho phía đích.** Trong hệ dịch thống kê cũ, mô hình ngôn ngữ đơn ngữ là thành phần riêng để câu ra trôi chảy. Ngày nay vai trò này đã hoà vào decoder.
+
+## Kích thước thực tế
+
+Đây là chỗ hay gây hiểu nhầm nhất. Chênh lệch giữa các cặp ngôn ngữ không phải vài lần mà là vài nghìn lần.
+
+| Mức | Ví dụ | Quy mô bitext |
+|---|---|---|
+| Rất nhiều tài nguyên | Anh–Pháp, Anh–Đức, Anh–Trung | hàng chục đến hàng trăm triệu cặp sau crawl và lọc |
+| Trung bình | Anh–Việt | vài triệu cặp |
+| Ít tài nguyên | phần lớn trong hơn 7000 ngôn ngữ trên thế giới | vài nghìn đến vài chục nghìn cặp, hoặc không có gì |
+
+Với cặp **Anh–Việt**, vài mốc có nguồn kiểm được:
+
+- **IWSLT15 En–Vi**: bộ benchmark kinh điển, khoảng 0.12 triệu cặp (từ phụ đề TED).
+- **[PhoMT](https://aclanthology.org/2021.emnlp-main.369/)** (EMNLP 2021): 3.02 triệu cặp câu — theo bài báo, lớn hơn IWSLT15 đúng 2.9 triệu cặp.
+- **[MTet](https://arxiv.org/abs/2210.05610)** (2022): 4.2 triệu cặp chất lượng cao, và khi gộp với các công trình trước thì tổng kho Anh–Việt lên khoảng 6.2 triệu cặp.
+
+Vậy Anh–Việt **không phải** ngôn ngữ ít tài nguyên theo nghĩa khắt khe, nhưng cũng kém xa Anh–Đức. Con số chính xác trên OPUS thay đổi theo phiên bản, nên khi cần trích dẫn thì vào tra trực tiếp chứ đừng nhớ áng chừng.
+
+## Bản quyền và đạo đức dữ liệu
+
+Phần này hay bị bỏ qua, nhưng nó có hậu quả thật.
+
+**Giấy phép.** "Tải được từ internet" không đồng nghĩa với "được phép dùng để huấn luyện". Phụ đề phim, sách, bài báo có tường phí đều có chủ sở hữu. Corpus trên OPUS có giấy phép riêng cho từng bộ, và chúng khác nhau — có bộ CC0, có bộ chỉ cho nghiên cứu, có bộ mà chính OPUS cũng chỉ trỏ tới nguồn. Nếu sản phẩm của bạn đi thương mại, phải đọc giấy phép từng bộ chứ không gộp chung.
+
+**Thông tin cá nhân.** Dữ liệu crawl chứa email, số điện thoại, địa chỉ, tên người thật. Chúng có thể bị mô hình nhớ và nhả ra. Lọc PII trước khi huấn luyện là việc nên làm, không phải việc tuỳ chọn.
+
+**Sự đồng thuận của cộng đồng ngôn ngữ.** Với ngôn ngữ ít tài nguyên và ngôn ngữ bản địa, phần lớn văn bản số hoá tồn tại là do một cộng đồng nhỏ dày công tạo ra — thường là văn bản tôn giáo hoặc tài liệu văn hoá. Crawl sạch kho đó về huấn luyện mô hình thương mại, không hỏi, không ghi công, là vấn đề đạo đức thật sự. Bài *Quality at a Glance* nêu thẳng chuyện này bên cạnh chuyện chất lượng.
+
+**Thiên lệch nội dung.** Corpus quyết định mô hình nói giọng gì. Nếu bitext Anh–Việt của bạn 80% là phụ đề phim, mô hình sẽ dịch tài liệu y tế bằng giọng khẩu ngữ. Nếu nguồn chính là văn bản tôn giáo, từ vựng sẽ lệch theo hướng đó. Đây không chỉ là vấn đề chất lượng mà còn là vấn đề ai được đại diện trong dữ liệu.
+
+## Tóm tắt
+
+- Bitext = các cặp câu đã căn chỉnh. Chất lượng bitext là trần chất lượng của mô hình dịch.
+- Nguồn: OPUS (kho tổng hợp), văn bản dịch chính thức (sạch nhưng ít), web crawl và bitext mining (nhiều nhưng bẩn).
+- Căn chỉnh câu không phải lúc nào cũng 1–1; lệch một chỗ là hỏng cả tài liệu. Cách hiện đại dùng embedding đa ngữ.
+- Lọc là phần việc lớn nhất: câu rỗng, tỉ lệ độ dài, trùng lặp, sai ngôn ngữ, lệch nội dung, dịch máy sẵn, và rò rỉ tập test.
+- Dữ liệu đơn ngữ dùng qua back-translation (dịch ngược kho đơn ngữ phía đích) và tiền huấn luyện.
+- Anh–Việt ở mức vài triệu cặp: IWSLT15 ~0.12M, PhoMT 3.02M, MTet 4.2M (gộp lại ~6.2M).
+- Giấy phép, thông tin cá nhân, sự đồng thuận của cộng đồng ngôn ngữ và thiên lệch miền văn bản đều là vấn đề thật, phải xử lý trước khi huấn luyện.

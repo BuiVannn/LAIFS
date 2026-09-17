@@ -1,0 +1,165 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: Một ngôn ngữ được gọi là "ít tài nguyên" chủ yếu vì lý do gì?
+    lua_chon:
+      - Có ít người nói ngôn ngữ đó
+      - Thiếu dữ liệu và công cụ số để máy học và để đánh giá
+      - Ngữ pháp của nó phức tạp hơn các ngôn ngữ khác
+      - Nó không dùng bảng chữ cái Latin
+    dap_an: 1
+    giai_thich: >-
+      "Ít tài nguyên" nói về lượng nguyên liệu số, không phải số người nói hay độ khó của
+      ngôn ngữ. Tiếng Việt có gần trăm triệu người nói mà vẫn thiếu dữ liệu có nhãn so với
+      tiếng Anh; tiếng Iceland chỉ vài trăm nghìn người nói nhưng tài nguyên số khá đủ.
+
+  - id: q2
+    loai: nhieu
+    do_kho: 2
+    de: Những thứ nào dưới đây được tính là "tài nguyên" của một ngôn ngữ trong dịch máy? (chọn tất cả ý đúng)
+    lua_chon:
+      - Kho câu song ngữ
+      - Kho văn bản đơn ngữ
+      - Từ điển, bộ tách từ, bảng mã chữ
+      - Bộ dữ liệu đánh giá (test set) chuẩn
+      - Người bản ngữ được đào tạo để chấm bài dịch
+      - Số người nói ngôn ngữ đó
+    dap_an: [0, 1, 2, 3, 4]
+    giai_thich: >-
+      Năm thứ đầu đều là tài nguyên và thiếu cái nào cũng gây khó riêng — thiếu bộ test thì
+      có mô hình cũng không biết nó tốt hay tệ; thiếu người chấm thì không ai phát hiện được
+      lỗi thật. Số người nói KHÔNG phải tài nguyên: nó không tự biến thành dữ liệu số.
+
+  - id: q3
+    loai: so
+    do_kho: 1
+    de: >-
+      Theo Joshi et al. 2020 (Table 1), lớp 0 ("The Left-Behinds") chiếm bao nhiêu PHẦN TRĂM
+      tổng số ngôn ngữ trên thế giới? (nhập số, ví dụ 12.34)
+    dap_an: 88.38
+    sai_so: 0.01
+    giai_thich: >-
+      Lớp 0 gồm 2191 ngôn ngữ, chiếm 88.38% tổng số. Nghĩa là gần chín phần mười ngôn ngữ
+      trên hành tinh gần như không có dữ liệu số nào để máy học. Ở đầu kia, lớp 5 chỉ có
+      7 ngôn ngữ (0.28%).
+
+  - id: q4
+    loai: mot
+    do_kho: 2
+    de: Theo phân lớp của Joshi et al. 2020, tiếng Việt thuộc lớp nào?
+    lua_chon:
+      - Lớp 0 — The Left-Behinds
+      - Lớp 2 — The Hopefuls
+      - Lớp 4 — The Underdogs
+      - Lớp 5 — The Winners
+    dap_an: 2
+    giai_thich: >-
+      Tiếng Việt được nêu làm ví dụ của lớp 4 "The Underdogs", cùng nhóm với tiếng Nga,
+      Hungary, Hà Lan, Hàn. Lớp 4 được mô tả là có lượng dữ liệu KHÔNG nhãn lớn, gần bằng
+      nhóm dẫn đầu, chỉ thua ở lượng dữ liệu CÓ nhãn. Lớp 5 chỉ gồm 7 ngôn ngữ như Anh,
+      Tây Ban Nha, Đức, Nhật, Pháp.
+
+  - id: q5
+    loai: mot
+    do_kho: 2
+    de: >-
+      Đặc điểm nào phân biệt lớp 4 (Underdogs) với lớp 5 (Winners) trong phân lớp của
+      Joshi et al. 2020?
+    lua_chon:
+      - Lớp 4 có ít dữ liệu không nhãn hơn hẳn
+      - Lớp 4 có nhiều dữ liệu không nhãn nhưng ít dữ liệu có nhãn hơn
+      - Lớp 4 không có mặt trên Wikipedia
+      - Lớp 4 chỉ gồm các ngôn ngữ không viết
+    dap_an: 1
+    giai_thich: >-
+      Theo mô tả của bài báo, lớp 4 "có lượng dữ liệu không nhãn lớn, có thể so sánh được với
+      nhóm winners, và chỉ bị thua ở lượng dữ liệu có nhãn ít hơn". Đó đúng là tình trạng của
+      tiếng Việt: web tiếng Việt rất lớn, nhưng dữ liệu song ngữ chất lượng cao và bộ test
+      chuẩn theo miền thì mỏng.
+
+  - id: q6
+    loai: so
+    do_kho: 2
+    de: >-
+      Trong thí nghiệm Anh→Tây Ban Nha của Koehn & Knowles 2017, hệ NMT đạt 1.6 BLEU với
+      0.38 triệu từ và 7.2 BLEU khi gấp đôi lên 0.75 triệu từ. Lần gấp đôi cuối (192.9 →
+      385.7 triệu từ) đưa điểm từ 30.3 lên 31.1. Lần gấp đôi ĐẦU tiên thêm được bao nhiêu
+      BLEU?
+    dap_an: 5.6
+    sai_so: 0.05
+    giai_thich: >-
+      7.2 − 1.6 = 5.6 BLEU. Trong khi lần gấp đôi cuối chỉ thêm 31.1 − 30.3 = 0.8 BLEU. Cùng
+      một thao tác "gấp đôi dữ liệu" nhưng giá trị chênh nhau bảy lần, tuỳ bạn đang đứng ở
+      đâu trên đường cong.
+
+  - id: q7
+    loai: mot
+    do_kho: 2
+    de: >-
+      "Đường cong lợi ích giảm dần" trong quan hệ dữ liệu — chất lượng có ý nghĩa thực tế gì
+      khi bạn quyết định chi tiền thuê người dịch thêm dữ liệu?
+    lua_chon:
+      - Nên dồn tiền cho cặp ngôn ngữ đã có nhiều dữ liệu nhất, vì ở đó mỗi câu thêm vào có giá trị cao nhất
+      - Nên dồn tiền cho cặp ngôn ngữ đang có ít dữ liệu, vì ở đó mỗi câu thêm vào có giá trị cao nhất
+      - Lượng dữ liệu không ảnh hưởng tới chất lượng nên đừng chi tiền
+      - Phải gấp đôi dữ liệu mới thấy bất kỳ thay đổi nào
+    dap_an: 1
+    giai_thich: >-
+      Đường cong dốc đứng ở vùng ít dữ liệu và thoải dần khi dữ liệu nhiều lên, nên cùng một
+      ngân sách, 10 nghìn cặp câu đầu tiên cho một cặp nghèo đáng giá hơn nhiều so với 10
+      nghìn cặp câu thứ một triệu cho một cặp đã giàu.
+
+  - id: q8
+    loai: nhieu
+    do_kho: 3
+    de: Vì sao dịch máy cho ngôn ngữ ít tài nguyên khó hơn, ngoài lý do "ít dữ liệu"? (chọn tất cả ý đúng)
+    lua_chon:
+      - Kho dữ liệu thường cào tự động nên tỉ lệ cặp câu lệch nhau cao, mà ít dữ liệu thì nhiễu không bị pha loãng
+      - Dữ liệu hay đến từ một miền hẹp duy nhất, nên mô hình sụp đổ khi gặp văn bản ngoài miền
+      - Bộ test nhỏ và thước đo tự động chưa được kiểm chứng ở ngôn ngữ đó, nên khó biết mô hình tốt hay tệ
+      - Tokenizer học chủ yếu trên tiếng Anh nên cắt văn bản ngôn ngữ hiếm thành nhiều mảnh vụn
+      - Ngữ pháp của ngôn ngữ ít tài nguyên vốn khó học hơn về mặt lý thuyết
+    dap_an: [0, 1, 2, 3]
+    giai_thich: >-
+      Bốn ý đầu là bốn vấn đề cộng dồn thật. Ý cuối sai: không có bằng chứng nào cho thấy
+      ngôn ngữ ít tài nguyên khó hơn về bản chất ngôn ngữ học — vấn đề nằm ở nguyên liệu
+      và hạ tầng, không nằm ở ngôn ngữ.
+
+  - id: q9
+    loai: mot
+    do_kho: 3
+    de: >-
+      Bạn được giao 20 nghìn cặp câu Việt–Mường, toàn bộ lấy từ một bộ sách tôn giáo song
+      ngữ. Sản phẩm cần dịch là tin tức địa phương. Rủi ro lớn nhất là gì?
+    lua_chon:
+      - Mô hình sẽ không học được tiếng Mường vì văn bản tôn giáo quá cổ
+      - Mô hình dịch tốt trong miền tôn giáo nhưng gần như vô dụng trên tin tức
+      - Số lượng 20 nghìn cặp là quá nhiều nên mô hình sẽ overfit
+      - Không có rủi ro gì, miễn là dữ liệu sạch
+    dap_an: 1
+    giai_thich: >-
+      Đây là lệch miền (domain mismatch). Koehn & Knowles 2017 đo được mức độ: hệ NMT huấn
+      luyện trên corpus Kinh Coran đạt 15.9 BLEU trong miền đó nhưng chỉ 0.4 BLEU trên văn
+      bản luật và 0.0 trên văn bản y tế. Lệch miền không làm chất lượng giảm — nó làm chất
+      lượng biến mất. Việc cần làm trước: kiếm bằng được một ít dữ liệu đúng miền tin tức,
+      dù chỉ để fine-tune và để làm bộ test.
+
+  - id: q10
+    loai: mot
+    do_kho: 2
+    de: >-
+      Bạn muốn so sánh hai hệ dịch Việt → Mường bằng một chỉ số tự động "hiện đại" (thước đo
+      neural như COMET). Vấn đề gì cần cảnh giác?
+    lua_chon:
+      - Thước đo neural chạy quá chậm nên không dùng được
+      - Thước đo neural được huấn luyện trên dữ liệu chấm điểm của các ngôn ngữ nhiều tài nguyên, nên chưa chắc đáng tin ở tiếng Mường
+      - Thước đo neural chỉ dùng được cho dịch sang tiếng Anh
+      - Không có vấn đề gì, thước đo neural luôn tốt hơn BLEU
+    dap_an: 1
+    giai_thich: >-
+      Ban tổ chức WMT25 gặp đúng vấn đề này: với tiếng Bhojpuri và tiếng Maasai, họ phải bỏ
+      toàn bộ các thước đo neural và chỉ dùng chrF++, vì độ tin cậy của các thước đo chính ở
+      hai ngôn ngữ này chưa được xác lập. Tiếng Mường thậm chí còn không có trong FLORES-200,
+      tức là không có cả bộ test chuẩn.

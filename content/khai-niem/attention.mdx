@@ -1,0 +1,209 @@
+---
+ten_vi: "Cơ chế chú ý (attention)"
+ten_en: Attention Mechanism
+tang: 5
+thu_tu: 36
+tien_quyet: ["seq2seq", "nhan-ma-tran", "softmax"]
+trang_thai: nhap
+dinh_nghia: >-
+  Cơ chế cho phép bộ giải mã, ở MỖI bước sinh từ, nhìn lại toàn bộ các trạng thái của câu nguồn
+  và tự tính một vector ngữ cảnh riêng cho bước đó: chấm điểm độ hợp giữa trạng thái giải mã hiện
+  tại với từng trạng thái nguồn, đưa các điểm qua softmax thành trọng số có tổng bằng 1, rồi lấy
+  trung bình có trọng số các trạng thái nguồn.
+truc_giac: >-
+  Người phiên dịch không còn phải gấp sổ lại. Câu tiếng Việt vẫn nằm trước mặt, và mỗi khi chuẩn bị
+  nói một từ tiếng Anh, anh ta liếc lại đúng chỗ cần thiết trong câu gốc. Softmax chính là cách
+  chia "sự chú ý" thành một chiếc bánh 100%: nhìn chỗ này nhiều thì phải nhìn chỗ kia ít.
+hieu_nham:
+  - "Attention không thay thế bộ mã hoá. Nó vẫn cần đủ các trạng thái h₁…h₍T₎ của bộ mã hoá; điều nó bỏ đi là việc ép tất cả vào MỘT vector duy nhất."
+  - "Vector ngữ cảnh không còn cố định: mỗi bước giải mã có một cₜ riêng. Câu đích 12 từ thì có 12 vector ngữ cảnh khác nhau."
+  - "Trọng số chú ý là kết quả của softmax nên luôn không âm và tổng đúng bằng 1 trên mỗi bước giải mã — nhưng chúng là số thực chứ không phải chọn một từ nguồn duy nhất."
+  - "Trọng số chú ý KHÔNG bắt buộc nằm trên đường chéo. Với cặp câu có trật tự từ khác nhau (con mèo đen ↔ the black cat) mô hình nhìn chéo ngược lại, và điều đó hoàn toàn bình thường."
+  - "Trọng số chú ý cao không chứng minh mô hình 'hiểu' hay 'căn chỉnh đúng' — nó chỉ cho biết vector nào được cộng vào với tỉ trọng lớn. Đọc nó như một manh mối, không phải một lời giải thích chắc chắn."
+y_chinh:
+  - "Ba bước cố định: điểm eⱼ = score(sₜ, hⱼ) → trọng số α = softmax(e) → ngữ cảnh cₜ = Σⱼ αⱼ·hⱼ"
+  - "Trọng số là softmax nên αⱼ ≥ 0 và tổng theo hàng bằng 1; cₜ là trung bình CÓ TRỌNG SỐ của các hⱼ nên có cùng shape (k,) với một trạng thái nguồn"
+  - "Mỗi bước giải mã tính lại một cₜ mới — khác hẳn vector ngữ cảnh cố định của seq2seq, nhờ đó phá được nút thắt"
+  - "Toàn bộ trọng số của một câu tạo thành ma trận shape (số từ đích, số từ nguồn), vẽ ra được thành heatmap căn chỉnh"
+  - "Hai kiểu chấm điểm phổ biến: dot-product hⱼ·sₜ (nhanh, cần cùng số chiều) và additive kiểu Bahdanau vᵀtanh(W₁hⱼ + W₂sₜ) (có tham số học được)"
+  - Mọi thứ đều khả vi nên attention được học cùng cả mạng bằng lan truyền ngược, không cần nhãn căn chỉnh nào
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=PSs6nxngL6k
+    tieu_de: "Attention for Neural Networks, Clearly Explained!!!"
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Chạy tay attention trên đúng mô hình seq2seq đồ chơi ở video trước, từng phép nhân một. Nên xem đầu tiên.
+  - url: https://arxiv.org/abs/1409.0473
+    tieu_de: Neural Machine Translation by Jointly Learning to Align and Translate
+    tac_gia: "Dzmitry Bahdanau, Kyunghyun Cho, Yoshua Bengio"
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Bài báo gốc của attention (2014). Mục 3 là công thức, và hình heatmap căn chỉnh Anh–Pháp ở phần thực nghiệm đáng xem kỹ.
+  - url: https://arxiv.org/abs/1508.04025
+    tieu_de: Effective Approaches to Attention-based Neural Machine Translation
+    tac_gia: "Minh-Thang Luong, Hieu Pham, Christopher D. Manning"
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: So sánh các hàm chấm điểm (dot, general, concat) và đưa ra bản dot-product gọn hơn Bahdanau. Đọc sau khi đã nắm ý tưởng chung.
+---
+
+import HeatmapChuY from '../../src/viz/HeatmapChuY.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Vấn đề: một vector không đủ
+
+Ở bài [seq2seq](/khai-niem/seq2seq), cả câu tiếng Việt bị nén vào **một** vector ngữ cảnh $c$ có kích thước cố định, và bộ giải mã chỉ được nhìn vào đúng vector đó suốt quá trình sinh. Câu càng dài, dấu vết của các từ đầu câu trong $c$ càng mờ đi.
+
+Nhưng để ý một điều rất người: khi dịch từ `cat` trong `the black cat`, ta đâu cần nhớ cả câu — ta chỉ cần nhìn vào đúng chữ `mèo`. Mỗi từ đích thường chỉ dựa vào **một vài** từ nguồn.
+
+Vậy tại sao bắt bộ giải mã phải nhớ tất cả trong một vector, thay vì cho nó **nhìn lại** câu nguồn ở từng bước?
+
+## Ý tưởng: ba bước, mỗi bước giải mã làm một lần
+
+Bộ mã hoá vẫn chạy như cũ, nhưng lần này ta **giữ lại tất cả** các trạng thái ẩn $h_1, h_2, \dots, h_T$ chứ không vứt đi chỉ giữ $h_T$. Gom chúng lại thành ma trận $H$ shape $(T, k)$: hàng thứ $j$ là "hồ sơ" của từ nguồn thứ $j$.
+
+Ở bước giải mã thứ $t$, với trạng thái giải mã $s_t$:
+
+**1. Chấm điểm.** Từ nguồn nào hợp với thứ tôi đang định nói? Cách đơn giản nhất là tích vô hướng:
+
+$$
+e_j = h_j \cdot s_t \qquad (j = 1, \dots, T)
+$$
+
+Tích vô hướng lớn khi hai vector cùng hướng, nên $e_j$ đo độ "ăn khớp" giữa từ nguồn $j$ và nhu cầu hiện tại của bộ giải mã.
+
+**2. Chuẩn hoá bằng softmax.** Điểm thô có thể âm, dương, to nhỏ tuỳ ý. [Softmax](/khai-niem/softmax) biến chúng thành một phân bố:
+
+$$
+\alpha_j = \frac{e^{e_j}}{\sum_{i=1}^{T} e^{e_i}}, \qquad \alpha_j \ge 0, \qquad \sum_{j=1}^{T} \alpha_j = 1
+$$
+
+Đây là chỗ chữ "chú ý" trở nên đúng nghĩa: tổng bằng 1 nghĩa là sự chú ý có hạn, dồn vào từ này thì phải bớt ở từ kia.
+
+**3. Trộn.** Vector ngữ cảnh của riêng bước $t$ là trung bình **có trọng số** các trạng thái nguồn:
+
+$$
+c_t = \sum_{j=1}^{T} \alpha_j \, h_j
+$$
+
+Rồi $c_t$ được ghép với $s_t$ để sinh từ đích thứ $t$, y như $c$ trong seq2seq thường.
+
+Khác biệt nằm ở chỉ số $t$: seq2seq có **một** $c$ cho cả câu, attention có **một $c_t$ cho mỗi bước**.
+
+<CauHoi cau="attention/q2" />
+
+## Tính tay: dịch "con mèo đen" → "the black cat"
+
+Giả sử bộ mã hoá đã học xong và cho ba trạng thái (2 chiều cho dễ tính):
+
+$$
+h_{\text{con}} = (2;\ 0), \qquad h_{\text{mèo}} = (0;\ 2), \qquad h_{\text{đen}} = (-1{,}5;\ -1{,}5)
+$$
+
+**Bước 1: sinh từ `the`.** Trạng thái giải mã lúc này là $s_1 = (1{,}5;\ 0)$.
+
+Chấm điểm bằng tích vô hướng:
+
+$$
+e_{\text{con}} = 2 \times 1{,}5 + 0 \times 0 = 3
+$$
+$$
+e_{\text{mèo}} = 0 \times 1{,}5 + 2 \times 0 = 0
+$$
+$$
+e_{\text{đen}} = (-1{,}5) \times 1{,}5 + (-1{,}5) \times 0 = -2{,}25
+$$
+
+Softmax: $e^{3} = 20{,}0855$, $e^{0} = 1$, $e^{-2{,}25} = 0{,}1054$, tổng $= 21{,}1909$.
+
+$$
+\alpha = \left(\frac{20{,}0855}{21{,}1909};\ \frac{1}{21{,}1909};\ \frac{0{,}1054}{21{,}1909}\right) = (0{,}9478;\ 0{,}0472;\ 0{,}0050)
+$$
+
+Cộng lại đúng $1{,}0000$ — luôn phải kiểm tra điều này khi tự code.
+
+Trộn:
+
+$$
+c_1 = 0{,}9478 \cdot (2;\,0) + 0{,}0472 \cdot (0;\,2) + 0{,}0050 \cdot (-1{,}5;\,-1{,}5) = (1{,}8882;\ 0{,}0869)
+$$
+
+$c_1$ gần như trùng $h_{\text{con}} = (2; 0)$: bộ giải mã gần như chỉ đọc một từ nguồn duy nhất, đúng cái nó cần.
+
+**Hai bước còn lại.** Làm y hệt với $s_2 = (-1; -1)$ và $s_3 = (0; 1{,}5)$:
+
+| Bước | Từ đích | $s_t$ | Điểm $(e_{\text{con}}, e_{\text{mèo}}, e_{\text{đen}})$ | Trọng số $\alpha$ | $c_t$ |
+|---|---|---|---|---|---|
+| 1 | the | (1,5; 0) | (3; 0; −2,25) | **(0,9478; 0,0472; 0,0050)** | (1,8882; 0,0869) |
+| 2 | black | (−1; −1) | (−2; −2; 3) | **(0,0066; 0,0066; 0,9867)** | (−1,4668; −1,4668) |
+| 3 | cat | (0; 1,5) | (0; 3; −2,25) | **(0,0472; 0,9478; 0,0050)** | (0,0869; 1,8882) |
+
+Đọc cột trọng số theo hàng: `the` → `con`, `black` → `đen`, `cat` → `mèo`. **Đường căn chỉnh bắt chéo**, vì tiếng Việt đặt tính từ sau danh từ còn tiếng Anh đặt trước. Không ai dạy mô hình luật ngữ pháp này; nó rơi ra từ việc huấn luyện dịch.
+
+(Các số làm tròn 4 chữ số, nên cộng tay ba trọng số ở hàng 2 ra 0,9999 thay vì đúng 1.)
+
+<CauHoi cau="attention/q5" />
+
+## Nhìn ma trận chú ý
+
+Xếp trọng số của mọi bước thành một ma trận: hàng là từ đích, cột là từ nguồn. Với câu nguồn $T$ từ và câu đích $T'$ từ, ma trận có shape $(T', T)$ và **mỗi hàng cộng lại bằng 1**.
+
+Bấm từng bước để mô hình sinh lần lượt `the`, `black`, `cat`. Mọi trọng số dưới đây được tính tại chỗ từ tích vô hướng rồi softmax, không phải số vẽ sẵn.
+
+<HeatmapChuY
+  client:visible
+  duDoan={{
+    de: "Nguồn: con · mèo · đen. Khi mô hình sinh từ tiếng Anh thứ hai là `black`, nó sẽ dồn trọng số vào từ nguồn nào nhiều nhất?",
+    lua_chon: ["con", "mèo", "đen"],
+    dap_an: 2,
+    giai_thich: "`black` dịch từ `đen`, và `đen` là từ nguồn CUỐI cùng — trọng số 0,987 nằm ở cột thứ ba, không phải cột thứ hai. Đường căn chỉnh của cặp câu này bắt chéo (the→con, black→đen, cat→mèo) vì tiếng Việt đặt tính từ sau danh từ. Attention không hề ép trọng số nằm trên đường chéo."
+  }}
+/>
+
+Bảng tự do: kéo thanh **nhiệt độ τ** (điểm được chia cho τ trước khi softmax) rồi chạy lại.
+
+<HeatmapChuY client:visible />
+
+Với $\tau$ nhỏ, softmax sắc lại và mô hình gần như chỉ nhìn một từ; với $\tau$ lớn, trọng số phẳng dần về $1/3$ mỗi ô, và $c_t$ trở thành trung bình cộng nhạt nhoà của cả câu — gần như quay lại đúng nút thắt của seq2seq.
+
+## Hai kiểu chấm điểm
+
+Tích vô hướng không phải cách duy nhất để chấm điểm:
+
+| Tên | Công thức | Ghi chú |
+|---|---|---|
+| Dot-product (Luong) | $e_j = h_j \cdot s_t$ | Không thêm tham số nào, rất nhanh, nhưng đòi $h_j$ và $s_t$ **cùng số chiều** |
+| Bilinear / general | $e_j = h_j^\top W s_t$ | $W$ học được, nên hai bên khác số chiều cũng dùng được |
+| Additive (Bahdanau) | $e_j = v^\top \tanh(W_1 h_j + W_2 s_t)$ | Bản gốc năm 2014; một MLP một lớp ẩn nhỏ đóng vai người chấm điểm |
+
+Bản gốc của Bahdanau và cộng sự dùng kiểu additive; Luong và cộng sự sau đó cho thấy dot-product đơn giản hơn mà thường tốt ngang. Dù chọn kiểu nào, **hai bước sau vẫn y hệt**: softmax rồi trộn có trọng số.
+
+Điểm mấu chốt: cả ba công thức đều **khả vi**. Không ai gán nhãn "từ này khớp với từ kia" cho mô hình — trọng số chú ý được học gián tiếp, chỉ nhờ mục tiêu dịch đúng và [lan truyền ngược](/khai-niem/lan-truyen-nguoc).
+
+## Vì sao attention phá được nút thắt
+
+| | seq2seq cơ bản | seq2seq + attention |
+|---|---|---|
+| Bộ giải mã đọc gì | một vector $c$ cố định | ma trận $H$ shape $(T, k)$ đầy đủ |
+| Số vector ngữ cảnh | 1 cho cả câu | 1 cho **mỗi** bước, tổng cộng $T'$ |
+| Thông tin câu nguồn còn lại | bị nén, mất dần theo độ dài | giữ nguyên, không nén |
+| Câu dài | chất lượng tụt rõ | ổn định hơn nhiều |
+| Chi phí mỗi bước giải mã | $O(k)$ | $O(T \cdot k)$ — phải chấm điểm cả $T$ từ nguồn |
+
+Attention không làm câu nguồn ngắn đi; nó bỏ đi cái phễu. Cái giá phải trả là tính toán: mỗi bước giải mã phải quét lại cả câu nguồn, nên toàn bộ ma trận chú ý tốn $T' \times T$ phép chấm điểm.
+
+Một lợi ích phụ rất được việc: ma trận chú ý **nhìn được**. Bạn vẽ heatmap ra là thấy mô hình đang nối từ nào với từ nào, điều gần như không thể làm với một vector ngữ cảnh 512 chiều. Nhưng đừng đọc quá lời: trọng số cao chỉ nói vector nào được cộng vào nhiều, không chứng minh mô hình "hiểu" đúng.
+
+<CauHoi cau="attention/q7" />
+
+## Tóm tắt
+
+- Attention cho bộ giải mã nhìn lại **toàn bộ** trạng thái câu nguồn ở mỗi bước, thay vì một vector nén duy nhất.
+- Ba bước lặp lại ở mọi bước giải mã: **điểm** $e_j = h_j \cdot s_t$ → **softmax** $\alpha = \text{softmax}(e)$ → **trộn** $c_t = \sum_j \alpha_j h_j$.
+- Trọng số không âm và tổng bằng 1 trên mỗi bước; $c_t$ có cùng shape $(k,)$ với một trạng thái nguồn; cả ma trận trọng số có shape (số từ đích, số từ nguồn).
+- Trên `con mèo đen` → `the black cat`, trọng số bắt chéo (`black` dồn 0,9867 vào `đen`) mà không cần dạy luật ngữ pháp nào.
+- Bước tiếp theo của câu chuyện: nếu attention đã hữu ích đến thế, có cần giữ RNN nữa không? Câu trả lời "không" chính là [Transformer](/khai-niem/transformer).

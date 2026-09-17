@@ -230,7 +230,7 @@ Chi tiết và nguồn: [research/01-cach-hoc.md](research/01-cach-hoc.md) · [r
 |---|---|---|
 | **A. Học hiệu quả** (không backend) ✅ xong 2026-09-17 | 1) `id` cố định cho từng câu quiz · 2) quiz hỏi "chắc/đoán", lưu kết quả từng câu · 3) câu hỏi nhúng giữa bài MDX · 4) ô "giải thích lại bằng lời của bạn" · 5) viz "đoán trước rồi chạy" · 6) trang **Ôn hôm nay** (`ts-fsrs`, trộn nhiều khái niệm) + xuất/nhập tiến độ JSON · 7) 4 mức thành thạo tô màu lộ trình, gợi ý ôn tiền quyết khi vấp | Ngay |
 | **B. Thiết kế lại UI/UX** ✅ xong 2026-09-18 | Bố cục có sẵn chỗ cho các khu: **Học nền tảng · Blog · Nghiên cứu · Engineering**; editor `@uiw/react-codemirror`; viz dựng trên `mafs`; lộ trình dạng đồ thị bằng `xyflow`; tìm kiếm Pagefind | Song song với A |
-| **C. Nội dung** 🚧 đợt 1 xong 2026-09-18: 12 khái niệm chuỗi tới backprop (bản nháp, chờ duyệt) | Soạn chuỗi khái niệm dẫn tới backprop · chuyển `numpy-100` thành bài code · từ điển thuật ngữ dựa trên d2l-vi / ebookMLCB (ghi CC BY-SA) · nhúng TensorFlow Playground Việt hoá · dự án mồi đầu mỗi tầng · chuỗi "mini-micrograd" | Liên tục |
+| **C. Nội dung** 🚧 đợt 1 (12 khái niệm tới backprop) + đợt 2 (11 khái niệm chuỗi dịch máy, tầng 5) xong 2026-09-18 — tất cả là bản nháp chờ duyệt | Soạn chuỗi khái niệm dẫn tới backprop · chuyển `numpy-100` thành bài code · từ điển thuật ngữ dựa trên d2l-vi / ebookMLCB (ghi CC BY-SA) · nhúng TensorFlow Playground Việt hoá · dự án mồi đầu mỗi tầng · chuỗi "mini-micrograd" | Liên tục |
 | **G1. Nhiều người viết** | Collections `baiViet`, `tacGia`, `huongDan` (`khu: nghien-cuu \| engineering`) chung lõi trường · Pages CMS cho người không biết Git · Giscus bình luận · deploy Cloudflare + bản xem trước có nháp (`HIEN_NHAP=1`) | Có bài blog/hướng dẫn đầu tiên |
 | **G2. Tài khoản** | Supabase Free: bảng `tien_do` có RLS, localStorage làm dự phòng | Có người mất tiến độ giữa các thiết bị, hoặc ôn tập được dùng đều |
 | **G3. Mở công khai** | Adapter Cloudflare cho vài route server (chấm bài phía server, trang admin), i18n nếu có người đọc tiếng Anh | Mở cho người ngoài nhóm |
@@ -259,3 +259,15 @@ Bản mẫu: https://claude.ai/artifact/SMrL4NYDfADqVyFqSxdVia
 | **Không làm** | Bảng xếp hạng, XP, thông báo đe doạ, khoá bài theo điểm. | Không có bằng chứng cho người mới; nhóm nhỏ dễ tạo người "đứng bét" |
 
 Trang: `/` Hôm nay · `/lo-trinh` bản đồ mục tiêu · `/buoi-hoc` buổi học · `/on-tap` ôn tập · `/ke-hoach` kế hoạch · `/luyen-code` · `/khai-niem/<id>` (3 cột) · `/bai-tap/<id>`.
+
+---
+
+## 11. Chuỗi dịch máy (đợt nội dung 2, tầng 5)
+
+Tóm tắt nhanh để đọc trước: [research/04-dich-may.md](research/04-dich-may.md).
+
+Thứ tự học: Tách token & BPE → Vector hoá từ → Seq2seq → Cơ chế chú ý → Transformer → Dịch máy neural (huấn luyện, beam search) → Đánh giá bản dịch (BLEU/chrF/COMET) → Dữ liệu song ngữ → Ngôn ngữ nhiều/ít tài nguyên → Dịch máy ít tài nguyên → LLM làm dịch máy.
+
+Viz mới: tách token Việt–Anh (BPE tự huấn luyện trong trình duyệt), bản đồ embedding, nút thắt ngữ cảnh của seq2seq, heatmap trọng số chú ý, bảng attention có mask, cây beam search, BLEU nhìn thấy được, đường cong dữ liệu → chất lượng.
+
+**Bài học khi duyệt:** hai lỗi YAML trong đợt này (dấu `: ` trong mục danh sách không bọc nháy) làm cả file quiz không nạp được và trang hiện thành "sắp có". Thêm vào checklist: sau khi sửa nội dung, kiểm tra trang trả 200 **và** quiz có đủ số câu.

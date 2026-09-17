@@ -1,0 +1,261 @@
+---
+ten_vi: "Dịch máy neural: huấn luyện & giải mã"
+ten_en: "Neural machine translation: training and decoding"
+tang: 5
+thu_tu: 38
+tien_quyet: ["transformer", "cross-entropy"]
+trang_thai: nhap
+dinh_nghia: >-
+  Cách biến một mô hình encoder–decoder thành máy dịch: huấn luyện bằng cross-entropy trên TỪNG
+  token của câu đích với teacher forcing (luôn cho mô hình xem đáp án của các token trước), rồi
+  lúc dùng thật thì sinh câu từng token một từ phân phối xác suất — chọn token cao nhất (greedy)
+  hoặc giữ k câu dở dang tốt nhất (beam search) và chấm bằng tổng log-xác suất có chuẩn hoá độ dài.
+truc_giac: >-
+  Mô hình dịch không "biết" câu tiếng Anh; nó chỉ trả lời được đúng một câu hỏi: "cho câu tiếng
+  Việt này và phần tiếng Anh đã viết tới đây, từ kế tiếp là gì?" Huấn luyện là hỏi câu đó hàng
+  tỉ lần rồi phạt khi đoán sai. Giải mã là hỏi lại câu đó liên tục và tự nối câu trả lời vào câu
+  hỏi tiếp theo. Vì mỗi bước chỉ nhìn được một từ trước mắt, tham lam chọn từ tốt nhất ngay bây
+  giờ có thể dẫn vào ngõ cụt — nên ta giữ vài phương án song song, đó là beam search.
+hieu_nham:
+  - "Loss KHÔNG phải tính trên cả câu như một khối. Mỗi vị trí token là một bài phân loại nhiều lớp trên toàn bộ từ điển; loss của câu là trung bình cross-entropy của tất cả các vị trí."
+  - "Teacher forcing không phải một mẹo tăng tốc tuỳ chọn. Nó thay đổi phân phối đầu vào: lúc huấn luyện mô hình luôn thấy tiền tố ĐÚNG, lúc dịch thật nó phải ăn lại token chính mình vừa sinh — chênh lệch này gọi là exposure bias và là một nguồn lỗi tích luỹ."
+  - "Beam search không tìm ra câu có xác suất cao nhất. Nó là tìm kiếm heuristic: k càng lớn càng gần tối ưu, nhưng vẫn có thể bỏ sót, và tăng k quá mức lại thường làm BLEU GIẢM."
+  - "Xác suất cao hơn không có nghĩa là bản dịch tốt hơn. Câu rỗng hay câu cụt thường có log-xác suất rất cao; đó là lý do phải có length penalty."
+  - "Ảo giác (hallucination) không phải mô hình 'bịa cho vui'. Đó là những câu trôi chảy được mô hình ngôn ngữ phía decoder ưa thích, còn phần cross-attention nhìn sang câu nguồn thì gần như bị bỏ qua."
+y_chinh:
+  - "Huấn luyện: mỗi vị trí đích là một bài phân loại trên từ điển; loss = trung bình −log p(token đúng), tính song song cho cả câu nhờ teacher forcing + mask nhân quả"
+  - "Hai loại mask khác nhau: mask nhân quả (che tương lai ở decoder) và mask đệm (bỏ qua token <pad> ở cả attention lẫn loss)"
+  - "Giải mã là tự hồi quy: sinh một token, nối vào đầu vào, sinh tiếp, tới khi gặp </s>; khác hẳn lúc huấn luyện — đó là exposure bias"
+  - "Greedy chọn token tốt nhất mỗi bước; beam search giữ k tiền tố tốt nhất theo TỔNG log-xác suất, thường tốt hơn nhưng vẫn chỉ là heuristic, k thực tế chỉ 4–5"
+  - "Cộng log-xác suất luôn thiên vị câu ngắn, nên chấm điểm bằng score = log p(Y) / lp(|Y|) với lp = ((5+|Y|)/6)^α, α ≈ 0.6"
+  - "Ba lỗi kinh điển: lặp từ (vòng lặp của decoder), ảo giác (câu trôi chảy nhưng không liên quan câu nguồn), dịch sót (bỏ mất một phần thông tin — không có gì trong loss phạt việc này)"
+  - "Cỡ thực tế: WMT14 En–De 4,5 triệu cặp câu, Transformer base 65 triệu tham số, 100K bước ≈ 12 giờ trên 8 GPU P100; En–Vi của IWSLT'15 chỉ 133 nghìn cặp"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=RLWuzLLSIgw
+    tieu_de: "C5W3L03 Beam Search"
+    tac_gia: "DeepLearningAI (Andrew Ng)"
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Giải thích beam search trên đúng bài toán dịch máy, có vẽ cây mở rộng từng bước. 11 phút, xem trước khi làm bài code beam search.
+  - url: https://www.youtube.com/watch?v=gb__z7LlN_4
+    tieu_de: "C5W3L04 Refining Beam Search"
+    tac_gia: "DeepLearningAI (Andrew Ng)"
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: "Phần tiếp theo: vì sao phải log, vì sao phải chuẩn hoá độ dài, và chọn k bao nhiêu. Khớp với mục length penalty của bài này."
+  - url: https://aclanthology.org/W17-3204/
+    tieu_de: "Six Challenges for Neural Machine Translation"
+    tac_gia: "Koehn & Knowles (2017)"
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: "Đo bằng thực nghiệm các lỗi kinh điển: thiếu dữ liệu, câu dài, từ hiếm, và mục 3.6 cho thấy beam rộng làm BLEU giảm. Đọc phần hình vẽ là đủ."
+---
+
+import CayBeamSearch from '../../src/viz/CayBeamSearch.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Mô hình trả lời được đúng một câu hỏi
+
+[Transformer](/khai-niem/transformer) encoder–decoder cho ta một cỗ máy: đưa vào câu nguồn $X$ và **phần câu đích đã có** $y_1 \dots y_{t-1}$, nó trả về một phân phối xác suất trên toàn bộ từ điển cho token kế tiếp:
+
+$$
+p(y_t \mid y_1, \dots, y_{t-1}, X)
+$$
+
+Xác suất của cả câu dịch là tích các bước:
+
+$$
+p(Y \mid X) = \prod_{t=1}^{m} p(y_t \mid y_{<t}, X)
+$$
+
+Hai việc còn lại của bài này: **huấn luyện** (làm cho phân phối đó đúng) và **giải mã** (dùng phân phối đó để chọn ra một câu).
+
+Ví dụ xuyên suốt: dịch **"Tôi ăn cơm"**, đáp án mong muốn **"I eat rice"**.
+
+## Huấn luyện: mỗi token là một bài phân loại
+
+Câu đích được ghép thêm hai token đặc biệt: `<s>` mở đầu và `</s>` kết thúc.
+
+| Vị trí $t$ | Decoder được thấy | Phải đoán |
+|---|---|---|
+| 1 | `<s>` | I |
+| 2 | `<s> I` | eat |
+| 3 | `<s> I eat` | rice |
+| 4 | `<s> I eat rice` | `</s>` |
+
+Mỗi hàng là một bài phân loại nhiều lớp với số lớp bằng kích thước từ điển (khoảng 32.000 token BPE). Dùng [cross-entropy](/khai-niem/cross-entropy), và vì nhãn đúng chỉ là một token, loss mỗi vị trí rút gọn thành $-\log p(\text{token đúng})$:
+
+$$
+L = -\frac{1}{m}\sum_{t=1}^{m} \log p(y_t^{\text{đúng}} \mid y^{\text{đúng}}_{<t}, X)
+$$
+
+Giả sử mô hình gán cho bốn token đúng các xác suất $0.5,\; 0.4,\; 0.9,\; 0.8$:
+
+$$
+L = \frac{1}{4}\big(0.6931 + 0.9163 + 0.1054 + 0.2231\big) = \frac{1.9379}{4} = 0.4845
+$$
+
+Con số hay được báo cáo dưới dạng **perplexity** $= e^{L} = e^{0.4845} \approx 1.62$: "trung bình mô hình phân vân giữa khoảng 1,6 lựa chọn ở mỗi token". Mô hình chưa học gì, đoán đều trên 32.000 token, có perplexity đúng bằng 32.000.
+
+<CauHoi cau="dich-may-nmt/q2" />
+
+### Teacher forcing
+
+Để ý cột giữa của bảng: ở vị trí 3, decoder được cho xem `<s> I eat` — **đáp án**, chứ không phải thứ nó tự đoán ra ở bước 1 và 2. Đó là **teacher forcing**.
+
+Hai lý do:
+
+- **Song song hoá.** Cả câu đích được đưa vào một lượt, mọi vị trí tính cùng lúc trong một lần chạy. Nếu phải chờ token trước rồi mới tính token sau thì huấn luyện chậm gấp $m$ lần và mất trọn ưu thế của Transformer.
+- **Ổn định.** Đầu buổi huấn luyện mô hình đoán toàn rác; nếu bắt nó học trên chính chuỗi rác đó thì gần như không hội tụ.
+
+Cái giá là **exposure bias**: lúc huấn luyện mô hình chỉ từng thấy tiền tố đúng, lúc dịch thật nó phải ăn lại token chính mình vừa sinh. Sai một token là các bước sau bước vào vùng đất chưa từng gặp, sai tiếp, và lỗi tích luỹ. Phần lớn các lỗi ở mục "lỗi kinh điển" bên dưới đều lớn lên từ khe hở này.
+
+### Hai loại mask
+
+Teacher forcing chỉ chạy được nếu có **mask nhân quả**: đưa cả câu đích vào một lượt mà không che thì ở vị trí 3 self-attention nhìn thấy luôn từ *rice* ở vị trí 4, và mô hình học được mẹo "cứ chép token kế tiếp" — loss xuống 0, dịch thì vô dụng.
+
+Loại mask thứ hai là **mask đệm** (padding). Batch gồm nhiều câu dài ngắn khác nhau nên phải đệm `<pad>` cho bằng nhau. Token đệm phải bị chặn ở hai chỗ:
+
+| Chỗ | Nếu quên |
+|---|---|
+| Trong attention (cả encoder, cả cross-attention) | Các token thật hút thông tin từ ô trống, kết quả đổi theo độ dài batch |
+| Trong loss | Mô hình được thưởng vì đoán đúng `<pad>`, loss đẹp giả tạo |
+
+Hai mask này độc lập: nhân quả che theo **thời gian**, đệm che theo **vị trí trống**. Trong code chúng được cộng vào cùng một ma trận $-\infty$ trước softmax.
+
+## Giải mã: greedy
+
+Huấn luyện xong, dịch một câu mới. Không có đáp án nữa, nên ta phải tự sinh: chạy encoder một lần trên "Tôi ăn cơm", rồi bắt đầu từ `<s>` và lặp — lấy phân phối, chọn một token, nối vào, lặp tiếp, tới khi gặp `</s>`.
+
+**Greedy** chọn token có xác suất cao nhất ở mỗi bước. Giả sử mô hình của ta cho bảng sau (chỉ liệt kê các nhánh đáng kể):
+
+| Đã có | Ứng viên kế tiếp và xác suất |
+|---|---|
+| `<s>` | I 0.5 · We 0.3 · Rice 0.2 |
+| `<s> I` | am 0.5 · eat 0.4 · like 0.1 |
+| `<s> We` | eat 0.6 · are 0.4 |
+| `<s> I am` | eating 0.5 · hungry 0.3 · rice 0.2 |
+| `<s> I eat` | rice 0.9 · bread 0.07 · food 0.03 |
+| `<s> We eat` | rice 0.9 · bread 0.1 |
+| `<s> Rice` | is 1.0 → eaten 1.0 |
+
+Greedy đi: **I** (0.5) → **am** (0.5, hơn *eat* 0.4) → **eating** (0.5). Kết quả **"I am eating"**, xác suất $0.5 \times 0.5 \times 0.5 = 0.125$.
+
+Bản dịch này mất hẳn chữ "cơm" — một ca **dịch sót** điển hình. Mà nhìn lại bảng thì "I eat rice" có xác suất $0.5 \times 0.4 \times 0.9 = 0.18$, **cao hơn**. Greedy trượt chỉ vì ở bước 2 nó không chịu nhận thiệt 0.1 để đổi lấy 0.9 ở bước sau.
+
+## Giải mã: beam search
+
+Ý tưởng: thay vì giữ 1 câu dở dang, giữ **k** câu dở dang tốt nhất (k = bề rộng beam). Mỗi bước: mở rộng cả k tiền tố với mọi token trong từ điển, chấm điểm, giữ lại k cái tốt nhất, vứt phần còn lại.
+
+Chấm điểm bằng **tổng log-xác suất**, không phải tích — nhân 50 số nhỏ hơn 1 với nhau là tràn số dưới (underflow), còn $\log$ biến tích thành tổng và giữ nguyên thứ tự:
+
+$$
+\text{score}(Y) = \sum_{t} \log p(y_t \mid y_{<t}, X)
+$$
+
+Cây dưới chạy đúng bảng trên. Chọn bề rộng beam rồi bấm từng bước: nút được giữ tô xanh, nút bị loại xám đi, đường greedy tô cam.
+
+<CayBeamSearch
+  client:visible
+  k={2}
+  duDoan={{
+    de: "Với k = 2, beam search có ra cùng câu với greedy ('I am eating') không?",
+    lua_chon: [
+      "Có, beam rộng hơn nhưng vẫn kết thúc ở 'I am eating'",
+      "Không, beam ra câu khác và có tổng log-prob CAO hơn",
+      "Không, beam ra câu khác nhưng tổng log-prob THẤP hơn greedy"
+    ],
+    dap_an: 1,
+    giai_thich: "Greedy khoá chặt vào 'am' ở bước 2 (0.5 > 0.4) rồi không quay đầu được. Beam k=2 giữ song song cả 'I am' lẫn 'I eat', và ở bước 3 nhánh 'I eat' được thưởng lớn (rice 0.9) nên vượt lên: 'I eat rice', log-prob −1.7148 so với −2.0794 của greedy. Beam thường hơn greedy vì nó chịu giữ lại nhánh tạm thời kém hơn, nhưng không có gì bảo đảm tuyệt đối: nó vẫn cắt bớt nhánh ở mỗi bước, chỉ là cắt muộn hơn greedy k lần."
+  }}
+/>
+
+Kiểm lại bằng tay với $k = 2$ ($\ln$ tự nhiên):
+
+**Bước 1.** Ba ứng viên: I $\ln 0.5 = -0.6931$ · We $-1.2040$ · Rice $-1.6094$. Giữ **I, We**.
+
+**Bước 2.** Mở rộng cả hai:
+
+| Tiền tố | Tổng log-prob | Xác suất |
+|---|---|---|
+| I am | $-0.6931 - 0.6931 = -1.3863$ | 0.25 |
+| I eat | $-0.6931 - 0.9163 = -1.6094$ | 0.20 |
+| We eat | $-1.2040 - 0.5108 = -1.7148$ | 0.18 |
+| We are | $-1.2040 - 0.9163 = -2.1203$ | 0.12 |
+| I like | $-0.6931 - 2.3026 = -2.9957$ | 0.05 |
+
+Giữ **I am** và **I eat**. Chú ý: "We eat" bị loại ở đây, dù nó sẽ dẫn tới "We eat rice" xác suất 0.162 — cao hơn câu mà greedy tìm được.
+
+**Bước 3.** Mở rộng hai tiền tố còn lại, hai câu đầu bảng là:
+
+| Câu | Tổng log-prob | Xác suất |
+|---|---|---|
+| I eat rice | $-1.6094 - 0.1054 = -1.7148$ | 0.18 |
+| I am eating | $-1.3863 - 0.6931 = -2.0794$ | 0.125 |
+
+Beam $k = 2$ ra **"I eat rice"** — đúng bản dịch, và điểm cao hơn greedy. Chi phí: mỗi bước chấm $k \times |V|$ ứng viên thay vì $|V|$, tức là đắt gấp $k$ lần.
+
+Thử lại với $k = 3$ để thấy mặt trái: beam giữ thêm nhánh "Rice" và tìm ra **"Rice is eaten"**, log-prob $-1.6094$ — **cao hơn** "I eat rice". Tìm kiếm tốt hơn thật, nhưng bản dịch thì tệ hơn: mất chủ ngữ "Tôi". Đây chính là hiện tượng ai làm dịch máy cũng gặp: beam rộng hơn thường làm **BLEU giảm**, vì nó moi ra được những câu mà mô hình chấm điểm cao một cách sai lầm (xem mục 3.6 của Koehn & Knowles, và [On NMT Search Errors and Model Errors](https://aclanthology.org/D19-1331/) — với beam đủ rộng, câu có xác suất cao nhất của nhiều mô hình chính là **câu rỗng**). Trong thực tế $k = 4$ hoặc $5$ là đủ; paper Transformer dùng $k = 4$.
+
+<CauHoi cau="dich-may-nmt/q7" />
+
+## Length penalty: chữa thiên vị câu ngắn
+
+Mỗi token thêm vào cộng thêm một số **âm** vào tổng log-prob. Câu càng dài điểm càng thấp — không phải vì nó dịch dở, mà vì nó dài. Với beam search, kết quả là những bản dịch cụt lủn.
+
+Cách chữa quen dùng (từ GNMT, cũng là công thức của paper Transformer): chia cho một hàm tăng theo độ dài,
+
+$$
+\text{score}(Y) = \frac{\log p(Y \mid X)}{lp(Y)}
+\qquad
+lp(Y) = \left(\frac{5 + |Y|}{6}\right)^{\alpha}
+$$
+
+$\alpha = 0$ là không phạt gì; $\alpha = 1$ gần như chia trung bình theo token; paper Transformer dùng $\alpha = 0.6$. Ví dụ hai ứng viên:
+
+| Câu | Số token | $\log p$ | $lp$ ($\alpha=1$) | score |
+|---|---|---|---|---|
+| I eat rice | 3 | −1.7148 | 1.3333 | **−1.2861** |
+| I eat rice at home | 5 | −2.0100 | 1.6667 | **−1.2060** |
+
+Không phạt thì câu ngắn thắng ($-1.7148 > -2.0100$); phạt với $\alpha = 1$ thì câu dài thắng ($-1.2060 > -1.2861$). $\alpha$ là một núm vặn: quá nhỏ ra câu cụt, quá lớn ra câu lê thê. Chỉnh trên tập dev bằng [BLEU](/khai-niem/danh-gia-dich), đừng đoán.
+
+<CauHoi cau="dich-may-nmt/q8" />
+
+## Ba lỗi kinh điển
+
+**Lặp từ.** "Tôi rất rất rất rất thích..." Decoder rơi vào điểm bất động: token vừa sinh làm cho chính nó thành ứng viên mạnh nhất ở bước sau. Hay gặp khi mô hình thiếu tự tin (câu nguồn lạ, ngoài miền dữ liệu) hoặc khi giải mã bằng greedy trên mô hình huấn luyện chưa đủ. Chữa: chặn lặp n-gram (cấm sinh lại n-gram đã có), hoặc lấy mẫu thay vì tìm kiếm.
+
+**Ảo giác (hallucination).** Bản dịch trôi chảy, ngữ pháp đẹp, nhưng nội dung không liên quan câu nguồn — đôi khi là một câu hoàn toàn khác. Nguyên nhân: decoder vốn cũng là một mô hình ngôn ngữ; khi cross-attention không bắt được gì hữu ích (câu nguồn nhiễu, nhiều ký tự lạ, ngoài miền), phần mô hình ngôn ngữ chiếm quyền và cứ thế viết ra câu "nghe hay". Dấu hiệu nhận biết: bản dịch không đổi mấy dù ta sửa câu nguồn.
+
+**Dịch sót.** Một mệnh đề, một con số, một phủ định biến mất — như "I am eating" ở trên đánh rơi "cơm". Nguy hiểm vì bản dịch **đọc vẫn trôi**, người không biết tiếng nguồn không thể phát hiện. Gốc rễ: hàm loss không hề có thành phần nào ép mô hình dùng hết thông tin câu nguồn; nó chỉ thưởng cho việc đoán đúng token kế tiếp.
+
+Đối xứng với dịch sót là **dịch thừa** (thêm thông tin không có trong nguồn). Cả ba lỗi đều **không** bị bắt bởi loss lúc huấn luyện, nên chỉ lộ ra khi đánh giá — lý do tồn tại của bài [đánh giá bản dịch](/khai-niem/danh-gia-dich).
+
+## Cỡ thực tế
+
+Số liệu lấy từ paper Transformer (2017) để có mốc so sánh:
+
+| | Base | Big |
+|---|---|---|
+| Tham số | 65 triệu | 213 triệu |
+| Số khối | 6 encoder + 6 decoder | 6 + 6 |
+| $d_{model}$ / $d_{ff}$ / $h$ | 512 / 2048 / 8 | 1024 / 4096 / 16 |
+| Bước huấn luyện | 100.000 (~12 giờ) | 300.000 (~3,5 ngày) |
+| Phần cứng | 8 GPU NVIDIA P100 | 8 GPU NVIDIA P100 |
+
+Dữ liệu: WMT 2014 Anh–Đức khoảng **4,5 triệu cặp câu**, từ điển BPE dùng chung 37.000 token; bản Anh–Pháp là **36 triệu cặp câu**. Khi giải mã: beam $k = 4$, length penalty $\alpha = 0.6$. Lúc huấn luyện còn hai thứ nhỏ mà quan trọng: dropout 0.1 và label smoothing 0.1 (đẩy 10% khối lượng xác suất ra khỏi token đúng để mô hình bớt quá tự tin — perplexity xấu đi nhưng BLEU tốt lên).
+
+Đối chiếu với tiếng Việt: bộ song ngữ Anh–Việt quen dùng của IWSLT'15 chỉ có khoảng **133 nghìn cặp câu** — ít hơn WMT En–De hơn 30 lần. Cùng một kiến trúc nhưng ít dữ liệu hơn hai bậc độ lớn thì phải đổi cách làm: mô hình nhỏ lại, regularization mạnh hơn, và tận dụng dữ liệu đơn ngữ. Đó là nội dung bài [dịch máy cho ngôn ngữ ít tài nguyên](/khai-niem/dich-may-it-tai-nguyen).
+
+## Tóm tắt
+
+- Mô hình chỉ cho $p(y_t \mid y_{<t}, X)$; xác suất câu là tích các bước, loss là trung bình $-\log p$ của token đúng ở mọi vị trí.
+- Teacher forcing cho phép tính cả câu song song nhưng tạo ra exposure bias; nó chỉ chạy đúng khi có mask nhân quả, và batch có `<pad>` thì phải mask cả trong attention lẫn trong loss.
+- Greedy chọn token tốt nhất từng bước và dễ đi vào ngõ cụt; beam search giữ k tiền tố tốt nhất theo tổng log-prob, đắt gấp k lần, vẫn chỉ là heuristic.
+- Trong ví dụ của bài: greedy ra "I am eating" ($-2.0794$), beam k=2 ra "I eat rice" ($-1.7148$), beam k=3 ra "Rice is eaten" ($-1.6094$) — điểm cao hơn nhưng dịch tệ hơn.
+- Tổng log-prob thiên vị câu ngắn, chữa bằng $lp(Y) = ((5+|Y|)/6)^\alpha$ với $\alpha \approx 0.6$; thực tế $k = 4$–5 là đủ.
+- Ba lỗi kinh điển — lặp từ, ảo giác, dịch sót — đều không bị hàm loss phạt, nên phải bắt bằng khâu đánh giá.

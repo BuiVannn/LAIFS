@@ -1,0 +1,200 @@
+---
+ten_vi: "Vector hoá từ (embedding)"
+ten_en: "Word Embedding"
+tang: 5
+thu_tu: 34
+tien_quyet: ["vector-ma-tran", "tokenization"]
+trang_thai: nhap
+dinh_nghia: >-
+  Cách biểu diễn mỗi token bằng một vector số thực vài trăm chiều, lấy từ một bảng tra
+  shape (V, d) trong đó V là kích thước vocab. Bảng này là tham số của mô hình: nó được
+  khởi tạo ngẫu nhiên rồi học bằng gradient descent, và kết quả là các token dùng được
+  thay cho nhau trong ngữ cảnh sẽ có vector gần nhau.
+truc_giac: >-
+  Hãy tưởng tượng một tấm bản đồ, mỗi từ là một chấm. Ta không vẽ bản đồ theo mặt chữ mà
+  theo cách dùng: từ nào hay xuất hiện ở những chỗ giống nhau thì đặt gần nhau. Sau khi
+  đọc đủ nhiều văn bản, «mèo» tự trôi về cạnh «chó», «phở» về cạnh «cơm». Không ai dạy
+  máy nghĩa của từ; máy chỉ đo xem các từ hay đứng cạnh những ai, rồi vẽ bản đồ đó ra.
+hieu_nham:
+  - "Embedding không được ai gán nghĩa bằng tay. Nó chỉ là một ma trận tham số, học bằng gradient descent như mọi trọng số khác."
+  - "Cosine similarity chỉ nhìn GÓC, không nhìn độ dài: (3,4) và (30,40) có cosin đúng bằng 1 dù khoảng cách giữa chúng rất lớn."
+  - "Từ gần nhau theo cosin chưa chắc đồng nghĩa — chúng chỉ hay xuất hiện ở ngữ cảnh giống nhau. «nóng» và «lạnh» thường rất gần nhau."
+  - "Bảng embedding cho mỗi token đúng MỘT vector cố định, nên «đá» (hòn đá) và «đá» (đá bóng) dùng chung một vector. Attention mới là chỗ tách nghĩa theo ngữ cảnh."
+  - "Con số cosin chỉ so được trong cùng một mô hình. 0.82 ở mô hình này không so được với 0.82 ở mô hình khác."
+y_chinh:
+  - "One-hot dài bằng cả vocab và mọi cặp từ khác nhau đều cách nhau y hệt; embedding nén xuống d chiều và cho phép gần–xa"
+  - "Bảng embedding là ma trận (V, d); tra một id là lấy đúng một hàng, nên là phép tra bảng chứ không phải nhân ma trận"
+  - "Batch id shape (n, L) tra ra tensor shape (n, L, d) — mỗi vị trí token nở ra một vector"
+  - "Cosine similarity = tích vô hướng chia cho tích hai độ dài; chạy từ −1 tới 1 và chỉ đo góc"
+  - "Bảng embedding là tham số, học bằng backprop; nghĩa đến từ ngữ cảnh chứ không từ từ điển do người viết"
+  - "Trong dịch máy đa ngữ, «mèo» và «cat» có thể nằm gần nhau trong cùng một không gian — nền tảng để chuyển nghĩa qua ngôn ngữ"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=gQddtTdmG_8
+    tieu_de: "Vectoring Words (Word Embeddings)"
+    tac_gia: Computerphile
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: 16 phút, trực giác "nghĩa nằm ở hướng của vector" với ví dụ king − man + woman rất rõ. Nên xem đầu tiên.
+  - url: https://jalammar.github.io/illustrated-word2vec/
+    tieu_de: "The Illustrated Word2vec"
+    tac_gia: Jay Alammar
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Bài viết toàn hình vẽ, đi từ bài trắc nghiệm tính cách tới word2vec. Đọc chậm, không cần công thức.
+  - url: https://www.youtube.com/watch?v=viZrOnJclY0
+    tieu_de: "Word Embedding and Word2Vec, Clearly Explained!!!"
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Chỉ rõ bảng embedding thực chất là trọng số của một mạng neuron nhỏ và nó được huấn luyện ra sao. Xem khi muốn nối bài này với backprop.
+---
+
+import BanDoEmbedding from '../../src/viz/BanDoEmbedding.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Bài toán: id là con số vô nghĩa
+
+Sau bước [tách token](/khai-niem/tokenization), câu `"Con mèo ngồi"` đã thành một dãy id, chẳng hạn `[14, 203, 87]`. Nhưng những con số này hoàn toàn tuỳ tiện: chúng chỉ là số thứ tự trong từ điển, sắp theo thứ tự học merge.
+
+Nếu đưa thẳng id vào mạng thì mạng sẽ hiểu sai: token id 203 **không** "lớn gấp 14 lần" token id 14, và token 87 **không** nằm "giữa" hai token kia về mặt nghĩa. Số thứ tự không mang thông tin.
+
+## Cách đầu tiên: one-hot
+
+Cách sửa hiển nhiên: cho mỗi token một chiều riêng. Với vocab 5 từ:
+
+```
+mèo = (0, 1, 0, 0, 0)
+chó = (0, 0, 1, 0, 0)
+phở = (0, 0, 0, 0, 1)
+```
+
+Không còn thứ tự giả nữa. Nhưng có hai vấn đề chết người:
+
+- **Quá dài.** Vocab thật cỡ 32.000–200.000, nên mỗi từ là một vector 32.000 chiều mà chỉ có đúng một số khác 0.
+- **Mọi từ cách đều nhau.** Tích vô hướng của hai one-hot khác nhau **bất kỳ** đều bằng 0. Theo cách đo này, «mèo» xa «chó» đúng bằng xa «phở». Mô hình học được gì từ «mèo» không chuyển được sang «chó» một chút nào.
+
+<CauHoi cau="embedding/q1" />
+
+## Embedding: nén xuống và cho phép gần–xa
+
+**Embedding** thay one-hot bằng một vector **đặc** (dense) ít chiều hơn nhiều, ví dụ $d = 512$:
+
+```
+mèo = (0.21, −1.04, 0.88, …, 0.13)     ← 512 số thực
+```
+
+Toàn bộ vocab xếp thành một ma trận $E$ shape $(V, d)$: **mỗi hàng là vector của một token**. "Tra embedding của token id 203" chỉ là lấy hàng thứ 203 — một phép tra bảng, không phải nhân ma trận.
+
+Với $V = 32000$, $d = 512$, bảng này có $32000 \times 512 = 16{,}384{,}000$ tham số. Khoảng 16 triệu số, thường là một trong những khối tham số lớn nhất của mô hình dịch.
+
+**Shape khi chạy thật.** Batch 8 câu, mỗi câu 20 token:
+
+```
+mảng id, số nguyên   (8, 20)   ──tra bảng E──▶   (8, 20, 512)   số thực
+```
+
+Mỗi vị trí token nở ra thành một vector $d$ chiều. Từ đây trở đi toàn bộ mô hình chỉ làm việc với tensor số thực; chuỗi ký tự gốc biến mất.
+
+<CauHoi cau="embedding/q3" />
+
+## Đo "gần nghĩa" bằng cosine similarity
+
+Có vector rồi thì cần một thước đo độ giống nhau. Thước chuẩn là **cosine similarity** — cosin của góc giữa hai vector:
+
+$$
+\cos(\mathbf{a}, \mathbf{b}) = \frac{\mathbf{a} \cdot \mathbf{b}}{\lVert \mathbf{a} \rVert \, \lVert \mathbf{b} \rVert}
+$$
+
+Giá trị chạy từ $-1$ (ngược hướng hoàn toàn) qua $0$ (vuông góc, "không liên quan") tới $1$ (cùng hướng).
+
+Tính tay với $\mathbf{a} = (1, 1)$ và $\mathbf{b} = (0, 2)$:
+
+$$
+\mathbf{a} \cdot \mathbf{b} = 1 \times 0 + 1 \times 2 = 2
+\qquad
+\lVert \mathbf{a} \rVert = \sqrt{2} \approx 1.4142
+\qquad
+\lVert \mathbf{b} \rVert = 2
+$$
+$$
+\cos(\mathbf{a}, \mathbf{b}) = \frac{2}{1.4142 \times 2} \approx 0.7071
+$$
+
+Đúng bằng $\cos 45°$, hợp lý vì góc giữa hai vector này là 45 độ.
+
+**Điểm dễ nhầm nhất:** cosin **chỉ nhìn góc**. Với $\mathbf{a} = (3, 4)$ và $\mathbf{b} = (30, 40)$ thì $\cos = 1$ tròn trịa, dù khoảng cách Euclid giữa chúng rất lớn. Trong không gian embedding, **hướng** mới là thứ mang nghĩa; độ dài thường phản ánh tần suất chứ không phản ánh nghĩa.
+
+## Tự thử: bản đồ 24 từ
+
+Bản đồ dưới đây có 24 từ tiếng Việt với toạ độ **2 chiều do người soạn đặt tay để minh hoạ** — embedding thật có vài trăm chiều và học từ dữ liệu, không vẽ ra giấy được. Nhưng cơ chế đo thì y hệt: cosin giữa hai vector.
+
+Bốn từ «vua / hoàng hậu / đàn ông / đàn bà» được đặt thành một hình bình hành, cố ý.
+
+<BanDoEmbedding
+  client:visible
+  tam="vua"
+  duDoan={{
+    de: "Theo cosine similarity, từ nào GẦN «vua» nhất trên bản đồ này?",
+    lua_chon: ["hoàng hậu", "đàn ông", "con gái"],
+    dap_an: 1,
+    giai_thich: "«đàn ông» = 0.990, còn «hoàng hậu» chỉ 0.940. Bất ngờ nhưng đúng cơ chế: cosin đo góc, và trên bản đồ này hướng «giới tính» lệch nhiều hơn hướng «hoàng gia». Đúng chuyện xảy ra với embedding thật — các thước đo tương đồng trộn lẫn mọi loại quan hệ vào một con số duy nhất."
+  }}
+/>
+
+Bảng tự do — bấm vào một từ bất kỳ để đổi trung tâm:
+
+<BanDoEmbedding client:visible />
+
+Vài thứ đáng thử. Chọn «nước»: nó gần «cà phê» (0.984) hơn gần «bơi» (0.914), vì bản đồ này xếp «nước» vào cụm đồ ăn thức uống — một từ đa nghĩa chỉ có **một** chỗ đứng, nên phải chọn phe. Chọn «vua» rồi nhìn xuống cụm động từ: cosin giữa «vua» và «đi» là **−0.884**, âm hẳn — hai hướng gần như ngược nhau.
+
+<CauHoi cau="embedding/q6" />
+
+## Hình bình hành: vua − đàn ông + đàn bà
+
+Vì embedding là **vector**, ta cộng trừ được. Trên bản đồ vừa rồi:
+
+```
+vua     = (4.4, 2.2)
+đàn ông = (3.0, 1.0)
+đàn bà  = (2.2, 2.6)
+
+vua − đàn ông + đàn bà = (4.4 − 3.0 + 2.2,  2.2 − 1.0 + 2.6) = (3.6, 3.8)
+```
+
+Và $(3.6, 3.8)$ **đúng bằng** toạ độ của «hoàng hậu» — cosin 1.000. Đọc theo lời: "vua trừ đi phần đàn ông, cộng vào phần đàn bà, ra hoàng hậu".
+
+Ở đây ra khớp tuyệt đối vì người soạn đã đặt toạ độ như thế. Embedding học từ dữ liệu thật không bao giờ đẹp đến vậy: kết quả chỉ **gần** từ mong muốn, và nhiều phép loại suy khác thì sai hẳn. Điều cần rút ra không phải "công thức này luôn đúng", mà là: **các quan hệ có hệ thống trở thành các hướng trong không gian**, và đó là điều làm embedding hữu ích.
+
+## Bảng embedding học từ đâu?
+
+Không ai gán nghĩa bằng tay. Ma trận $E$ được khởi tạo bằng số ngẫu nhiên nhỏ, rồi học y hệt mọi tham số khác: mô hình dự đoán, tính loss, [lan truyền ngược](/khai-niem/lan-truyen-nguoc), rồi $E \leftarrow E - \eta \cdot \partial L / \partial E$.
+
+Điểm đặc biệt duy nhất: mỗi bước chỉ những **hàng của token có mặt trong batch** nhận gradient. Token nào hiếm thì được cập nhật ít, nên vector của nó kém tin cậy — một lý do rất thực tế khiến dịch tên riêng và thuật ngữ chuyên ngành hay sai.
+
+Vì sao từ gần nghĩa lại trôi về gần nhau? Vì loss giảm khi mô hình đoán đúng, và nếu «mèo» với «chó» thay thế được cho nhau ở nhiều câu thì cách rẻ nhất để đoán tốt cả hai là cho chúng vector giống nhau. Nghĩa **nổi lên** từ thống kê ngữ cảnh, không phải từ định nghĩa.
+
+Hệ quả cần cảnh giác: gần theo cosin nghĩa là "dùng được ở chỗ giống nhau", **không** phải "đồng nghĩa". `nóng` và `lạnh` xuất hiện trong những câu rất giống nhau ("hôm nay trời rất ___") nên thường có cosin cao, dù chúng trái nghĩa.
+
+<CauHoi cau="embedding/q8" />
+
+## Với dịch máy Việt–Anh thì sao?
+
+Ba điểm đáng nhớ.
+
+**Một không gian cho hai ngôn ngữ.** Mô hình dịch đa ngữ dùng chung một vocab và một bảng embedding cho cả tiếng Việt lẫn tiếng Anh. Nếu huấn luyện trên dữ liệu song ngữ, `▁mèo` và `▁cat` bị đẩy về gần nhau — vì trong cùng vai trò, chúng thay thế được cho nhau. Đó là nền móng để mô hình chuyển nghĩa qua ngôn ngữ thay vì tra từ điển.
+
+**Embedding là của token, không phải của từ.** Với tiếng Việt bị tách vụn (xem bài trước: `▁m | è | o`), vector của một âm tiết tiếng Việt thường mang ít thông tin hơn vector của cả từ `▁cat`. Mô hình phải dùng các lớp phía sau để ghép lại. Đây là một chi phí ẩn nữa của tỉ lệ token cao.
+
+**Một token, một vector — kể cả khi từ đa nghĩa.** Bảng embedding tra theo id, không nhìn ngữ cảnh. `đá` trong "hòn đá" và trong "đá bóng" nhận **cùng một vector**, là trung bình nhoè của mọi nghĩa. Dịch đúng đòi hỏi phân biệt được hai nghĩa đó, và việc ấy do [attention](/khai-niem/attention) trong Transformer đảm nhận: nó trộn thông tin từ các từ xung quanh để tạo ra biểu diễn **theo ngữ cảnh**. Vector từ bảng embedding chỉ là **điểm khởi đầu**.
+
+## Tóm tắt
+
+- Id token là số thứ tự vô nghĩa; embedding biến nó thành vector số thực để mạng tính toán được.
+- One-hot quá dài và cho mọi cặp từ khoảng cách như nhau; embedding nén xuống $d$ chiều và cho phép gần–xa.
+- Bảng embedding là ma trận $(V, d)$, tra một id là lấy một hàng; batch $(n, L)$ ra tensor $(n, L, d)$.
+- Cosine similarity đo **góc**, chạy từ −1 tới 1, bỏ qua độ dài: $\cos((3,4),(30,40)) = 1$.
+- Bảng embedding là tham số, học bằng gradient descent; nghĩa nổi lên từ ngữ cảnh, nên "gần" nghĩa là "dùng được ở chỗ giống nhau", không phải "đồng nghĩa".
+- Mỗi token chỉ có một vector cố định — tách nghĩa theo ngữ cảnh là việc của attention ở bài sau.

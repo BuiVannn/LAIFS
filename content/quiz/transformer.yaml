@@ -1,0 +1,105 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: Khác biệt lớn nhất giữa Transformer và mô hình seq2seq dùng RNN là gì?
+    lua_chon:
+      - Transformer bỏ hẳn phần đệ quy, mọi token được xử lý song song bằng attention
+      - Transformer dùng attention còn RNN thì không dùng attention
+      - Transformer không cần huấn luyện bằng gradient descent
+      - Transformer xử lý được câu dài vô hạn mà không tốn thêm bộ nhớ
+    dap_an: 0
+    giai_thich: "RNN có attention từ trước Transformer rồi. Điểm mới là bỏ luôn vòng lặp theo thời gian: mọi token tính cùng lúc trong một phép nhân ma trận, nên song song hoá được cả chiều dài câu. Đổi lại chi phí attention là O(n²), càng câu dài càng tốn — không phải 'vô hạn miễn phí'."
+
+  - id: q2
+    loai: mot
+    do_kho: 1
+    de: "Trong self-attention, ba vector Q, K, V của một token đến từ đâu?"
+    lua_chon:
+      - Q từ decoder, K và V từ encoder
+      - Ba phép chiếu tuyến tính khác nhau áp lên CÙNG một vector đầu vào của token đó
+      - Q là embedding, K là positional encoding, V là đầu ra của lớp trước
+      - Ba vector này có sẵn trong dữ liệu huấn luyện
+    dap_an: 1
+    giai_thich: "q = W_Q·x, k = W_K·x, v = W_V·x — cùng một x, ba ma trận học được khác nhau. Phương án 'Q từ decoder, K/V từ encoder' mô tả cross-attention, không phải self-attention."
+
+  - id: q3
+    loai: so
+    do_kho: 2
+    de: "Câu nguồn có n = 6 token, d_model = 512, h = 8 đầu. Bảng chú ý (ma trận trọng số sau softmax) của MỘT đầu có bao nhiêu phần tử?"
+    dap_an: 36
+    sai_so: 0.001
+    giai_thich: "Bảng chú ý có shape (n, n) = (6, 6) → 36 phần tử, mỗi ô là 'token i lấy bao nhiêu phần từ token j'. Kích thước này KHÔNG phụ thuộc d_model hay d_k: 512 chỉ quyết định độ dài vector, còn bảng chú ý chỉ đếm token với token. Cả khối có 8 bảng như vậy, mỗi hàng của mỗi bảng cộng lại bằng 1."
+
+  - id: q4
+    loai: so
+    do_kho: 1
+    de: "Transformer base: d_model = 512, h = 8 đầu chú ý. Mỗi đầu làm việc với vector khoá d_k bằng bao nhiêu chiều?"
+    dap_an: 64
+    sai_so: 0.001
+    giai_thich: "d_k = d_v = d_model / h = 512 / 8 = 64. Chia đều chứ không nhân lên, nên 8 đầu tốn xấp xỉ bằng một đầu cỡ 512 — cái lợi của multi-head là mỗi đầu học một kiểu quan hệ riêng, không phải nhiều tham số hơn."
+
+  - id: q5
+    loai: mot
+    do_kho: 2
+    de: "Vì sao công thức attention chia điểm thô cho √d_k trước khi softmax?"
+    lua_chon:
+      - Để các trọng số chú ý cộng lại bằng 1
+      - Để tích vô hướng không phình theo số chiều, tránh softmax bão hoà làm gradient teo
+      - Để tiết kiệm bộ nhớ khi câu dài
+      - Để ma trận Q và K có cùng shape
+    dap_an: 1
+    giai_thich: "Tích vô hướng của hai vector d_k chiều có phương sai cỡ d_k, nên với d_k = 64 điểm thô dễ rơi vào ±10 trở lên. Softmax của những số đó gần như one-hot, mà softmax bão hoà thì đạo hàm gần 0 và gradient không chảy về được. Việc 'cộng lại bằng 1' là do bản thân softmax lo, chia hay không chia cũng vậy."
+
+  - id: q6
+    loai: so
+    do_kho: 2
+    de: "Decoder tự chú ý trên câu đích 5 token, có mask nhân quả. Trong bảng chú ý 5×5, có bao nhiêu ô KHÔNG bị che (được phép nhìn)?"
+    dap_an: 15
+    sai_so: 0.001
+    giai_thich: "Mask nhân quả giữ lại phần tam giác dưới kể cả đường chéo: hàng t được nhìn t ô. Tổng 1 + 2 + 3 + 4 + 5 = 15 trên tổng 25 ô. Mười ô còn lại bị đặt −∞ trước softmax nên nhận trọng số đúng bằng 0, và các ô còn lại trong hàng vẫn cộng thành 1."
+
+  - id: q7
+    loai: nhieu
+    do_kho: 2
+    de: Những phát biểu nào về positional encoding là ĐÚNG? (chọn tất cả ý đúng)
+    lua_chon:
+      - Cần có vì công thức attention không phân biệt được thứ tự các token
+      - Được CỘNG vào vector embedding, không phải nối thêm chiều
+      - Dùng sin/cos ở nhiều tần số khác nhau, chiều đầu đổi nhanh, chiều sau đổi chậm
+      - Là tham số bắt buộc phải học, không thể tính bằng công thức cố định
+    dap_an: [0, 1, 2]
+    giai_thich: "Attention đối xứng với hoán vị nên 'Tôi ăn cơm' và 'Cơm ăn tôi' cho cùng kết quả nếu không có thông tin vị trí. PE sin/cos là công thức cố định, không có tham số nào phải học — paper cũng thử phương án học vector vị trí và kết quả gần như nhau, nên 'bắt buộc phải học' là sai."
+
+  - id: q8
+    loai: so
+    do_kho: 3
+    de: "Một khối encoder base (d_model = 512, d_ff = 2048), BỎ QUA bias và LayerNorm, có bao nhiêu TRIỆU tham số? (4 ma trận W_Q, W_K, W_V, W_O cỡ 512×512 và FFN 512→2048→512)"
+    dap_an: 3.146
+    sai_so: 0.02
+    giai_thich: "Attention: 4 × 512 × 512 = 1.048.576. FFN: 512 × 2048 + 2048 × 512 = 2.097.152. Tổng 3.145.728 ≈ 3,15 triệu, đúng bằng mẹo nhớ 12·d_model². Tính cả bias và LayerNorm thì được 3.152.384 — chênh chưa tới 0,3%, nên phần lớn tham số nằm ở các ma trận lớn. FFN chiếm 2/3."
+
+  - id: q9
+    loai: mot
+    do_kho: 2
+    de: "Câu nguồn dài gấp đôi thì chi phí tính bảng chú ý của một khối tăng khoảng bao nhiêu lần?"
+    lua_chon:
+      - Không đổi
+      - 2 lần
+      - 4 lần
+      - 8 lần
+    dap_an: 2
+    giai_thich: "Bảng chú ý có n² ô, nên n gấp đôi thì số ô gấp 4. Đây là điểm yếu O(n²) của Transformer: với câu dịch (n dưới 100) thì không đáng kể, nhưng với văn bản 10.000 token thì thành 100 triệu ô cho mỗi đầu, mỗi khối."
+
+  - id: q10
+    loai: nhieu
+    do_kho: 2
+    de: Một khối DECODER của Transformer gồm những tầng con nào? (chọn tất cả ý đúng)
+    lua_chon:
+      - Self-attention có mask nhân quả trên câu đích
+      - Cross-attention với Q từ decoder, K và V từ đầu ra encoder
+      - Mạng FFN hai lớp áp riêng cho từng vị trí
+      - Một lớp RNN để giữ thứ tự sinh token
+    dap_an: [0, 1, 2]
+    giai_thich: "Ba tầng con theo đúng thứ tự đó, mỗi tầng bọc trong kết nối tắt + LayerNorm. Không có RNN ở đâu cả — thứ tự sinh token do mask nhân quả và vòng lặp giải mã lo, không phải do kiến trúc."

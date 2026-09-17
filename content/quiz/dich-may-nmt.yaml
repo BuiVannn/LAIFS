@@ -1,0 +1,105 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: "Teacher forcing trong huấn luyện NMT nghĩa là gì?"
+    lua_chon:
+      - Ở mỗi vị trí, decoder được cho xem các token ĐÚNG của câu đích ở những vị trí trước
+      - Ở mỗi vị trí, decoder ăn lại chính token mà nó vừa sinh ra
+      - Giáo viên chấm tay một phần dữ liệu trước khi huấn luyện
+      - Ép mô hình sinh câu đích có độ dài bằng câu nguồn
+    dap_an: 0
+    giai_thich: "Nhờ luôn có tiền tố đúng, mọi vị trí tính được song song trong một lần chạy thay vì phải chờ nhau. Phương án 2 mô tả cách chạy lúc giải mã thật — chênh lệch giữa hai chế độ chính là exposure bias."
+
+  - id: q2
+    loai: so
+    do_kho: 2
+    de: "Câu đích có 4 token. Mô hình gán cho token ĐÚNG ở bốn vị trí các xác suất 0.5, 0.4, 0.9, 0.8. Loss cross-entropy trung bình của câu bằng bao nhiêu? (dùng log tự nhiên)"
+    dap_an: 0.4845
+    sai_so: 0.002
+    giai_thich: "Mỗi vị trí đóng góp −ln p của token đúng: 0.6931, 0.9163, 0.1054, 0.2231. Tổng 1.9379, chia 4 được 0.4845. Perplexity tương ứng e^0.4845 ≈ 1.62. Để ý chỉ token ĐÚNG vào công thức — các token còn lại trong từ điển có nhãn 0 nên biến mất khỏi tổng cross-entropy."
+
+  - id: q3
+    loai: mot
+    do_kho: 2
+    de: "Huấn luyện decoder mà QUÊN mask nhân quả thì chuyện gì xảy ra?"
+    lua_chon:
+      - Loss xuống rất thấp nhưng mô hình dịch vô dụng, vì nó học mẹo chép token kế tiếp đã nhìn thấy
+      - Loss không hội tụ, luôn ở mức ngẫu nhiên
+      - Mô hình vẫn đúng, chỉ chậm hơn
+      - Mô hình sinh câu ngắn hơn bình thường
+    dap_an: 0
+    giai_thich: "Không che thì self-attention ở vị trí t nhìn thẳng vào token t+1 của câu đích đang được đưa vào. Mô hình chỉ cần chép, loss gần 0. Lúc giải mã thật không có token tương lai để chép nên nó sụp hoàn toàn. Đây là lỗi kinh điển khi tự cài Transformer, và cách phát hiện là loss huấn luyện đẹp bất thường."
+
+  - id: q4
+    loai: nhieu
+    do_kho: 2
+    de: Token đệm `<pad>` phải bị che ở những chỗ nào? (chọn tất cả ý đúng)
+    lua_chon:
+      - Trong bảng chú ý, để token thật không hút thông tin từ ô trống
+      - Trong hàm loss, để mô hình không được thưởng vì đoán đúng `<pad>`
+      - Trong positional encoding, vì vị trí của `<pad>` là vô nghĩa
+      - Trong ma trận embedding, phải xoá hẳn hàng của `<pad>`
+    dap_an: [0, 1]
+    giai_thich: "Hai chỗ: attention và loss. PE cứ tính bình thường cho mọi vị trí — kết quả ở ô đệm không được dùng tới vì đã bị mask ở attention. Hàng embedding của `<pad>` vẫn tồn tại, chỉ là gradient của nó không đi đến đâu."
+
+  - id: q5
+    loai: mot
+    do_kho: 2
+    de: "Giải mã với bảng: từ `<s>` có I 0.5 · We 0.3; sau `<s> I` có am 0.5 · eat 0.4; sau `<s> I am` có eating 0.5; sau `<s> I eat` có rice 0.9. Greedy cho ra câu nào?"
+    lua_chon:
+      - I eat rice, xác suất 0.18
+      - I am eating, xác suất 0.125
+      - We eat rice, xác suất 0.162
+      - Câu có xác suất cao nhất trong mọi câu 3 token
+    dap_an: 1
+    giai_thich: "Greedy chỉ nhìn một bước: bước 2 chọn 'am' (0.5 > 0.4) và không quay đầu được, ra 'I am eating' = 0.5 × 0.5 × 0.5 = 0.125. Nhưng 'I eat rice' = 0.5 × 0.4 × 0.9 = 0.18 cao hơn. Greedy trượt vì không chịu nhận thiệt 0.1 ở bước 2 để lấy 0.9 ở bước 3."
+
+  - id: q6
+    loai: so
+    do_kho: 2
+    de: "Beam search với k = 3 trên từ điển 6 token. Ở mỗi bước (chưa tính bước đầu), thuật toán phải chấm điểm bao nhiêu ứng viên trước khi cắt còn 3?"
+    dap_an: 18
+    sai_so: 0.001
+    giai_thich: "Mỗi tiền tố trong beam được mở rộng với mọi token của từ điển: k × |V| = 3 × 6 = 18 ứng viên, sắp xếp rồi giữ 3 tốt nhất. Tổng quát, beam đắt gấp k lần greedy — đó là lý do thực tế chỉ dùng k = 4 hoặc 5 chứ không phải 50."
+
+  - id: q7
+    loai: nhieu
+    do_kho: 3
+    de: Những phát biểu nào về beam search là ĐÚNG? (chọn tất cả ý đúng)
+    lua_chon:
+      - Với k = 1, beam search chính là greedy
+      - Tăng k thì tìm được câu có log-xác suất cao hơn, nhưng BLEU có thể GIẢM
+      - Beam đảm bảo tìm ra câu có xác suất cao nhất nếu k ≥ 2
+      - Cộng log-xác suất thay vì nhân xác suất là để tránh tràn số dưới
+    dap_an: [0, 1, 3]
+    giai_thich: "k = 1 nghĩa là mỗi bước chỉ giữ một tiền tố tốt nhất — đúng định nghĩa greedy. Beam vẫn là heuristic: nó cắt bớt nhánh ở mỗi bước nên có thể vứt đi tiền tố dẫn tới câu tốt nhất (trong ví dụ của bài, k=2 loại 'We eat' dù 'We eat rice' có xác suất 0.162). Việc tìm kiếm tốt hơn mà chất lượng dịch kém đi là hiện tượng thật và đã được đo — mô hình chấm điểm cao cho những câu mà người thấy tệ."
+
+  - id: q8
+    loai: so
+    do_kho: 3
+    de: "Ứng viên 5 token có tổng log-prob −2.01. Chuẩn hoá độ dài lp(Y) = ((5 + |Y|)/6)^α với α = 1. Điểm sau chuẩn hoá bằng bao nhiêu?"
+    dap_an: -1.206
+    sai_so: 0.003
+    giai_thich: "lp = (5 + 5)/6 = 1.6667; score = −2.01 / 1.6667 = −1.2060. So với ứng viên 3 token có log-prob −1.7148: lp = 8/6 = 1.3333, score = −1.2861. Không phạt thì câu ngắn thắng, phạt với α = 1 thì câu dài thắng. Paper Transformer dùng α = 0.6, nằm giữa hai thái cực."
+
+  - id: q9
+    loai: so
+    do_kho: 2
+    de: "Decoder đang sinh câu đích 5 token, câu nguồn có 8 token. Bảng chú ý của một đầu CROSS-attention có bao nhiêu phần tử?"
+    dap_an: 40
+    sai_so: 0.001
+    giai_thich: "Cross-attention lấy Q từ decoder (5 hàng) và K từ encoder (8 cột) nên bảng có shape (5, 8) = 40 ô — hình chữ nhật, không vuông như self-attention. Mỗi HÀNG cộng lại bằng 1: mỗi token đích phân bổ sự chú ý của mình trên 8 token nguồn."
+
+  - id: q10
+    loai: mot
+    do_kho: 2
+    de: "Bản dịch đọc rất trôi chảy nhưng mất hẳn một mệnh đề của câu nguồn. Đây là lỗi gì, và vì sao hàm loss lúc huấn luyện không bắt được?"
+    lua_chon:
+      - Lặp từ; loss không bắt được vì không đếm số lần lặp
+      - Dịch sót; loss chỉ thưởng việc đoán đúng token kế tiếp, không có thành phần nào ép dùng hết thông tin câu nguồn
+      - Ảo giác; loss không bắt được vì câu vẫn đúng ngữ pháp
+      - Không phải lỗi, chỉ là bản dịch tự do
+    dap_an: 1
+    giai_thich: "Mất thông tin mà câu vẫn trôi là dịch sót (omission) — nguy hiểm nhất trong ba lỗi vì người không biết tiếng nguồn không thể phát hiện. Ảo giác thì ngược lại: nội dung KHÔNG liên quan câu nguồn. Cả ba lỗi đều lọt lưới cross-entropy, nên phải bắt ở khâu đánh giá."

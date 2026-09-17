@@ -1,0 +1,109 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: Vì sao không thể dùng thẳng một MLP để dịch câu tiếng Việt sang tiếng Anh?
+    lua_chon:
+      - MLP có số đầu vào và số đầu ra cố định, trong khi câu nguồn và câu đích dài ngắn tuỳ ý
+      - MLP không tính được đạo hàm nên không huấn luyện được
+      - MLP không dùng được hàm softmax
+      - MLP chỉ chạy được trên dữ liệu số, không chạy được trên vector
+    dap_an: 0
+    giai_thich: "Câu nguồn dài ngắn tuỳ ý và câu đích cũng vậy, thậm chí không cùng độ dài với câu nguồn. Một MLP có kích thước lớp vào/lớp ra ấn định từ trước nên không xử lý được. Seq2seq giải quyết bằng cách dùng RNN đọc từng từ (dùng lại một bộ trọng số ở mọi bước) và sinh từng từ tới khi gặp <eos>."
+
+  - id: q2
+    loai: mot
+    do_kho: 1
+    de: Nhiệm vụ của bộ mã hoá (encoder) trong seq2seq là gì?
+    lua_chon:
+      - Đọc hết câu nguồn và nén thành một vector ngữ cảnh có kích thước cố định
+      - Sinh ra từng từ của câu đích
+      - Dịch từng từ nguồn thành từ đích tương ứng, theo đúng thứ tự
+      - Chọn từ có xác suất cao nhất ở mỗi bước
+    dap_an: 0
+    giai_thich: "Bộ mã hoá chạy RNN qua từng từ nguồn và trả về trạng thái ẩn cuối cùng làm vector ngữ cảnh c. Ba phương án còn lại là việc của bộ giải mã, và đặc biệt bộ mã hoá KHÔNG dịch từng từ một: nó chỉ gom ý cả câu."
+
+  - id: q3
+    loai: so
+    do_kho: 1
+    de: "Bộ mã hoá đồ chơi có W_h = 0,9·I, W_x = I, b = 0, h₀ = (0, 0). Từ đầu tiên có embedding x₁ = (1, 0). Thành phần THỨ NHẤT của h₁ bằng bao nhiêu? (làm tròn 4 chữ số)"
+    dap_an: 0.7616
+    sai_so: 0.0005
+    giai_thich: "h₁ = tanh(0,9·h₀ + x₁) = tanh((0, 0) + (1, 0)) = (tanh 1, tanh 0) = (0,7616; 0). Thành phần thứ nhất là tanh(1) ≈ 0,7616. Ở bước đầu h₀ = 0 nên W_h không ảnh hưởng gì."
+
+  - id: q4
+    loai: so
+    do_kho: 2
+    de: "Một mô hình seq2seq cơ bản có trạng thái ẩn 512 chiều. Câu nguồn gồm 24 từ. Vector ngữ cảnh c chứa bao nhiêu số?"
+    dap_an: 512
+    sai_so: 0.001
+    giai_thich: "c = h₍T₎ là trạng thái ẩn CUỐI CÙNG, nên shape của nó là (512,) — đúng bằng số chiều trạng thái ẩn, hoàn toàn không phụ thuộc vào 24 từ của câu nguồn. Nếu câu dài 200 từ thì c vẫn chỉ có 512 số. Đó chính là nút thắt ngữ cảnh. (24 × 512 = 12288 là kích thước của TOÀN BỘ các trạng thái h₁…h₍24₎, thứ mà chỉ cơ chế chú ý mới dùng tới.)"
+
+  - id: q5
+    loai: mot
+    do_kho: 2
+    de: Ở mỗi bước, bộ giải mã cho ra cái gì?
+    lua_chon:
+      - Đúng một từ tiếng Anh
+      - Một phân bố xác suất softmax trên toàn bộ từ vựng đích
+      - Vector ngữ cảnh mới cho bước sau
+      - Điểm BLEU của câu đang dịch
+    dap_an: 1
+    giai_thich: "Bộ giải mã cho một vector logit dài bằng cỡ từ vựng đích (vài chục nghìn), qua softmax thành phân bố xác suất. Việc CHỌN ra một từ là bước sau đó và có nhiều cách chọn (greedy, beam search, lấy mẫu). Trong seq2seq cơ bản, vector ngữ cảnh không hề được tính lại: nó cố định suốt quá trình sinh."
+
+  - id: q6
+    loai: nhieu
+    do_kho: 2
+    de: Những phát biểu nào đúng về "nút thắt ngữ cảnh" của seq2seq cơ bản? (chọn tất cả ý đúng)
+    lua_chon:
+      - Kích thước vector ngữ cảnh không tăng theo độ dài câu nguồn
+      - Câu nguồn càng dài, thông tin về các từ đầu câu trong vector ngữ cảnh càng mờ đi
+      - Chất lượng dịch thường giảm rõ rệt khi câu nguồn dài ra
+      - Muốn khắc phục thì chỉ cần huấn luyện lâu hơn với nhiều dữ liệu hơn
+    dap_an: [0, 1, 2]
+    giai_thich: "Ba ý đầu chính là nút thắt: một vector kích thước cố định phải chứa cả câu, nên mỗi từ mới lại ghi đè lên dấu vết của những từ trước, và chất lượng dịch tụt khi câu dài. Ý cuối sai: đây là giới hạn của KIẾN TRÚC chứ không phải của lượng dữ liệu — lời giải là đổi kiến trúc, cụ thể là thêm cơ chế chú ý."
+
+  - id: q7
+    loai: so
+    do_kho: 2
+    de: "Từ vựng đích có 32000 từ. Mô hình dịch một câu và sinh ra 11 từ rồi sinh token <eos>. Bộ giải mã đã chạy softmax bao nhiêu lần cho câu này?"
+    dap_an: 12
+    sai_so: 0.001
+    giai_thich: "Mỗi bước giải mã là một lần softmax trên 32000 logit. Token <eos> cũng phải được sinh ra như một từ bình thường, nên số bước là 11 + 1 = 12. Con số 32000 chỉ là độ dài mỗi vector softmax, không phải số lần chạy."
+
+  - id: q8
+    loai: mot
+    do_kho: 2
+    de: "Đang huấn luyện với cặp câu `con mèo đen` ↔ `the black cat`. Ở bước 2, mô hình vừa đoán sai ở bước 1 (đoán `a` thay vì `the`). Với teacher forcing, đầu vào của bộ giải mã ở bước 2 là gì?"
+    lua_chon:
+      - "`a`, tức từ mà mô hình vừa đoán"
+      - "`the`, tức từ đúng trong câu tham chiếu"
+      - "`<bos>` lặp lại"
+      - Vector ngữ cảnh c
+    dap_an: 1
+    giai_thich: "Teacher forcing luôn đưa từ ĐÚNG của câu tham chiếu vào bước sau, bất kể mô hình vừa đoán gì. Nhờ vậy một lỗi sớm không kéo sập cả câu và mạng học nhanh hơn nhiều. Mặt trái là lúc dịch thật mô hình phải tự ăn từ mình vừa đoán — chênh lệch giữa hai chế độ gọi là exposure bias."
+
+  - id: q9
+    loai: mot
+    do_kho: 2
+    de: Độ dài của câu đích được quyết định thế nào?
+    lua_chon:
+      - Luôn bằng độ dài câu nguồn
+      - Phải khai báo trước khi dịch
+      - Do mô hình tự quyết, nó dừng khi sinh ra token <eos>
+      - Bằng số chiều của vector ngữ cảnh
+    dap_an: 2
+    giai_thich: "`<eos>` là một mục bình thường trong từ vựng đích. Khi nó có xác suất cao nhất (hoặc được chọn), quá trình sinh dừng lại. Nhờ vậy 3 từ tiếng Việt có thể ra 5 từ tiếng Anh. Trên thực tế người ta vẫn đặt thêm một mức trần cứng để phòng mô hình lặp vô hạn."
+
+  - id: q10
+    loai: nhieu
+    do_kho: 3
+    de: So sánh greedy decoding và beam search với beam k = 5. Những phát biểu nào đúng? (chọn tất cả ý đúng)
+    lua_chon:
+      - Beam search giữ song song 5 câu dở dang có điểm cao nhất rồi mới chọn câu tốt nhất ở cuối
+      - Greedy có thể chọn từ tốt nhất ở bước này nhưng dẫn cả câu vào phương án tệ hơn
+      - Beam search tốn nhiều tính toán hơn greedy
+      - Beam search đảm bảo tìm được câu đích có xác suất cao nhất trong mọi câu có thể
+    dap_an: [0, 1, 2]
+    giai_thich: "Beam search là tìm kiếm có cắt tỉa: nó chỉ giữ k nhánh triển vọng nhất nên tốn khoảng k lần chi phí của greedy, và vẫn có thể bỏ sót câu tốt nhất — không hề đảm bảo tối ưu. Nó chỉ tốt hơn greedy vì không phải chốt cứng lựa chọn ngay ở từng bước."

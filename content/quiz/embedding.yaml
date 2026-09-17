@@ -1,0 +1,109 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: "Vector one-hot có vấn đề gì khiến người ta phải dùng embedding?"
+    lua_chon:
+      - Nó quá dài và mọi cặp từ khác nhau đều cách nhau y hệt, không mã hoá được quan hệ nghĩa
+      - Nó chứa số thực nên máy tính khó lưu
+      - Nó không biểu diễn được từ viết hoa
+      - Nó luôn có độ dài bằng 300
+    dap_an: 0
+    giai_thich: "One-hot dài bằng cả vocab (mấy chục nghìn chiều) và cosin giữa hai từ khác nhau BẤT KỲ đều bằng 0. «mèo» cách «chó» đúng bằng cách «phở». Embedding nén xuống vài trăm chiều số thực và cho phép các từ gần nghĩa nằm gần nhau."
+
+  - id: q2
+    loai: so
+    do_kho: 1
+    de: "Vocab 32.000 token, số chiều embedding d = 512. Bảng embedding có bao nhiêu tham số?"
+    dap_an: 16384000
+    sai_so: 1
+    giai_thich: "Bảng embedding là ma trận shape (V, d) = (32000, 512), mỗi hàng là vector của một token. Số tham số = 32000 × 512 = 16.384.000 — khoảng 16 triệu, thường là một trong những khối tham số lớn nhất của mô hình dịch."
+
+  - id: q3
+    loai: mot
+    do_kho: 2
+    de: "Batch gồm 8 câu, mỗi câu 20 token (mảng id shape (8, 20)). Tra vào bảng embedding shape (32000, 512) thì đầu ra có shape gì?"
+    lua_chon:
+      - "(8, 512)"
+      - "(8, 20, 512)"
+      - "(8, 20, 32000)"
+      - "(20, 512)"
+    dap_an: 1
+    giai_thich: "Mỗi id được thay bằng một hàng 512 chiều, nên mỗi vị trí token nở ra thành một vector: (8, 20) → (8, 20, 512). Đây là bước đầu tiên của mọi mô hình Transformer — biến số nguyên thành số thực để tính toán."
+
+  - id: q4
+    loai: so
+    do_kho: 1
+    de: "Cosine similarity giữa a = (1, 0) và b = (0, 1) bằng bao nhiêu?"
+    dap_an: 0
+    sai_so: 0.001
+    giai_thich: "a · b = 1×0 + 0×1 = 0, nên cosin = 0. Hai vector vuông góc nhau: theo thước đo này chúng «không liên quan gì». Cosin chạy từ −1 (ngược hướng) qua 0 (vuông góc) tới 1 (cùng hướng)."
+
+  - id: q5
+    loai: so
+    do_kho: 2
+    de: "Cosine similarity giữa a = (1, 1) và b = (0, 2) bằng bao nhiêu? (làm tròn 4 chữ số)"
+    dap_an: 0.7071
+    sai_so: 0.001
+    giai_thich: "a · b = 1×0 + 1×2 = 2. |a| = √2 ≈ 1.4142, |b| = 2. Cosin = 2 / (1.4142 × 2) ≈ 0.7071 — đúng bằng cos 45°, vì góc giữa hai vector này là 45 độ."
+
+  - id: q6
+    loai: mot
+    do_kho: 2
+    de: "Vector a = (3, 4) và b = (30, 40). Cosine similarity của chúng bằng bao nhiêu, và điều đó nói lên gì?"
+    lua_chon:
+      - "0.1, vì b dài gấp 10 lần a"
+      - "1.0, vì cosin chỉ nhìn hướng chứ không nhìn độ dài"
+      - "10, vì tỉ lệ độ dài là 10"
+      - "0, vì hai vector khác nhau"
+    dap_an: 1
+    giai_thich: "b = 10a nên hai vector cùng hướng hoàn toàn, cosin = 1. Đây là khác biệt quan trọng so với khoảng cách Euclid: khoảng cách giữa a và b rất lớn, nhưng cosin coi chúng là một. Với embedding, hướng mới là thứ mang nghĩa."
+
+  - id: q7
+    loai: nhieu
+    do_kho: 2
+    de: Embedding "biết" được nghĩa của từ từ đâu? (chọn tất cả ý đúng)
+    lua_chon:
+      - Từ ngữ cảnh — các từ xuất hiện trong những ngữ cảnh giống nhau sẽ nhận vector giống nhau
+      - Từ một từ điển nghĩa do con người gán sẵn cho từng từ
+      - Từ gradient descent — vector là tham số, được cập nhật cùng phần còn lại của mô hình
+      - Từ số thứ tự của từ trong vocab
+    dap_an: [0, 2]
+    giai_thich: "Bảng embedding chỉ là một ma trận tham số, khởi tạo ngẫu nhiên. Nó học được nghĩa vì loss của mô hình giảm khi các từ thay thế được cho nhau nhận vector gần nhau. Không ai gán nghĩa bằng tay, và id trong vocab hoàn toàn tuỳ tiện."
+
+  - id: q8
+    loai: mot
+    do_kho: 3
+    de: "Trong câu «hòn đá rất nặng» và «anh ấy đá bóng», từ «đá» mang hai nghĩa khác nhau. Một bảng embedding tĩnh (mỗi token một vector cố định) xử lý thế nào?"
+    lua_chon:
+      - Tạo hai vector khác nhau tuỳ ngữ cảnh
+      - Cùng một vector cho cả hai, nghĩa bị trộn lẫn — đây chính là hạn chế mà Transformer khắc phục
+      - Báo lỗi vì từ mơ hồ
+      - Chọn nghĩa phổ biến hơn và bỏ nghĩa còn lại
+    dap_an: 1
+    giai_thich: "Bảng embedding chỉ tra theo id, không nhìn ngữ cảnh, nên «đá» luôn nhận cùng một vector — trung bình nhoè của mọi nghĩa. Các lớp attention phía sau mới trộn thông tin từ các từ xung quanh để tạo biểu diễn theo ngữ cảnh. Vector từ bảng embedding chỉ là điểm KHỞI ĐẦU."
+
+  - id: q9
+    loai: mot
+    do_kho: 2
+    de: "Bạn tính cosin giữa vector của «mèo» và «chó» trong một mô hình đã huấn luyện, được 0.82. Con số này có ý nghĩa gì?"
+    lua_chon:
+      - Xác suất 82% hai từ đồng nghĩa
+      - Hai từ giống nhau 82% về mặt ngữ pháp
+      - Chỉ có nghĩa khi so sánh với các cặp khác trong CÙNG mô hình đó
+      - Mọi mô hình đều cho «mèo»–«chó» khoảng 0.82
+    dap_an: 2
+    giai_thich: "Cosin là con số tương đối, không phải xác suất và không so được giữa hai mô hình khác nhau. Điều đọc được là thứ hạng: nếu cos(mèo, chó) = 0.82 còn cos(mèo, phở) = 0.11 thì mô hình đã học đúng rằng mèo gần chó hơn."
+
+  - id: q10
+    loai: nhieu
+    do_kho: 3
+    de: Vì sao embedding quan trọng với dịch máy Việt–Anh? (chọn tất cả ý đúng)
+    lua_chon:
+      - Nó biến id token (số nguyên vô nghĩa) thành số thực để mạng neuron tính toán và lấy gradient được
+      - Mô hình đa ngữ có thể đặt «mèo» và «cat» gần nhau trong cùng một không gian, giúp chuyển nghĩa qua ngôn ngữ
+      - Nó tự động dịch từng từ một mà không cần phần còn lại của mô hình
+      - Từ hiếm trong dữ liệu huấn luyện thường có embedding kém chất lượng, dịch dễ sai
+    dap_an: [0, 1, 3]
+    giai_thich: "Embedding là cầu nối giữa văn bản và số học, và là chỗ để hai ngôn ngữ chia sẻ không gian nghĩa. Nhưng nó KHÔNG tự dịch: dịch cần trật tự từ, ngữ cảnh và cả bộ giải mã. Từ hiếm cập nhật được ít gradient nên vector của chúng kém tin cậy — một lý do dịch tên riêng hay thuật ngữ chuyên ngành thường sai."

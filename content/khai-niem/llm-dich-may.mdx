@@ -1,0 +1,160 @@
+---
+ten_vi: "LLM làm dịch máy"
+ten_en: "LLMs for Machine Translation"
+tang: 5
+thu_tu: 43
+tien_quyet: ["transformer", "danh-gia-dich", "dich-may-it-tai-nguyen"]
+trang_thai: nhap
+dinh_nghia: >-
+  Dùng một mô hình ngôn ngữ lớn đa năng để dịch, bằng cách mô tả nhiệm vụ trong prompt thay
+  vì huấn luyện riêng cho cặp ngôn ngữ đó. Chất lượng điều khiển chủ yếu qua prompt: hướng
+  dẫn, vài ví dụ mẫu (few-shot), bảng thuật ngữ nhét kèm, hoặc đoạn tài liệu truy xuất được
+  (RAG).
+truc_giac: >-
+  Mô hình NMT chuyên dụng giống một phiên dịch viên chỉ biết đúng một cặp ngôn ngữ nhưng
+  làm cả ngày không mệt và không bịa. LLM giống một người giỏi chữ nghĩa, đọc rất nhiều, biết
+  văn phong và ngữ cảnh — nhưng khi gặp thứ tiếng họ chưa từng đọc, thay vì nói "tôi không
+  biết", họ viết ra một đoạn nghe rất trôi chảy mà hoàn toàn bịa.
+hieu_nham:
+  - "LLM đứng đầu WMT ở nhiều cặp ngôn ngữ KHÔNG có nghĩa là NMT chuyên dụng đã hết thời: ở ngôn ngữ rất hiếm, mô hình chuyên dụng như NLLB vẫn xếp trên nhiều LLM lớn."
+  - "Trôi chảy không phải là đúng. Chế độ hỏng nguy hiểm nhất của LLM ở ngôn ngữ ít tài nguyên là câu dịch mượt mà nhưng nội dung không liên quan tới câu gốc — người không biết ngôn ngữ đích không thể phát hiện."
+  - "Thêm ví dụ few-shot không phải lúc nào cũng tăng chất lượng: nếu ví dụ lệch miền hoặc chính nó sai, mô hình bắt chước luôn cái sai."
+  - "Chi phí theo token không tỉ lệ với số chữ bạn nhìn thấy. Cùng một nội dung, số token của các ngôn ngữ chênh nhau rất nhiều, nên bảng giá 'mỗi token' không công bằng giữa các ngôn ngữ."
+y_chinh:
+  - "LLM dịch bằng prompt: hướng dẫn + few-shot + bảng thuật ngữ + ngữ cảnh truy xuất (RAG)"
+  - "Điểm mạnh: ngữ cảnh dài (dịch cả tài liệu), giữ văn phong, tuân thủ thuật ngữ theo yêu cầu"
+  - "WMT25: Gemini 2.5 Pro đứng đầu theo đánh giá của người, vào cụm dẫn đầu ở 14/16 cặp ngôn ngữ"
+  - "Ở ngôn ngữ rất ít tài nguyên chất lượng sụp đổ: WMT25 đánh giá bản dịch tiếng Maasai là 'gần như không dùng được', hệ thống thường xuất ra tiếng Swahili"
+  - "Ảo giác là chế độ hỏng đặc trưng: câu trôi chảy nhưng không liên quan tới nguồn"
+  - "Mô hình NMT chuyên dụng vẫn hơn về chi phí, độ ổn định, và ở các ngôn ngữ mà nó được huấn luyện riêng"
+tai_lieu:
+  - url: https://aclanthology.org/2025.wmt-1.22.pdf
+    tieu_de: "Findings of the WMT25 General Machine Translation Shared Task: Time to Stop Evaluating on Easy Test Sets"
+    tac_gia: "Tom Kocmi và cộng sự (WMT 2025)"
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: "Cuộc thi dịch máy lớn nhất năm, có đánh giá của người thật. Đọc mục 'Results' và các bảng cuối để tự thấy LLM thắng ở đâu và thua ở đâu."
+  - url: https://arxiv.org/abs/2406.15625
+    tieu_de: "Shortcomings of LLMs for Low-Resource Translation: Retrieval and Understanding are Both the Problem"
+    tac_gia: "Sara Court, Micha Elsner (2024)"
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: "Thí nghiệm nhét từ điển, mô tả ngữ pháp và ví dụ song ngữ vào prompt để dịch Quechua → Tây Ban Nha. Đúng chủ đề 'RAG thuật ngữ' của bài này."
+  - url: https://arxiv.org/abs/2305.15425
+    tieu_de: "Language Model Tokenizers Introduce Unfairness Between Languages"
+    tac_gia: "Aleksandar Petrov, Emanuele La Malfa, Philip Torr, Adel Bibi (NeurIPS 2023)"
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: "Ngắn và trực quan: vì sao cùng một đoạn văn lại tốn số token rất khác nhau tuỳ ngôn ngữ, và hệ quả về chi phí."
+---
+
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Dịch bằng prompt
+
+Mô hình dịch neural chuyên dụng chỉ làm một việc: nhận câu nguồn, sinh câu đích. LLM thì nhận **văn bản mô tả nhiệm vụ**, nên bạn điều khiển nó bằng cách viết thêm vào prompt. Bốn tầng, từ đơn giản tới công phu:
+
+**Tầng 1 — zero-shot.** Chỉ nói việc cần làm.
+
+```
+Dịch đoạn sau từ tiếng Anh sang tiếng Việt. Chỉ trả về bản dịch.
+---
+The patient was discharged on the third day.
+```
+
+**Tầng 2 — few-shot.** Đưa vài cặp mẫu để mô hình bắt chước văn phong, cách xưng hô, cách viết số.
+
+```
+Ví dụ:
+EN: The patient was admitted to the ICU.
+VI: Bệnh nhân được chuyển vào khoa hồi sức tích cực.
+
+EN: The patient was discharged on the third day.
+VI:
+```
+
+**Tầng 3 — bảng thuật ngữ trong prompt (in-context glossary).** Đây là điểm LLM thật sự ăn đứt NMT thường: bạn ra lệnh trực tiếp phải dịch từ nào thành từ nào.
+
+```
+Bảng thuật ngữ bắt buộc dùng:
+  discharge → xuất viện (KHÔNG dịch là "thải ra")
+  ICU → khoa hồi sức tích cực
+```
+
+**Tầng 4 — RAG thuật ngữ.** Bảng thuật ngữ đầy đủ có thể có hàng chục nghìn mục, không nhét hết vào prompt được. Vậy trước mỗi câu, ta **truy xuất** đúng những mục liên quan: quét câu nguồn, tìm các thuật ngữ khớp, và tìm vài cặp câu tương tự nhất trong kho dịch cũ (bằng tf-idf + cosine hoặc embedding), rồi chỉ nhét những thứ đó vào prompt.
+
+Court & Elsner (2024) thử đúng cách này cho Quechua → Tây Ban Nha, với ngữ cảnh lấy từ từ điển số hoá, bài giảng ngữ pháp và kho song ngữ. Kết luận của họ: ngay cả LLM nhỏ cũng tận dụng được ngữ cảnh khi được cung cấp "một lượng thông tin ngôn ngữ liên quan vừa đủ" — nhưng hiệu quả thay đổi thất thường tuỳ loại ngữ cảnh, cách truy xuất và ngôn ngữ, cho thấy giới hạn của việc dùng LLM làm hệ dịch cho phần lớn trong hơn 7000 ngôn ngữ của thế giới (arXiv:2406.15625).
+
+<CauHoi cau="llm-dich-may/q3" />
+
+## Điểm mạnh
+
+**Ngữ cảnh dài.** Mô hình NMT cổ điển dịch từng câu rời, nên không biết "she" ở câu 5 trỏ về ai ở câu 1, hay tài liệu này đang dùng "anh/chị" hay "ông/bà". LLM đọc cả tài liệu một lượt. WMT25 đi theo đúng hướng này: họ cung cấp văn bản nguồn dưới dạng **cả tài liệu** gồm nhiều đoạn, chứ không phải từng câu (Kocmi et al. 2025).
+
+**Văn phong theo yêu cầu.** Bạn nói được "dịch trang trọng", "giữ giọng hài", "viết như hướng dẫn sử dụng" — những thứ không có chỗ để diễn đạt trong một mô hình NMT thường.
+
+**Thuật ngữ.** Bảng thuật ngữ trong prompt được tuân thủ tương đối tốt, trong khi ép thuật ngữ vào NMT chuyên dụng cần can thiệp giải mã (constrained decoding) khá phiền.
+
+## Điểm yếu ở ngôn ngữ ít tài nguyên
+
+Đây là phần quan trọng nhất của bài, và cũng là phần dễ bị các bảng xếp hạng che mất.
+
+**Ảo giác (hallucination).** Khi không đủ tín hiệu, mô hình sinh không im lặng — nó sinh ra thứ *nghe giống* một bản dịch. Koehn & Knowles (2017) mô tả chính xác hiện tượng này với NMT ít dữ liệu: "đầu ra trôi chảy nhưng không liên quan gì tới đầu vào", và cảnh báo rằng đây là mối nguy đặc biệt khi người dùng dịch để nắm ý — họ sẽ bị dẫn dắt bởi nội dung bịa. LLM thừa hưởng nguyên chế độ hỏng này, còn nặng hơn vì chúng viết mượt hơn.
+
+**Bịa từ và trôi sang ngôn ngữ khác.** WMT25 đưa thêm cặp Anh → Maasai (một ngôn ngữ rất ít tài nguyên ở Kenya). Kết luận của ban tổ chức thẳng thắn: chất lượng dịch sang tiếng Maasai **"gần như không dùng được"**, và các hệ thống "thường xuất ra phần lớn đầu ra bằng tiếng Swahili" — tức là mô hình rơi về một ngôn ngữ láng giềng nhiều dữ liệu hơn thay vì thừa nhận không biết. Hiện tượng tương tự xảy ra với tiếng Ả Rập Ai Cập: các hệ thống trả về tiếng Ả Rập chuẩn hiện đại (MSA) thay vì phương ngữ được yêu cầu.
+
+**Xuống cấp mạnh theo mức tài nguyên.** So hai bảng của WMT25:
+
+| Cặp | Hệ dẫn đầu (đánh giá người) | Điểm |
+|---|---|---|
+| Anh → Bhojpuri | Gemini-2.5-Pro | 94.9 |
+| Anh → Maasai | Gemini-2.5-Pro | 9.8 |
+
+Cùng một mô hình, cùng một giao thức chấm (ESA), chênh nhau gần mười lần. Mức tài nguyên của ngôn ngữ đích, chứ không phải mô hình, mới là biến quyết định.
+
+**Và ngay cả việc chấm điểm cũng hỏng.** Ở cặp Anh → Maasai, bản dịch **do người làm** cũng chỉ được 9.6 điểm — ban tổ chức xác nhận được rằng các bản dịch đó thực ra người bản ngữ đọc hiểu và thấy tự nhiên, và phỏng đoán rằng người chấm, sau khi đọc quá nhiều đầu ra kém, đã bỏ sót bản dịch tử tế duy nhất. Với ngôn ngữ ít tài nguyên, bạn không chỉ thiếu mô hình tốt — bạn thiếu cả thước đo đáng tin.
+
+<CauHoi cau="llm-dich-may/q6" />
+
+## So với mô hình NMT chuyên dụng
+
+WMT25 đánh giá 60 hệ thống: 36 hệ do người dự thi nộp và 24 hệ là bản dịch thu từ các LLM lớn và các dịch vụ dịch trực tuyến phổ biến. Đánh giá của người cho kết quả:
+
+- **Gemini 2.5 Pro đứng đầu tổng thể**, vào cụm dẫn đầu ở **14 trên 16** cặp ngôn ngữ được chấm bởi người, và ngang bằng hoặc vượt bản dịch của người ở **10** trong số đó.
+- **Đánh giá tự động cho kết quả khác hẳn:** theo chỉ số tự động (AutoRank), hệ Shy-hunyuan-MT xếp nhất ở tất cả các cặp trừ một. Nhưng khi người chấm, hệ này tụt hẳn — ở cặp Anh → Bhojpuri nó chỉ được 1.7 điểm và xếp cuối. Bài học: đừng tin bảng xếp hạng tự động một mình.
+- **Ở ngôn ngữ hiếm, mô hình chuyên dụng vẫn cạnh tranh:** cũng ở Anh → Bhojpuri, **NLLB** (75.6) xếp trên CommandA (72.6), ONLINE-B (67.2) và Gemma-3-27B (56.0), và cùng cụm với Llama-4-Maverick (76.4).
+
+Vậy chọn cái nào?
+
+| Tiêu chí | LLM | NMT chuyên dụng |
+|---|---|---|
+| Ngôn ngữ nhiều tài nguyên, văn bản dài, cần văn phong | ✔ | |
+| Ngôn ngữ rất hiếm đã được huấn luyện riêng | | ✔ |
+| Khối lượng lớn, chi phí và độ trễ thấp | | ✔ |
+| Đầu ra ổn định, ít bịa | | ✔ |
+| Ép thuật ngữ, dịch theo hướng dẫn | ✔ | |
+
+Trong thực tế hai thứ hay được ghép: LLM dịch nháp và hậu biên tập, NMT chuyên dụng chạy khối lượng lớn; hoặc dùng LLM để chưng cất (distill) ra một mô hình nhỏ chạy rẻ.
+
+## Chi phí token cho tiếng Việt
+
+API tính tiền theo **token**, không theo chữ. Mà một token là gì thì phụ thuộc bộ tách token, và bộ tách token được học chủ yếu trên văn bản tiếng Anh.
+
+Petrov et al. (2023) đo cùng một đoạn văn dịch sang nhiều ngôn ngữ: độ dài tính bằng token chênh nhau **tới 15 lần** giữa các ngôn ngữ, và khoảng cách này vẫn còn ngay cả với các tokenizer được thiết kế cho đa ngữ. Ahia et al. (2023) đi tiếp: người nói nhiều ngôn ngữ được hỗ trợ đang **trả nhiều tiền hơn để nhận kết quả tệ hơn**, và họ thường ở những nơi mà giá API vốn đã đắt so với thu nhập.
+
+Tiếng Việt chịu ảnh hưởng này vì hai lý do cấu tạo: dấu thanh và nguyên âm có dấu thường bị tách thành nhiều mảnh, và từ tiếng Việt viết rời thành các âm tiết nên một "từ" thường tốn nhiều token hơn một từ tiếng Anh tương ứng. Hệ quả thực tế: cùng một tài liệu, bản tiếng Việt tốn nhiều token hơn bản tiếng Anh, tức là đắt hơn, chậm hơn, và nhét được ít ngữ cảnh hơn trong cùng cửa sổ.
+
+*(Con số cụ thể cho riêng tiếng Việt: chưa kiểm được từ nguồn gốc khi soạn bài này — Petrov et al. và Ahia et al. có đo tiếng Việt nhưng trình bày trong biểu đồ, không phải bảng số. Nếu cần con số chính xác, hãy tự đếm bằng tokenizer của đúng mô hình bạn dùng trên chính văn bản của bạn.)*
+
+<CauHoi cau="llm-dich-may/q9" />
+
+## Tóm tắt
+
+- LLM dịch bằng prompt; nâng chất lượng theo bậc thang: hướng dẫn → few-shot → bảng thuật ngữ → RAG thuật ngữ.
+- Mạnh ở ngữ cảnh dài, văn phong, tuân thủ thuật ngữ. Theo WMT25, Gemini 2.5 Pro đứng đầu đánh giá của người ở 14/16 cặp.
+- Yếu ở ngôn ngữ ít tài nguyên: ảo giác, trôi sang ngôn ngữ láng giềng, chất lượng sụp đổ (94.9 ở Bhojpuri so với 9.8 ở Maasai).
+- Ở ngôn ngữ hiếm, mô hình chuyên dụng như NLLB vẫn xếp trên nhiều LLM lớn.
+- Token hoá thiên lệch làm tiếng Việt đắt hơn tiếng Anh trên cùng một nội dung.

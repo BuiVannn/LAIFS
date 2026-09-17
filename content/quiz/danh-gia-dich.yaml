@@ -1,0 +1,146 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: "Vì sao chấm điểm bản dịch khó hơn chấm điểm một mô hình phân loại?"
+    lua_chon:
+      - Vì một câu nguồn có nhiều bản dịch đều đúng, nên không có một đáp án duy nhất để so
+      - Vì mô hình dịch có nhiều tham số hơn
+      - Vì bản dịch luôn dài hơn câu nguồn
+      - Vì không thể tính hàm mất mát cho bài toán dịch
+    dap_an: 0
+    giai_thich: >-
+      Phân loại có nhãn đúng duy nhất. Dịch thì không: "cuộc họp đã bị hoãn sang tuần sau" và
+      "buổi họp được dời sang tuần tới" đều là bản dịch đúng của cùng một câu. Mọi metric so với
+      một bản tham chiếu đều phạt oan bản dịch diễn đạt theo cách khác.
+
+  - id: q2
+    loai: mot
+    do_kho: 2
+    de: "Clipping trong BLEU dùng để chặn kiểu gian lận nào?"
+    lua_chon:
+      - Dịch quá ngắn để giữ precision cao
+      - Lặp đi lặp lại một từ có trong bản tham chiếu để đẩy precision lên
+      - Dịch quá dài và lan man
+      - Dùng từ đồng nghĩa thay vì từ trong tham chiếu
+    dap_an: 1
+    giai_thich: >-
+      Không clipping thì bản dịch "trên trên trên trên trên trên trên" có p1 = 7/7 = 1 khi tham chiếu
+      chứa từ "trên". Clipping giới hạn mỗi n-gram chỉ được tính tối đa bằng số lần nó xuất hiện
+      trong tham chiếu, nên p1 chỉ còn 1/7. Việc dịch quá ngắn do brevity penalty xử lý, không phải clipping.
+
+  - id: q3
+    loai: so
+    do_kho: 2
+    de: >-
+      Bản tham chiếu: "con mèo đang ngồi trên tấm thảm" (7 từ). Bản dịch máy:
+      "trên trên trên trên trên trên trên" (7 từ). Sau khi clipping, có bao nhiêu unigram của
+      bản dịch được tính là khớp?
+    dap_an: 1
+    sai_so: 0.001
+    giai_thich: >-
+      Từ "trên" xuất hiện đúng 1 lần trong bản tham chiếu, nên dù bản dịch lặp 7 lần thì chỉ
+      min(7, 1) = 1 lần được tính. Vậy p1 = 1/7 ≈ 0.1429, không phải 7/7.
+
+  - id: q4
+    loai: so
+    do_kho: 2
+    de: >-
+      Bản dịch dài 9 từ, bản tham chiếu dài 12 từ. Brevity penalty bằng bao nhiêu?
+      (BP = 1 nếu c lớn hơn r, ngược lại BP = e^(1 − r/c))
+    dap_an: 0.7165
+    sai_so: 0.001
+    giai_thich: >-
+      c = 9 nhỏ hơn r = 12 nên BP = e^(1 − 12/9) = e^(−1/3) ≈ 0.7165. Bản dịch ngắn hơn tham chiếu
+      nên bị phạt khoảng 28%.
+
+  - id: q5
+    loai: so
+    do_kho: 3
+    de: >-
+      Một bản dịch có p1 = 0.5, p2 = 0.25, p3 = 0.125, p4 = 0.0625 và brevity penalty bằng 1.
+      BLEU trên thang 100 bằng bao nhiêu?
+    dap_an: 17.68
+    sai_so: 0.05
+    giai_thich: >-
+      BLEU = BP × (p1·p2·p3·p4)^(1/4). Tích bằng 0.5 × 0.25 × 0.125 × 0.0625 = 0.0009765625 = 2^(−10),
+      lấy căn bậc 4 được 2^(−2.5) ≈ 0.17678. Nhân BP = 1 và đổi sang thang 100 được 17.68.
+
+  - id: q6
+    loai: mot
+    do_kho: 2
+    de: "Vì sao BLEU tính trên MỘT câu lẻ thường bằng 0 và gần như vô dụng?"
+    lua_chon:
+      - Vì brevity penalty luôn bằng 0 với câu ngắn
+      - Vì BLEU dùng trung bình NHÂN của p1..p4, chỉ cần một bậc không có n-gram nào khớp là cả tích bằng 0
+      - Vì clipping xoá hết các n-gram khớp
+      - Vì BLEU chỉ định nghĩa được khi có ít nhất hai bản tham chiếu
+    dap_an: 1
+    giai_thich: >-
+      Câu ngắn rất dễ không có 4-gram nào khớp, khiến p4 = 0 và trung bình nhân bằng 0 bất kể
+      p1, p2, p3 tốt đến đâu. BLEU được thiết kế để tính trên cả tập test: cộng dồn tử số và
+      mẫu số của tất cả các câu trước, rồi mới chia.
+
+  - id: q7
+    loai: mot
+    do_kho: 2
+    de: "sacreBLEU giải quyết vấn đề gì?"
+    lua_chon:
+      - Làm BLEU chạy nhanh hơn trên tập test lớn
+      - Thay trung bình nhân bằng trung bình cộng để BLEU không bị bằng 0
+      - Chuẩn hoá cách tách từ, bản tham chiếu và cấu hình, để điểm BLEU của hai bài báo so được với nhau
+      - Thêm khả năng nhận biết từ đồng nghĩa cho BLEU
+    dap_an: 2
+    giai_thich: >-
+      Cùng một bản dịch, đổi cách tách từ hay bỏ dấu câu là điểm BLEU đã xê dịch vài điểm — đủ đảo
+      ngược kết luận. sacreBLEU nhận bản dịch chưa tách từ, tự lo tham chiếu và tách từ theo quy tắc
+      cố định, rồi in ra chữ ký mô tả cấu hình. Nó không làm BLEU hiểu nghĩa hơn.
+
+  - id: q8
+    loai: mot
+    do_kho: 1
+    de: "chrF khác BLEU ở điểm cốt lõi nào?"
+    lua_chon:
+      - chrF đếm n-gram KÝ TỰ (và dùng F-score có recall) thay vì n-gram từ chỉ với precision
+      - chrF dùng một mô hình neural để chấm điểm
+      - chrF không cần bản tham chiếu
+      - chrF chỉ dùng được cho tiếng Trung và tiếng Nhật
+    dap_an: 0
+    giai_thich: >-
+      Vì đơn vị là ký tự, chrF cho điểm từng phần khi bản dịch gần đúng: "thứ ba" so với "thứ hai"
+      được chrF2 ≈ 45.66 trong khi BLEU bằng 0. Nhờ vậy chrF ổn định hơn trên câu ngắn và ít phụ
+      thuộc vào công cụ tách từ. Loại metric không cần tham chiếu là quality estimation (COMETKiwi).
+
+  - id: q9
+    loai: nhieu
+    do_kho: 3
+    de: "Những điểm yếu nào đã được ghi nhận ở các metric học máy như COMET? (chọn tất cả ý đúng)"
+    lua_chon:
+      - Kém nhạy với sai lệch ở con số và tên riêng
+      - Trả về một điểm trung bình cho cả câu nên lỗi nghiêm trọng ở một chỗ bị pha loãng
+      - Độ tin cậy giảm ở cặp ngôn ngữ hoặc miền văn bản không có trong dữ liệu huấn luyện của metric
+      - Luôn cho điểm thấp hơn BLEU trên cùng một bản dịch
+    dap_an: [0, 1, 2]
+    giai_thich: >-
+      Amrhein và Sennrich (AACL 2022) dùng giải mã Minimum Bayes Risk và kết luận COMET không đủ nhạy
+      với sai lệch ở số và tên riêng. Điểm gộp cả câu che mất lỗi nghiêm trọng cục bộ — đó là lý do
+      xCOMET chuyển sang đánh dấu từng đoạn lỗi. Ý cuối sai: thang điểm của COMET và BLEU khác nhau,
+      không có quan hệ cao thấp cố định.
+
+  - id: q10
+    loai: mot
+    do_kho: 2
+    de: "Theo nghiên cứu MQM lớn của Freitag và cộng sự (TACL 2021), kết quả nào sau đây là đúng?"
+    lua_chon:
+      - Người chấm đám đông và dịch giả chuyên nghiệp cho ra cùng một bảng xếp hạng hệ thống
+      - Dịch giả chuyên nghiệp xếp hạng khác hẳn người chấm đám đông, và metric dựa trên embedding có thể vượt người chấm đám đông
+      - BLEU khớp với chuyên gia tốt hơn mọi metric neural
+      - Đánh giá người luôn đáng tin bất kể ai chấm
+    dap_an: 1
+    giai_thich: >-
+      Bài báo chấm MQM trên đầu ra các hệ thống mạnh nhất WMT 2020 bằng dịch giả chuyên nghiệp có
+      ngữ cảnh đầy đủ, và tìm ra bảng xếp hạng khác hẳn bảng của người chấm đám đông (chuyên gia ưu
+      ái bản dịch người rõ rệt). Họ cũng thấy metric dựa trên embedding có thể vượt người chấm đám
+      đông. Nghĩa là "đánh giá người" không tự động đáng tin — cái đáng tin là quy trình chấm lỗi có
+      kỷ luật của chuyên gia.

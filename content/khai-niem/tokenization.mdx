@@ -1,0 +1,223 @@
+---
+ten_vi: "Tách token & BPE"
+ten_en: "Tokenization & Byte Pair Encoding"
+tang: 5
+thu_tu: 33
+tien_quyet: []
+trang_thai: nhap
+dinh_nghia: >-
+  Bước biến một chuỗi văn bản thành dãy số nguyên mà mô hình đọc được: cắt câu thành các
+  mảnh gọi là token, rồi tra mỗi mảnh ra một id trong từ điển cố định. BPE (Byte Pair
+  Encoding) là cách dựng từ điển đó bằng thống kê: bắt đầu từ ký tự đơn, rồi lặp lại việc
+  gộp cặp liền kề xuất hiện nhiều nhất trong corpus.
+truc_giac: >-
+  Bạn cần một bộ "gạch" để xây mọi từ có thể có. Gạch to bằng cả từ thì xây nhanh nhưng
+  gặp từ lạ là chịu. Gạch bé bằng từng chữ cái thì xây được mọi thứ nhưng câu nào cũng
+  dài lê thê. BPE để cho dữ liệu tự chọn cỡ gạch: cụm chữ nào đi với nhau nhiều thì đúc
+  thành một viên gạch to, cụm hiếm thì cứ để rời. Vì corpus quyết định hết, corpus ít
+  tiếng Việt sẽ cho ra bộ gạch làm tiếng Việt vỡ vụn.
+hieu_nham:
+  - "Token không phải là từ. Một token có thể là cả một từ («▁the»), một mảnh chữ («▁tiế»), một dấu câu, hoặc thậm chí một phần ký tự."
+  - "Tokenizer không học nghĩa. Nó chỉ đếm tần suất cặp ký tự; mọi hiểu biết về nghĩa nằm ở các lớp phía sau."
+  - "Khi tách một từ mới, phải áp dụng merge theo THỨ HẠNG đã học (merge học sớm trước), không phải quét trái sang phải."
+  - "Tiếng Việt tốn nhiều token hơn không phải vì tiếng Việt «phức tạp», mà vì tokenizer được học chủ yếu trên văn bản tiếng Anh."
+  - "Vocab lớn hơn thì câu ngắn đi (tính theo token) nhưng bảng embedding to ra: luôn là một đánh đổi, không phải càng lớn càng tốt."
+y_chinh:
+  - "Mô hình chỉ ăn số: văn bản → token → id. Tokenizer là cửa vào bắt buộc của mọi mô hình ngôn ngữ."
+  - "Ba mức tách: theo từ (gặp từ lạ là bó tay), theo ký tự (câu quá dài), theo mảnh từ / subword (dung hoà, BPE thuộc nhóm này)"
+  - "Huấn luyện BPE: lặp lại «đếm mọi cặp liền kề → gộp cặp nhiều nhất» đúng số_merge lần; vocab = ký tự gốc + các merge"
+  - "Áp dụng BPE cho từ mới: luôn gộp cặp có thứ hạng nhỏ nhất trước, lặp tới khi không còn cặp nào trong bảng"
+  - "Corpus huấn luyện tokenizer quyết định tất cả: ngôn ngữ ít mặt trong corpus sẽ bị tách vụn và tốn nhiều token hơn"
+  - "Số token là đơn vị tính tiền API và đơn vị đo cửa sổ ngữ cảnh, nên tỉ lệ token cao là thiệt hại thật bằng tiền và bằng chỗ"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=zduSFxRajkE
+    tieu_de: "Let's build the GPT Tokenizer"
+    tac_gia: Andrej Karpathy
+    loai: video
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Tự code BPE mức byte từ số 0, kèm giải thích vì sao nhiều lỗi lạ của LLM bắt nguồn từ tokenizer. Dài (~2 giờ) nhưng là nguồn tốt nhất về chủ đề này.
+  - url: https://huggingface.co/learn/nlp-course/chapter6/5
+    tieu_de: "Byte-Pair Encoding tokenization"
+    tac_gia: Hugging Face NLP Course
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Ví dụ huấn luyện BPE tính tay từng vòng, kèm code Python ngắn. Đọc sau khi xem phần tính tay trong bài này để đối chiếu.
+  - url: https://tiktokenizer.vercel.app/
+    tieu_de: "Tiktokenizer — xem token của các mô hình thật"
+    tac_gia: Diagram (Peter Steinberger)
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Dán câu tiếng Việt của bạn vào, đổi mô hình và xem số token đổi thế nào. Rất đáng thử ngay sau khi đọc bài.
+---
+
+import TachToken from '../../src/viz/TachToken.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Bài toán: mạng neuron không đọc được chữ
+
+Mọi thứ trong mô hình dịch máy đều là phép nhân ma trận với số thực. Nhưng đầu vào của ta là chuỗi ký tự: `"Tôi muốn học dịch máy."`. Phải có một bước biến chuỗi đó thành dãy số nguyên:
+
+```
+"Tôi muốn học"  →  ["▁t", "ô", "i", "▁m", "u", "ố", "n", "▁học"]  →  [59, 302, 7, 41, 12, 318, 22, 190]
+```
+
+Bước ở giữa gọi là **tách token** (tokenization), các mảnh gọi là **token**. Bước sau chỉ là tra bảng: mỗi token trong từ điển có một số thứ tự cố định gọi là **id** (các số ở trên chỉ là ví dụ minh hoạ — id cụ thể tuỳ từng từ điển). Dấu `▁` đánh dấu token mở đầu một từ, để sau này ghép ngược lại còn biết chỗ nào có khoảng trắng.
+
+Nghe như chuyện kỹ thuật vặt, nhưng nó quyết định rất nhiều thứ: mô hình có xử lý được từ lạ không, câu dài bao nhiêu, và — điều quan trọng nhất với người Việt — bạn trả bao nhiêu tiền cho cùng một nội dung.
+
+## Ba cỡ gạch
+
+| Cách tách | «unhappiness» | Vấn đề |
+|---|---|---|
+| Theo từ | `unhappiness` | Từ mới, tên riêng, lỗi chính tả → không có trong từ điển, mô hình bó tay |
+| Theo ký tự | `u n h a p p i n e s s` | Luôn tách được, nhưng câu dài gấp 5–6 lần, mô hình phải học lại cả chính tả |
+| Theo mảnh từ | `un happi ness` | Từ phổ biến thành một mảnh, từ hiếm ghép từ nhiều mảnh |
+
+Cách thứ ba là **subword**, và **BPE** là thuật toán phổ biến nhất để dựng ra bộ mảnh đó. Điểm hay: từ nào cũng ghép được, kể cả từ chưa hề thấy bao giờ.
+
+## Huấn luyện BPE: tính tay 4 vòng
+
+Corpus tí hon gồm 4 từ với số lần xuất hiện:
+
+```
+low: 5    lower: 2    newest: 6    widest: 3
+```
+
+Cắt mỗi từ thành ký tự rồi lặp: **đếm mọi cặp liền kề → gộp cặp nhiều nhất**.
+
+**Vòng 1.** Đếm cặp (nhớ nhân với số lần xuất hiện của từ):
+
+- `e s` xuất hiện trong `newest` (6) và `widest` (3) → **9**
+- `s t` cũng trong hai từ đó → **9**
+- `w e` trong `lower` (2) và `newest` (6) → 8
+- `l o` và `o w` trong `low` (5) và `lower` (2) → 7
+
+Hoà 9–9 giữa `e s` và `s t`; quy ước chọn cặp gặp trước, ta gộp **`e` + `s` → `es`**. (Thư viện thật cũng phải chọn một quy tắc phá hoà nào đó, và quy tắc khác sẽ cho bảng merge khác.)
+
+```
+low → l o w      lower → l o w e r      newest → n e w es t      widest → w i d es t
+```
+
+**Vòng 2.** `es t` giờ có 9 → gộp **`es` + `t` → `est`**.
+
+```
+newest → n e w est      widest → w i d est
+```
+
+**Vòng 3.** Cao nhất là `l o` (7, hoà với `o w`) → gộp **`l` + `o` → `lo`**.
+
+**Vòng 4.** `lo w` có 7 → gộp **`lo` + `w` → `low`**.
+
+```
+low → low      lower → low e r      newest → n e w est      widest → w i d est
+```
+
+Bảng merge học được, **có thứ tự**: `(e,s) → (es,t) → (l,o) → (lo,w)`.
+
+Vocab cuối cùng = mọi ký tự gốc (`l, o, w, e, r, n, s, t, i, d`) **cộng** các mảnh mới (`es, est, lo, low`). Muốn vocab to hơn thì cứ lặp thêm vòng — số vòng chính là tham số bạn đặt khi huấn luyện tokenizer.
+
+<CauHoi cau="tokenization/q4" />
+
+## Áp dụng vào từ MỚI
+
+Đây là chỗ hay bị làm sai. Tách từ `lowest` — một từ **chưa hề có** trong corpus:
+
+```
+l o w e s t
+→ (l,o)   lo w e s t
+→ (lo,w)  low e s t
+→ (e,s)   low es t
+→ (es,t)  low est
+```
+
+Kết quả: `low` + `est`, 2 token. Từ lạ vẫn ghép được từ hai mảnh quen — và hai mảnh đó mang đúng phần nghĩa của nó.
+
+Quan trọng: **luôn chọn cặp có thứ hạng nhỏ nhất trước**, không quét trái sang phải. Ví dụ ngược lại: bảng `[(c,d), (b,c)]` áp cho `abcd`. Theo thứ hạng, `(c,d)` học sớm hơn nên gộp trước, được `a | b | cd`. Nếu quét trái→phải sẽ gặp `(b,c)` trước và ra `a | bc | d` — khác hẳn, và sai so với cách tokenizer thật làm.
+
+<CauHoi cau="tokenization/q5" />
+
+## Tiếng Việt tốn bao nhiêu token?
+
+Phần dưới dùng một tokenizer BPE **thật, chạy ngay trong trang này**. Nó được huấn luyện offline trên một corpus tí hon cố ý lệch giống thực tế: **624 từ tiếng Anh + 66 từ tiếng Việt**, học 300 merge, vocab 358. Mọi con số bạn thấy là do chính bảng merge đó tính ra, không phải số của GPT-4.
+
+<TachToken
+  client:visible
+  cap={1}
+  duDoan={{
+    de: "«Con mèo ngồi trên chiếc ghế.» và «The cat sits on the chair.» — hai câu nói cùng một chuyện. Câu tiếng Việt tốn nhiều hay ít token hơn?",
+    lua_chon: ["Ít hơn, vì tiếng Việt viết ngắn hơn", "Xấp xỉ bằng nhau", "Nhiều hơn rõ rệt"],
+    dap_an: 2,
+    giai_thich: "18 token so với 10. Để ý số byte UTF-8 gần nhau (36 so với 26): hai câu dài tương đương về mặt văn bản, chênh lệch hoàn toàn đến từ bảng merge. Câu tiếng Anh gói được cả từ («▁the», «▁sit»), câu tiếng Việt vỡ thành từng chữ («▁m | è | o»)."
+  }}
+/>
+
+<TachToken
+  client:visible
+  cap={2}
+  duDoan={{
+    de: "«Chúng tôi sẽ gửi báo cáo vào ngày mai.» so với «We will send the report tomorrow.» Tỉ lệ token Việt / Anh khoảng bao nhiêu?",
+    lua_chon: ["Khoảng 1.2 lần", "Khoảng 2 lần", "Hơn 3 lần"],
+    dap_an: 2,
+    giai_thich: "25 so với 8, tức hơn 3 lần. Câu tiếng Anh gặp toàn từ quen: «▁tomorrow» nguyên một token vì nó xuất hiện trong corpus. Câu tiếng Việt gần như tách theo ký tự, trong đó mỗi nguyên âm có dấu là một token riêng."
+  }}
+/>
+
+<TachToken
+  client:visible
+  cap={3}
+  duDoan={{
+    de: "«Nhà vua và hoàng hậu sống trong lâu đài.» so với «The king and the queen live in a castle.» Tỉ lệ token Việt / Anh so với câu trước (hơn 3 lần) sẽ thế nào?",
+    lua_chon: ["Tốt hơn hẳn", "Y như cũ", "Tệ hơn nữa"],
+    dap_an: 0,
+    giai_thich: "23 so với 17, tỉ lệ chỉ còn 1.35. Hai lý do, và cả hai đều đáng nhớ. Một: corpus tí hon có câu «nhà vua và hoàng hậu sống trong lâu đài cũ», nên «▁và», «▁trong» đã thành token trọn vẹn — thêm tiếng Việt vào corpus là ăn ngay. Hai: câu tiếng Anh lần này chứa từ hiếm («castle», «queen») cũng bị vỡ vụn — với corpus 56 câu thì tiếng Anh cũng chưa được phủ hết."
+  }}
+/>
+
+Bảng tự do — đổi cặp câu, hoặc gõ câu của bạn vào ô bên phải:
+
+<TachToken client:visible />
+
+## Vì sao lại lệch như vậy?
+
+**Lý do chính: corpus.** BPE chỉ gộp những cặp nó thấy nhiều. Corpus 624 từ tiếng Anh cho phép `▁tomorrow` thành một token; 66 từ tiếng Việt thì chỉ đủ cho vài merge như `▁học`, `▁tiế`, `▁trong`. Các tokenizer thật cũng đúng cơ chế đó, chỉ là ở quy mô hàng trăm tỉ từ — và tiếng Anh vẫn chiếm phần áp đảo.
+
+**Lý do phụ: UTF-8.** Chữ `e` chiếm 1 byte, chữ `ế` chiếm 3 byte. Tokenizer thật của GPT làm việc trên **byte** chứ không trên ký tự, nên một chữ cái tiếng Việt không quen thuộc có thể vỡ thành tới 3 token chỉ vì mã hoá. Thử `Tiếng Việt`: 10 ký tự nhưng 14 byte, vì `ế` và `ệ` mỗi chữ tốn 3 byte.
+
+Chú ý điều **không** phải lý do: tiếng Việt không hề "khó" hay "phức tạp" hơn. Nếu huấn luyện tokenizer trên corpus toàn tiếng Việt, kết quả sẽ lật ngược lại — câu tiếng Anh mới là câu bị vỡ vụn.
+
+<CauHoi cau="tokenization/q7" />
+
+## Điều đó tốn gì của bạn
+
+Token là **đơn vị tính tiền** của mọi API mô hình ngôn ngữ, và là **đơn vị đo cửa sổ ngữ cảnh**. Nên tỉ lệ token cao nghĩa là:
+
+- **Tiền.** Cùng một tài liệu, bản tiếng Việt tốn nhiều token hơn bản tiếng Anh, nên hoá đơn cao hơn theo đúng tỉ lệ đó.
+- **Chỗ.** Cửa sổ ngữ cảnh 8.000 token chứa được ít nội dung tiếng Việt hơn hẳn. Nhồi tài liệu vào prompt sẽ chạm trần sớm hơn.
+- **Tốc độ.** Mô hình sinh ra từng token một, nên câu trả lời tiếng Việt cần nhiều bước giải mã hơn.
+- **Chất lượng.** Từ bị chẻ thành mảnh vô nghĩa thì mô hình phải tốn công ghép lại, và các lỗi kỳ quặc (đếm chữ cái, đánh vần, chính tả) thường bắt nguồn từ đây.
+
+Đó là lý do các mô hình tiếng Việt chuyên dụng (PhoBERT, các bản Llama tinh chỉnh cho tiếng Việt…) thường huấn luyện lại hoặc mở rộng tokenizer trên dữ liệu tiếng Việt: chỉ riêng việc đó đã cắt được đáng kể số token mỗi câu.
+
+## Một lưu ý riêng cho tiếng Việt
+
+Tiếng Việt viết **rời từng âm tiết**, nên khoảng trắng không đánh dấu ranh giới từ. `học sinh` là một từ nhưng hai âm tiết, và tokenizer nhìn thấy hai cụm rời. Có hai trường phái:
+
+- **Tách từ trước** (word segmentation) bằng một công cụ riêng, gộp `học_sinh` thành một đơn vị rồi mới đưa vào BPE. PhoBERT làm cách này.
+- **Kệ nó**, để BPE tự học rằng `▁học` và `▁sinh` hay đi cạnh nhau. Các LLM đa ngữ hiện nay đi đường này.
+
+Không có đáp án đúng tuyệt đối. Điều cần nhớ: **token là đơn vị thống kê, không phải đơn vị ngữ pháp**. Đừng tưởng ranh giới token trùng với ranh giới nghĩa.
+
+## Sau khi tách xong thì sao?
+
+Dãy token được tra thành dãy id, rồi mỗi id được thay bằng một vector số thực — đó là bài tiếp theo, [Vector hoá từ (embedding)](/khai-niem/embedding). Toàn bộ mô hình dịch máy chỉ làm việc với các vector đó; chuỗi ký tự gốc không bao giờ xuất hiện lại cho tới lúc ghép token đầu ra thành câu.
+
+## Tóm tắt
+
+- Tokenizer biến văn bản thành dãy id: đây là cửa vào bắt buộc của mọi mô hình ngôn ngữ.
+- BPE huấn luyện bằng cách lặp «đếm cặp liền kề → gộp cặp nhiều nhất»; vocab = ký tự gốc + các merge.
+- Khi tách từ mới, áp merge theo **thứ hạng đã học**, không quét trái sang phải.
+- Corpus quyết định tất cả. Với tokenizer trong bài (624 từ Anh / 66 từ Việt), cùng một ý thì tiếng Việt tốn 18 token còn tiếng Anh 10, có cặp lệch tới hơn 3 lần.
+- Token là đơn vị tính tiền và đo ngữ cảnh, nên tỉ lệ token cao là thiệt hại thật — và cách sửa gốc rễ là đưa thêm tiếng Việt vào corpus huấn luyện tokenizer.

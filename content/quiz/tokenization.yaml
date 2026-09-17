@@ -1,0 +1,109 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: Vì sao các mô hình ngôn ngữ hiện đại KHÔNG dùng "mỗi từ một ô trong từ điển"?
+    lua_chon:
+      - Vì số từ là vô hạn (tên riêng, lỗi chính tả, từ mới), gặp từ lạ là mô hình bó tay
+      - Vì máy tính không lưu được chuỗi ký tự
+      - Vì tách theo từ chạy chậm hơn tách theo ký tự
+      - Vì từ điển phải sắp xếp theo bảng chữ cái mới tra được
+    dap_an: 0
+    giai_thich: "Từ điển cố định luôn có từ nằm ngoài (out-of-vocabulary). Với tiếng Việt còn tệ hơn: «học», «học sinh», «tự học» là các đơn vị khác nhau và danh sách không bao giờ đủ. BPE giải quyết bằng cách cho phép ghép từ các mảnh nhỏ hơn."
+
+  - id: q2
+    loai: so
+    do_kho: 1
+    de: "Bảng merge học được (theo thứ tự): (l, o) → (lo, w) → (e, s) → (es, t). Tách từ «lowest» ra được bao nhiêu token?"
+    dap_an: 2
+    sai_so: 0.001
+    giai_thich: "Bắt đầu: l o w e s t. Áp dụng theo thứ hạng: (l,o) → lo w e s t; (lo,w) → low e s t; (e,s) → low es t; (es,t) → low est. Còn 2 token: «low» và «est». Từ «lowest» chưa hề có trong corpus mà vẫn ghép được từ hai mảnh."
+
+  - id: q3
+    loai: so
+    do_kho: 2
+    de: "Vẫn bảng merge đó — (l, o), (lo, w), (e, s), (es, t) — tách từ «slowest» ra được bao nhiêu token?"
+    dap_an: 3
+    sai_so: 0.001
+    giai_thich: "s l o w e s t → sau các merge còn «s» + «low» + «est» = 3 token. Chữ «s» đứng đầu không ghép được với «low» vì cặp (s, low) không có trong bảng merge."
+
+  - id: q4
+    loai: mot
+    do_kho: 2
+    de: Mỗi vòng huấn luyện, BPE chọn cặp ký hiệu nào để gộp?
+    lua_chon:
+      - Cặp dài nhất
+      - Cặp liền kề xuất hiện nhiều lần nhất trong corpus
+      - Cặp có trong từ điển tiếng Anh
+      - Cặp ngẫu nhiên, để tránh thiên lệch
+    dap_an: 1
+    giai_thich: "BPE thuần tuý đếm tần suất: gộp cặp liền kề phổ biến nhất, lặp lại cho tới khi đủ số merge mong muốn. Không có ngữ pháp hay từ điển nào can thiệp — đó là lý do kết quả phản ánh rất trung thực corpus huấn luyện."
+
+  - id: q5
+    loai: mot
+    do_kho: 2
+    de: "Khi TÁCH một từ mới bằng bảng merge đã học, thứ tự áp dụng là gì?"
+    lua_chon:
+      - Quét trái sang phải, gặp cặp nào trong bảng thì gộp ngay
+      - Luôn gộp trước cặp có thứ hạng nhỏ nhất (được học sớm nhất), rồi làm lại
+      - Gộp cặp dài nhất trước
+      - Thứ tự nào cũng cho cùng kết quả
+    dap_an: 1
+    giai_thich: "Phải theo thứ hạng học. Ví dụ bảng [(c,d), (b,c)] áp cho «abcd»: theo thứ hạng gộp (c,d) trước → a | b | cd. Nếu quét trái→phải sẽ gộp (b,c) trước và ra a | bc | d — khác hẳn, và khác với cách tokenizer thật làm."
+
+  - id: q6
+    loai: so
+    do_kho: 2
+    de: "Ký tự «ế» chiếm bao nhiêu byte khi mã hoá UTF-8? (ký tự «e» chiếm 1 byte)"
+    dap_an: 3
+    sai_so: 0.001
+    giai_thich: "«ế» nằm ngoài vùng ASCII nên UTF-8 phải dùng 3 byte. Phần lớn nguyên âm có dấu tiếng Việt đều tốn 3 byte. Với tokenizer mức byte (GPT dùng loại này), một ký tự tiếng Việt không quen thuộc có thể vỡ thành tới 3 token."
+
+  - id: q7
+    loai: nhieu
+    do_kho: 2
+    de: Tokenizer được học chủ yếu từ văn bản tiếng Anh sẽ gây ra những hệ quả nào cho người dùng tiếng Việt? (chọn tất cả ý đúng)
+    lua_chon:
+      - Cùng một nội dung, bản tiếng Việt tốn nhiều token hơn nên tốn tiền gọi API hơn
+      - Cửa sổ ngữ cảnh chứa được ít nội dung tiếng Việt hơn tiếng Anh
+      - Mô hình không thể đọc được tiếng Việt
+      - Một từ tiếng Việt quen thuộc có thể bị vỡ thành nhiều mảnh vô nghĩa
+    dap_an: [0, 1, 3]
+    giai_thich: "Chi phí API và độ dài ngữ cảnh đều tính theo token, nên tỉ lệ token cao là thiệt hại thật. Nhưng mô hình vẫn ĐỌC được tiếng Việt — chỉ là tốn hơn và phải tự ghép nghĩa lại từ các mảnh vụn."
+
+  - id: q8
+    loai: mot
+    do_kho: 2
+    de: "Tăng kích thước vocab của tokenizer từ 8.000 lên 64.000. Điều gì xảy ra?"
+    lua_chon:
+      - Số token trung bình mỗi câu giảm, nhưng bảng embedding to ra
+      - Số token trung bình mỗi câu tăng, bảng embedding nhỏ lại
+      - Cả hai đều giảm, không đánh đổi gì
+      - Không ảnh hưởng gì tới bảng embedding
+    dap_an: 0
+    giai_thich: "Vocab lớn = nhiều merge hơn = mỗi token gói được nhiều ký tự hơn = câu ngắn đi (tính theo token). Cái giá là bảng embedding có V hàng, nên V tăng là số tham số tăng theo. Đây là đánh đổi cơ bản khi chọn vocab."
+
+  - id: q9
+    loai: mot
+    do_kho: 3
+    de: Tokenizer BPE gặp một ký tự chưa từng thấy trong corpus huấn luyện (ví dụ một chữ Hán). Chuyện gì xảy ra?
+    lua_chon:
+      - Tokenizer báo lỗi và dừng
+      - Ký tự bị bỏ qua hoàn toàn
+      - Nó đứng riêng thành một token (hoặc vài token byte) vì không merge nào áp được
+      - Nó tự động được thêm vào vocab
+    dap_an: 2
+    giai_thich: "BPE chỉ gộp khi cặp có trong bảng merge; không có thì ký tự đứng nguyên. Tokenizer mức byte còn an toàn hơn: mọi ký tự đều phân rã được thành 1–4 byte, và 256 byte đều nằm trong vocab, nên KHÔNG BAO GIỜ có token «không biết»."
+
+  - id: q10
+    loai: nhieu
+    do_kho: 3
+    de: Những phát biểu nào về token trong tiếng Việt là ĐÚNG? (chọn tất cả ý đúng)
+    lua_chon:
+      - Token của BPE không nhất thiết trùng với âm tiết hay từ có nghĩa
+      - "Tiếng Việt viết rời từng âm tiết, nên «học sinh» dễ bị tách thành hai đơn vị không liên quan"
+      - Mỗi token luôn ứng với đúng một từ trong từ điển
+      - Muốn giảm số token cho tiếng Việt, cách gốc rễ là huấn luyện tokenizer trên corpus có nhiều tiếng Việt
+    dap_an: [0, 1, 3]
+    giai_thich: "Token là đơn vị thống kê, không phải đơn vị ngữ pháp: có token là một từ trọn vẹn, có token chỉ là một mảnh chữ. Cách sửa gốc rễ đúng là cho tokenizer học trên dữ liệu có tỉ trọng tiếng Việt cao hơn — đó chính là điều các mô hình tiếng Việt chuyên dụng làm."

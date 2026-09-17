@@ -1,0 +1,285 @@
+---
+ten_vi: "Đánh giá bản dịch: BLEU, chrF, COMET"
+ten_en: "Machine Translation Evaluation: BLEU, chrF, COMET"
+tang: 5
+thu_tu: 39
+tien_quyet: ["dich-may-nmt"]
+trang_thai: nhap
+dinh_nghia: >-
+  Cách chấm điểm chất lượng bản dịch máy. Nhóm metric đếm n-gram (BLEU, chrF) so bản dịch với một
+  hoặc nhiều bản tham chiếu do người dịch; nhóm metric học máy (COMET, MetricX) dùng mô hình đã
+  học từ điểm người chấm; chuẩn vàng vẫn là người đánh giá theo khung MQM.
+truc_giac: >-
+  Chấm bản dịch giống chấm một bài văn chứ không phải chấm bài toán: không có một đáp án duy nhất.
+  BLEU chọn cách rẻ nhất — so xem bản dịch máy dùng lại được bao nhiêu cụm từ của bản mẫu. Cách đó
+  bắt được "dịch trật lất", nhưng không phân biệt nổi "diễn đạt khác mà đúng" với "giống hệt mẫu mà sai ngày tháng".
+hieu_nham:
+  - "BLEU không phải thang phần trăm đúng. BLEU 40 không có nghĩa là 40% câu dịch đúng; nó chỉ có nghĩa so với đúng bộ tham chiếu đó, với đúng cách tách từ đó."
+  - "Không so BLEU giữa hai ngôn ngữ, hai tập test hay hai cách tách từ khác nhau. BLEU 30 của En→Vi và BLEU 30 của En→De không nói lên bên nào dịch tốt hơn — sacreBLEU ra đời chính vì chuyện này."
+  - "Điểm BLEU cao hơn không chắc là bản dịch tốt hơn: một bản chỉ sai một con số hay một tên riêng vẫn có thể được BLEU cao nhất trong nhóm, dù đó là lỗi làm hỏng cả câu."
+  - "Metric học máy (COMET) tốt hơn BLEU nhưng không phải trọng tài tuyệt đối: chúng đã được chứng minh là kém nhạy với sai số và sai tên riêng, và không giải thích được vì sao chấm điểm đó."
+y_chinh:
+  - Một câu nguồn có nhiều bản dịch đúng, nên mọi metric dựa trên một bản tham chiếu đều phạt oan cách diễn đạt khác
+  - "BLEU = brevity penalty × trung bình nhân của precision n-gram bậc 1..4, có clipping để chặn việc lặp từ ăn điểm"
+  - Brevity penalty tồn tại vì precision một mình khuyến khích dịch cụt cho an toàn
+  - "BLEU mù với trật tự cụm, từ đồng nghĩa và lỗi nghiêm trọng nhưng nhỏ (số, ngày, tên riêng); chrF đỡ hơn một chút vì đếm n-gram ký tự"
+  - "Điểm BLEU chỉ so sánh được khi cùng tập test, cùng tham chiếu và cùng cách tách từ — sacreBLEU chuẩn hoá việc đó"
+  - "Metric học máy (COMET, MetricX, xCOMET) bám sát người chấm hơn nhiều, nhưng vẫn có điểm mù; chuẩn vàng cuối cùng là đánh giá người theo MQM"
+tai_lieu:
+  - url: https://aclanthology.org/P02-1040/
+    tieu_de: "BLEU: a Method for Automatic Evaluation of Machine Translation"
+    tac_gia: Papineni, Roukos, Ward, Zhu (ACL 2002)
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Bài gốc định nghĩa BLEU. Đọc mục 2 là đủ để nắm clipping và brevity penalty đúng như bản gốc.
+  - url: https://aclanthology.org/W18-6319/
+    tieu_de: A Call for Clarity in Reporting BLEU Scores
+    tac_gia: Matt Post (WMT 2018)
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Giải thích vì sao hai bài báo cùng ghi "BLEU 33" mà không so được với nhau, và sacreBLEU sửa chuyện đó thế nào. Ngắn, rất đáng đọc.
+  - url: https://aclanthology.org/2021.tacl-1.87/
+    tieu_de: "Experts, Errors, and Context: A Large-Scale Study of Human Evaluation for Machine Translation"
+    tac_gia: Freitag và cộng sự (TACL 2021)
+    loai: bai_viet
+    muc_do: toan_nang
+    ngon_ngu: en
+    ghi_chu: Nghiên cứu MQM lớn nhất tới thời điểm đó. Cho thấy người chấm chuyên nghiệp xếp hạng khác hẳn người chấm đám đông, và metric dựa trên embedding có thể vượt người chấm đám đông.
+---
+
+import BleuNhinThay from '../../src/viz/BleuNhinThay.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Vấn đề: không có một đáp án đúng
+
+Bạn huấn luyện xong một mô hình dịch. Làm sao biết nó dịch tốt hay tệ? Với bài toán phân loại thì dễ: dự đoán trùng nhãn là đúng, khác nhãn là sai. Với dịch thuật thì không, vì **một câu nguồn có rất nhiều bản dịch đều đúng**.
+
+Câu tiếng Anh: *The meeting was postponed to next week.*
+
+Hai người dịch, hai bản khác nhau và cả hai đều đúng:
+
+- Bản tham chiếu 1: `cuộc họp đã bị hoãn sang tuần sau`
+- Bản tham chiếu 2: `buổi họp được dời sang tuần tới`
+
+Máy dịch ra: `cuộc họp được dời sang tuần sau`. Bản này hoàn toàn ổn — nó chỉ trộn từ vựng của cả hai người dịch. Nhưng điểm BLEU của nó thay đổi chóng mặt tuỳ vào ta đưa bản tham chiếu nào:
+
+| Tham chiếu dùng để chấm | BLEU |
+|---|---|
+| Chỉ bản 1 | 0.00 |
+| Chỉ bản 2 | 61.48 |
+| Cả hai bản | 79.53 |
+
+Cùng một bản dịch, cùng một metric, điểm nhảy từ 0 lên gần 80. Đây là điều đầu tiên phải nhớ: **điểm số của metric đếm từ chỉ có nghĩa khi gắn với đúng bộ tham chiếu đã dùng**.
+
+<CauHoi cau="danh-gia-dich/q1" />
+
+## BLEU: đếm xem dùng lại được bao nhiêu cụm
+
+BLEU (Papineni và cộng sự, 2002) trả lời câu hỏi: *trong bản dịch máy, bao nhiêu phần các cụm từ liên tiếp cũng xuất hiện trong bản tham chiếu?*
+
+Ta dùng ví dụ En→Vi sau xuyên suốt phần này.
+
+Câu nguồn: *The government announced the new plan on Monday morning.*
+
+Bản tham chiếu (12 từ, tách theo khoảng trắng):
+
+```
+chính phủ đã công bố kế hoạch mới vào sáng thứ hai
+```
+
+### Bước 1 — precision n-gram
+
+Với mỗi bậc $n$ từ 1 đến 4, đếm số $n$-gram của bản dịch máy có mặt trong bản tham chiếu, chia cho tổng số $n$-gram của bản dịch máy.
+
+$$
+p_n = \frac{\text{số } n\text{-gram khớp (đã clip)}}{\text{tổng số } n\text{-gram của bản dịch}}
+$$
+
+Câu 12 từ có 12 unigram, 11 bigram, 10 trigram, 9 four-gram.
+
+### Bước 2 — clipping
+
+Nếu chỉ đếm thô, một bản dịch rác vẫn ăn điểm. Lấy bản dịch `trên trên trên trên trên trên trên` chấm với tham chiếu `con mèo đang ngồi trên tấm thảm`: cả 7 unigram đều "có mặt" trong tham chiếu, $p_1 = 7/7 = 1$.
+
+Clipping chặn đúng chỗ đó: mỗi $n$-gram chỉ được tính tối đa **bằng số lần nó xuất hiện trong bản tham chiếu**. Từ `trên` chỉ xuất hiện 1 lần bên tham chiếu, nên chỉ 1 lần được tính:
+
+$$
+p_1 = \frac{\min(7,\ 1)}{7} = \frac{1}{7} \approx 0.1429
+$$
+
+### Bước 3 — brevity penalty
+
+Precision có một lỗ hổng thứ hai: **dịch càng ngắn càng dễ giữ precision cao**. Bản dịch `chính phủ đã công bố kế hoạch mới` (8 từ, bỏ hẳn cụm thời gian) có $p_1 = p_2 = p_3 = p_4 = 1$ — mọi thứ nó nói ra đều nằm trong tham chiếu. Nếu chỉ nhìn precision thì đây là bản dịch hoàn hảo, dù nó nuốt mất một nửa thông tin.
+
+Vì thế BLEU nhân thêm **brevity penalty** (BP), phạt bản dịch ngắn hơn tham chiếu. Gọi $c$ là độ dài bản dịch, $r$ là độ dài bản tham chiếu:
+
+$$
+\text{BP} = \begin{cases} 1 & \text{nếu } c > r \\[4pt] e^{\,1 - r/c} & \text{nếu } c \le r \end{cases}
+$$
+
+Với $c = 8$, $r = 12$: $\text{BP} = e^{1 - 12/8} = e^{-0.5} \approx 0.6065$.
+
+Để ý BP **không** phạt bản dịch dài. Lý do: bản dịch dài lê thê đã tự bị precision phạt rồi (mẫu số phình ra), nên không cần phạt hai lần.
+
+### Bước 4 — gộp lại
+
+$$
+\text{BLEU} = \text{BP} \cdot \exp\!\left( \frac{1}{4} \sum_{n=1}^{4} \log p_n \right)
+$$
+
+Phần trong ngoặc chính là **trung bình nhân** của $p_1, p_2, p_3, p_4$. Trung bình nhân chứ không phải trung bình cộng, nghĩa là **chỉ cần một $p_n$ bằng 0 thì BLEU bằng 0**. Đó là lý do BLEU trên từng câu lẻ hay bằng 0 và gần như vô dụng; BLEU được thiết kế để tính trên cả một tập test hàng nghìn câu, cộng dồn tử số và mẫu số trước rồi mới chia.
+
+Kết quả trên bản dịch cụt 8 từ: BLEU $= 0.6065 \times 1 = 0.6065$, tức **60.65** trên thang 100.
+
+<CauHoi cau="danh-gia-dich/q5" />
+
+## Tự thử: đoán trước, rồi chạy
+
+Bốn bản dịch máy dưới đây được chấm với cùng một bản tham chiếu. Điểm hiện ra là do chính code của phần trực quan tính, theo đúng công thức ở trên.
+
+<BleuNhinThay
+  client:visible
+  banDich="dongNghia"
+  bac={1}
+  duDoan={{
+    de: "Bản dịch B chỉ đổi 'công bố' thành 'thông báo' — nghĩa y hệt, không sai chỗ nào. BLEU của nó so với bản tham chiếu sẽ là bao nhiêu?",
+    lua_chon: ["Gần 100, vì nghĩa không đổi", "Khoảng 60, tụt khá nhiều", "Đúng 0, vì có từ không khớp"],
+    dap_an: 1,
+    giai_thich: "BLEU = 63.40. Một từ bị thay làm hỏng mọi n-gram chứa nó: 1 unigram, 2 bigram, 3 trigram và 4 four-gram cùng mất điểm. BLEU không biết 'thông báo' và 'công bố' là đồng nghĩa."
+  }}
+/>
+
+<BleuNhinThay
+  client:visible
+  banDich="saiNgay"
+  bac={4}
+  duDoan={{
+    de: "Bản dịch C cũng chỉ sai một từ — nhưng sai hẳn ngày: 'thứ hai' thành 'thứ ba'. So với bản B (đổi từ đồng nghĩa, nghĩa vẫn đúng), BLEU của C sẽ thế nào?",
+    lua_chon: ["Thấp hơn B, vì C sai nghĩa còn B thì không", "Xấp xỉ B", "Cao hơn B, thậm chí cao nhất trong bốn bản"],
+    dap_an: 2,
+    giai_thich: "C được 90.36, cao nhất trong bốn bản, trong khi B đúng nghĩa chỉ được 63.40. Từ sai của C nằm ở cuối câu nên chỉ phá được ít n-gram. BLEU đếm hình thức, không đọc nghĩa: một lỗi làm người đọc đi họp nhầm ngày lại được thưởng điểm cao nhất."
+  }}
+/>
+
+Bảng tự do — kéo thanh trượt để xem cùng một bản dịch được tô ở bậc 1, 2, 3, 4 khác nhau thế nào:
+
+<BleuNhinThay client:visible />
+
+Bảng tổng kết bốn bản dịch (cùng tham chiếu, cùng công thức):
+
+| Bản dịch | Nghĩa | BLEU | chrF2 |
+|---|---|---|---|
+| A — đảo cụm thời gian ra đầu câu | đúng | 83.45 | 92.92 |
+| B — thay "công bố" bằng "thông báo" | đúng | 63.40 | 79.96 |
+| C — "thứ hai" thành "thứ ba" | **sai ngày** | **90.36** | 92.70 |
+| D — bỏ hẳn cụm thời gian | thiếu | 60.65 | 69.25 |
+
+Hai điều rút ra:
+
+1. **Đảo trật tự cụm ít bị phạt hơn thay một từ.** Bản A chuyển nguyên cụm `vào sáng thứ hai` ra đầu câu; chỉ hai chỗ nối bị gãy nên vẫn giữ được nhiều $n$-gram dài. Bản B thay một từ ngay giữa câu và làm hỏng mọi $n$-gram đi qua từ đó.
+2. **Lỗi nghiêm trọng nhất lại được điểm cao nhất.** Đây không phải lỗi cài đặt, đây là bản chất của metric đếm hình thức.
+
+## chrF: đếm n-gram ký tự thay vì n-gram từ
+
+chrF (Popović, 2015) giữ ý tưởng n-gram nhưng đổi đơn vị: **ký tự**, và dùng F-score thay vì chỉ precision.
+
+Với mỗi bậc ký tự $n$ (mặc định 1 đến 6, bỏ khoảng trắng), tính precision và recall, lấy trung bình cộng qua các bậc, rồi gộp bằng công thức F:
+
+$$
+\text{chrF}_\beta = (1 + \beta^2) \cdot \frac{\text{chrP} \cdot \text{chrR}}{\beta^2 \cdot \text{chrP} + \text{chrR}}, \qquad \beta = 2
+$$
+
+$\beta = 2$ nghĩa là recall được coi trọng gấp đôi precision — bỏ sót nội dung bị phạt nặng hơn nói thừa.
+
+**Tính tay.** Bản dịch `thứ ba`, tham chiếu `thứ hai`. Bỏ khoảng trắng: `thứba` (5 ký tự) và `thứhai` (6 ký tự). Lấy bậc 1 đến 3 cho gọn:
+
+| Bậc | n-gram bản dịch | khớp | P | R |
+|---|---|---|---|---|
+| 1 | t, h, ứ, b, a (5) | 4 | 4/5 = 0.8000 | 4/6 = 0.6667 |
+| 2 | th, hứ, ứb, ba (4) | 2 | 2/4 = 0.5000 | 2/5 = 0.4000 |
+| 3 | thứ, hứb, ứba (3) | 1 | 1/3 = 0.3333 | 1/4 = 0.2500 |
+
+$\text{chrP} = (0.8 + 0.5 + 0.3333)/3 = 0.5444$, $\text{chrR} = (0.6667 + 0.4 + 0.25)/3 = 0.4389$.
+
+$$
+\text{chrF}_2 = \frac{5 \times 0.5444 \times 0.4389}{4 \times 0.5444 + 0.4389} = \frac{1.1948}{2.6165} \approx 0.4566 \;\to\; 45.66
+$$
+
+BLEU của cặp này bằng 0 (không có bigram từ nào khớp). chrF cho 45.66 — nó thấy `thứ` vẫn đúng. Đó là ưu điểm của chrF: **cho điểm từng phần**, nên ổn định hơn hẳn trên câu ngắn và trên ngôn ngữ mà một "từ" bị cắt vụn hay dính liền tuỳ công cụ.
+
+Nhưng nhìn lại bảng bốn bản dịch: chrF xếp A (92.92) trên C (92.70) — đúng thứ tự, nhưng chỉ hơn 0.22 điểm. chrF **cũng không phát hiện được** lỗi sai ngày. Nó vẫn chỉ là đếm ký tự.
+
+## Vì sao có sacreBLEU
+
+Giả sử bài báo A ghi "BLEU 33.1" và bài báo B ghi "BLEU 34.8" trên cùng cặp ngôn ngữ. B tốt hơn? Chưa chắc, vì trước khi đếm n-gram, mỗi nhóm có thể đã:
+
+- tách từ (tokenize) theo cách khác nhau — tách càng vụn thì n-gram càng dễ khớp, điểm càng cao;
+- bỏ dấu câu hoặc giữ lại;
+- hạ chữ hoa hoặc giữ nguyên;
+- dùng số lượng bản tham chiếu khác nhau;
+- chấm trên phiên bản tập test khác.
+
+Matt Post (2018) chỉ ra rằng chỉ riêng đổi cách tách từ đã làm điểm BLEU xê dịch vài điểm — đủ để đảo ngược kết luận của một bài báo. **sacreBLEU** ra đời để giải quyết: nó nhận vào bản dịch chưa tách từ, tự tải đúng bản tham chiếu chuẩn, tự tách từ theo một quy tắc cố định, rồi in ra một chuỗi chữ ký mô tả đúng cấu hình đã dùng. Hai người dùng cùng chữ ký thì điểm so được với nhau.
+
+Hệ quả thực tế cho bạn: **BLEU chỉ có nghĩa khi so hai hệ thống trên cùng tập test, cùng tham chiếu, cùng công cụ.** Không bao giờ so BLEU giữa hai cặp ngôn ngữ khác nhau. En→Vi và En→De có độ khó, độ dài câu và cách tách từ hoàn toàn khác nhau; hai con số 30 không nói lên điều gì về nhau.
+
+## Metric học máy: COMET và họ hàng
+
+Từ khoảng 2020, nhóm metric mạnh nhất không còn đếm gì cả. Chúng là **mô hình được huấn luyện để dự đoán điểm mà người sẽ chấm**.
+
+**COMET** (Rei và cộng sự, EMNLP 2020) đưa ba câu — câu nguồn, bản dịch máy, bản tham chiếu — qua một encoder đa ngữ (XLM-R), rồi một mạng nhỏ dự đoán điểm chất lượng. Nó được huấn luyện trên kho điểm người chấm mà WMT thu thập nhiều năm.
+
+Vài biến thể đáng biết:
+
+- **COMETKiwi** — loại *quality estimation*: **không cần bản tham chiếu**, chỉ cần câu nguồn và bản dịch. Rất hợp lúc chạy thật, khi bạn không có bản dịch mẫu để so.
+- **MetricX** (Google, WMT 2023) — metric hồi quy dựa trên mT5, huấn luyện trên điểm MQM.
+- **xCOMET** — ngoài một điểm tổng, còn **chỉ ra đoạn nào trong bản dịch bị lỗi và lỗi nặng hay nhẹ**, theo phong cách MQM. Hữu ích vì nó nói được *sai ở đâu*, không chỉ *sai bao nhiêu*.
+
+Trong các kỳ WMT Metrics Shared Task gần đây ([kết quả WMT23](https://aclanthology.org/2023.wmt-1.51/)), nhóm metric học máy bám sát phán đoán của người chấm tốt hơn BLEU và chrF, và xếp hạng chính thức của WMT dựa vào đánh giá người cùng metric học máy chứ không dựa vào BLEU. (Con số tương quan cụ thể thay đổi theo từng năm và từng cặp ngôn ngữ — muốn trích dẫn thì phải mở đúng bảng của năm đó, đừng nhớ áng chừng.)
+
+### Nhưng chúng không phải trọng tài tuyệt đối
+
+Ba điểm yếu đã được đo đạc, không phải suy đoán:
+
+1. **Số và tên riêng.** Amrhein và Sennrich (AACL 2022) dùng giải mã Minimum Bayes Risk để lùng những bản dịch tệ mà COMET vẫn chấm cao, và kết luận trực tiếp: các mô hình COMET *không đủ nhạy với sai lệch ở số và tên riêng*. Nói cách khác, sai `2015` thành `2019` hay `Hà Nội` thành `Hà Nam` có thể lọt lưới.
+2. **Lỗi nghiêm trọng bị pha loãng.** Metric trả về một con số trung bình cho cả câu. Một câu dài mượt mà có một chỗ đảo ngược nghĩa (thêm/mất chữ "không") vẫn được điểm khá, dù với người dùng thật thì cả câu vô giá trị. Đây là lý do xCOMET và MQM chọn hướng đánh dấu từng lỗi thay vì một điểm duy nhất.
+3. **Hộp đen và lệ thuộc dữ liệu huấn luyện.** Metric học từ điểm người chấm ở một số cặp ngôn ngữ nhất định. Đem sang cặp ngôn ngữ hoặc miền văn bản không có trong dữ liệu huấn luyện (ví dụ văn bản y tế tiếng Việt), độ tin cậy giảm mà bạn không có cách nào biết. Và không bao giờ tối ưu mô hình trực tiếp theo metric mà bạn dùng để chấm chính nó — mô hình sẽ học cách khai thác điểm mù của metric.
+
+Bộ dữ liệu **ACES** (Amrhein, Moghe, Guillou, WMT 2022) được xây riêng để kiểm tra chuyện này: gồm các cặp câu chỉ khác nhau đúng một lỗi cụ thể, dùng để đo xem metric có phát hiện được từng loại lỗi hay không.
+
+<CauHoi cau="danh-gia-dich/q9" />
+
+## Đánh giá người vẫn là chuẩn vàng
+
+Hai cách chấm phổ biến:
+
+**DA (Direct Assessment).** Người chấm cho một điểm 0–100 cho mỗi câu, trả lời "bản dịch này truyền đạt được bao nhiêu phần nội dung câu gốc?". Rẻ, làm được với người chấm đám đông, nhưng nhiễu: mỗi người hiểu thang điểm một kiểu.
+
+**MQM (Multidimensional Quality Metrics).** Người chấm là **dịch giả chuyên nghiệp**, và không cho điểm trực tiếp mà **đánh dấu từng lỗi**: vị trí lỗi, loại lỗi (sai nghĩa, thiếu, thừa, ngữ pháp, thuật ngữ, văn phong), mức độ (nhẹ / nặng / nghiêm trọng). Điểm cuối là tổng trọng số các lỗi. Đắt và chậm, nhưng cho biết *sai cái gì*, không chỉ *sai bao nhiêu*.
+
+Freitag và cộng sự (TACL 2021) làm nghiên cứu MQM quy mô lớn trên đầu ra của các hệ thống mạnh nhất WMT 2020 và tìm ra hai kết quả đáng chú ý: xếp hạng của dịch giả chuyên nghiệp **khác hẳn** xếp hạng của người chấm đám đông (chuyên gia ưu ái bản dịch người rõ rệt), và metric tự động dựa trên embedding có thể **vượt cả người chấm đám đông** về độ khớp với chuyên gia.
+
+Bài học: "đánh giá người" không tự động đáng tin. Người chấm nghiệp dư không có ngữ cảnh đầy đủ có thể tệ hơn một metric tốt. Cái đáng tin là **quy trình chấm lỗi có kỷ luật của chuyên gia**.
+
+## Đánh giá cho tiếng Việt thì lấy gì
+
+Không có gì đặc biệt, nhưng có mấy chỗ cần cẩn thận:
+
+**Vấn đề tách từ.** Tiếng Việt viết rời từng âm tiết. `cuộc họp` là một từ nhưng hai token nếu tách theo khoảng trắng; công cụ tách từ tiếng Việt (VnCoreNLP, underthesea) sẽ gộp thành `cuộc_họp`. Hai cách này cho ra BLEU khác nhau trên cùng bản dịch. Quy tắc an toàn: **dùng sacreBLEU với cấu hình mặc định (tokenizer `13a`), ghi rõ chữ ký, và đừng trộn kết quả của bản có tách từ với bản không tách từ.**
+
+**Nên báo cáo nhiều metric.** Một bộ tối thiểu hợp lý cho một hệ dịch Việt–Anh: sacreBLEU (để so với các bài báo cũ), chrF2 (ổn định hơn với câu ngắn và với vấn đề âm tiết), và một metric học máy như COMET (bám sát người chấm). Nếu ba metric cùng nói một hướng thì kết luận vững; nếu chúng mâu thuẫn thì đó là tín hiệu phải đi đọc bản dịch bằng mắt.
+
+**Đọc bản dịch bằng mắt là bắt buộc.** Lấy 50–100 câu ngẫu nhiên từ tập test, đọc và phân loại lỗi theo tinh thần MQM (sai nghĩa / thiếu / thừa / thuật ngữ / văn phong). Việc này mất một buổi và cho bạn nhiều thông tin hơn mọi bảng điểm — đặc biệt là những lỗi mà cả BLEU lẫn COMET đều không thấy: sai đại từ xưng hô, sai kính ngữ, sai ngày tháng, sai đơn vị tiền tệ.
+
+**Tập test phải sạch.** Nếu tập test lọt vào dữ liệu huấn luyện (chuyện rất dễ xảy ra khi cả hai đều lấy từ web), mọi điểm số đều vô nghĩa. Chuyện này thuộc về bài *Dữ liệu song ngữ*.
+
+## Tóm tắt
+
+- Một câu nguồn có nhiều bản dịch đúng; mọi metric so với tham chiếu đều phạt oan cách diễn đạt khác.
+- BLEU = brevity penalty × trung bình nhân của $p_1..p_4$; clipping chặn lặp từ, brevity penalty chặn dịch cụt. Một $p_n$ bằng 0 là BLEU bằng 0.
+- BLEU mù với từ đồng nghĩa và với lỗi nhỏ mà nghiêm trọng (số, ngày, tên riêng). chrF đếm ký tự nên cho điểm từng phần, ổn định hơn, nhưng cũng không đọc được nghĩa.
+- Điểm BLEU chỉ so được khi cùng tập test, cùng tham chiếu, cùng cách tách từ — đó là việc của sacreBLEU.
+- COMET/MetricX/xCOMET bám sát người chấm hơn nhiều, nhưng kém nhạy với số và tên riêng, và pha loãng lỗi nghiêm trọng.
+- MQM do dịch giả chuyên nghiệp chấm vẫn là chuẩn vàng. Với tiếng Việt: báo cáo sacreBLEU + chrF2 + COMET, và tự đọc 50–100 câu.

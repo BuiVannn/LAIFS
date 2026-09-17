@@ -1,0 +1,159 @@
+---
+ten_vi: "Ngôn ngữ nhiều và ít tài nguyên"
+ten_en: "High-resource and Low-resource Languages"
+tang: 5
+thu_tu: 41
+tien_quyet: ["du-lieu-song-ngu", "danh-gia-dich"]
+trang_thai: nhap
+dinh_nghia: >-
+  Cách xếp một ngôn ngữ theo lượng "nguyên liệu" mà máy có thể học được: dữ liệu song ngữ,
+  dữ liệu đơn ngữ, từ điển và công cụ xử lý, bộ dữ liệu đánh giá, và cả người bản ngữ có thể
+  chấm bài dịch. Thiếu bất kỳ mảnh nào cũng làm ngôn ngữ đó "ít tài nguyên", chứ không chỉ
+  thiếu số câu song ngữ.
+truc_giac: >-
+  Hãy nghĩ tới việc học nấu một món ăn. Người học tiếng Anh có cả siêu thị: nguyên liệu chất
+  đống, công thức viết sẵn, lại có đầu bếp nếm thử và chê ngay khi bạn nấu hỏng. Người học
+  tiếng Mường có một rổ nguyên liệu lấy từ một nguồn duy nhất, không có công thức, và gần
+  như không có ai nếm giúp. Cùng một cái bếp (cùng kiến trúc mô hình), hai người cho ra
+  hai kết quả rất khác nhau.
+hieu_nham:
+  - "Ít tài nguyên KHÔNG có nghĩa là ít người nói. Tiếng Việt có gần trăm triệu người nói nhưng vẫn thua xa tiếng Anh về dữ liệu có nhãn; ngược lại tiếng Iceland ít người nói mà tài nguyên số khá đầy đủ."
+  - "Tài nguyên không chỉ là số cặp câu song ngữ. Dữ liệu đơn ngữ, từ điển, bộ tách từ, bộ test chuẩn và người bản ngữ chấm bài đều là tài nguyên — thiếu bộ test thì có mô hình cũng không biết nó tốt hay tệ."
+  - "Thêm dữ liệu không cho lợi ích đều đặn mãi. Đường cong dữ liệu–chất lượng dốc đứng ở vùng ít dữ liệu rồi thoải dần, nên 10 nghìn cặp câu đầu tiên đáng giá hơn 10 nghìn cặp câu thứ một triệu."
+  - "Một corpus lớn chưa chắc là tài nguyên tốt: nếu toàn bộ lấy từ một miền hẹp (Kinh Thánh, văn bản pháp luật) thì mô hình dịch rất tốt trong miền đó và sụp đổ ngoài miền."
+y_chinh:
+  - "Tài nguyên gồm nhiều mảnh: song ngữ, đơn ngữ, từ điển/công cụ, bộ đánh giá, người bản ngữ chấm bài"
+  - "Joshi et al. 2020 xếp ngôn ngữ thành 6 lớp 0–5; lớp 0 chiếm 88.38% tổng số ngôn ngữ, lớp 5 chỉ có 7 ngôn ngữ"
+  - "Tiếng Việt được xếp lớp 4: nhiều dữ liệu không nhãn, nhưng ít dữ liệu có nhãn so với lớp 5"
+  - "Quan hệ dữ liệu–chất lượng là đường cong lợi ích giảm dần trên thang log, không phải đường thẳng"
+  - "Ít tài nguyên khó vì bốn lý do cộng dồn: dữ liệu nhiễu, miền hẹp, đánh giá kém tin cậy, tokenizer thiên lệch"
+  - "Hầu hết ngôn ngữ dân tộc thiểu số ở Việt Nam nằm ngoài cả những mô hình phủ rộng nhất như NLLB-200"
+tai_lieu:
+  - url: https://aclanthology.org/2020.acl-main.560/
+    tieu_de: "The State and Fate of Linguistic Diversity and Inclusion in the NLP World"
+    tac_gia: "Pratik Joshi, Sebastin Santy, Amar Budhiraja, Kalika Bali, Monojit Choudhury (ACL 2020)"
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: "Nguồn gốc của phổ tài nguyên 0–5. Đọc mục 2 (Language Classes) và Table 1 là đủ hiểu ý chính; phần sau nặng về phân tích cộng đồng nghiên cứu."
+  - url: https://arxiv.org/abs/1706.03872
+    tieu_de: "Six Challenges for Neural Machine Translation"
+    tac_gia: "Philipp Koehn, Rebecca Knowles (WNMT 2017)"
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: "Mục 3.1 (lệch miền) và 3.2 (lượng dữ liệu) chứa đúng hai đường cong quan trọng nhất của bài này. Viết dễ đọc, nhiều ví dụ dịch thật."
+  - url: https://www.nature.com/articles/s41586-024-07335-x
+    tieu_de: "Scaling neural machine translation to 200 languages"
+    tac_gia: "NLLB Team, Meta AI (Nature, 2024)"
+    loai: bai_viet
+    muc_do: toan_nang
+    ngon_ngu: en
+    ghi_chu: "Bản Nature của dự án No Language Left Behind. Đọc phần mở đầu để thấy con số 7000+ ngôn ngữ so với 200 ngôn ngữ được phủ."
+---
+
+import DuongCongDuLieu from '../../src/viz/DuongCongDuLieu.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## "Tài nguyên" gồm những gì
+
+Khi nghe "ngôn ngữ ít tài nguyên", đa số nghĩ ngay tới một con số: kho song ngữ có bao nhiêu cặp câu. Đó là mảnh quan trọng nhất, nhưng chỉ là một mảnh. Để xây và **dùng được** một hệ dịch, bạn cần ít nhất năm thứ:
+
+| Tài nguyên | Dùng để làm gì | Thiếu thì sao |
+|---|---|---|
+| Dữ liệu song ngữ | Dạy mô hình ánh xạ câu nguồn → câu đích | Không có gì để học trực tiếp |
+| Dữ liệu đơn ngữ | Học ngữ pháp, văn phong phía đích; làm nguyên liệu cho back-translation | Câu dịch ra nghe không tự nhiên |
+| Từ điển, bộ tách từ, bảng mã chữ | Tiền xử lý, ghép thuật ngữ, gõ và hiển thị đúng | Chữ hiển thị sai, tokenizer cắt vụn |
+| Bộ dữ liệu đánh giá (test set) | Biết mô hình tốt hay tệ | Có mô hình mà không biết nó ra sao |
+| Người bản ngữ chấm bài | Kiểm chứng điểm tự động, sửa dữ liệu | Không ai phát hiện được lỗi thật |
+
+Mảnh cuối thường bị bỏ quên nhưng lại là nút thắt cứng nhất: dữ liệu có thể cào về, người bản ngữ được đào tạo để chấm bài dịch thì không.
+
+<CauHoi cau="tai-nguyen-ngon-ngu/q2" />
+
+## Phổ tài nguyên: sáu lớp 0–5
+
+Joshi và cộng sự (ACL 2020) đo hai trục — lượng dữ liệu **có nhãn** (qua catalog LDC và ELRA) và lượng dữ liệu **không nhãn** (qua Wikipedia) — rồi xếp toàn bộ ngôn ngữ trên thế giới vào sáu lớp. Đây là bảng của họ:
+
+| Lớp | Tên | Ví dụ | Số ngôn ngữ | % tổng số |
+|---|---|---|---|---|
+| 0 | The Left-Behinds | Dahalo, Warlpiri, Wallisian | 2191 | 88.38% |
+| 1 | The Scraping-Bys | Cherokee, Fijian, Bhojpuri | 222 | 5.49% |
+| 2 | The Hopefuls | Zulu, Lao, Maltese, Irish | 19 | 0.36% |
+| 3 | The Rising Stars | Indonesian, Ukraina, Cebuano, Afrikaans | 28 | 4.42% |
+| 4 | The Underdogs | Nga, Hungary, **Việt**, Hà Lan, Hàn | 18 | 1.07% |
+| 5 | The Winners | Anh, Tây Ban Nha, Đức, Nhật, Pháp | 7 | 0.28% |
+
+*(Joshi et al. 2020, Table 1)*
+
+Hai con số đáng nhớ: **lớp 0 chiếm 88.38% số ngôn ngữ**, còn **lớp 5 chỉ có 7 ngôn ngữ**. Nghĩa là gần chín phần mười ngôn ngữ trên hành tinh gần như không có gì để máy học.
+
+## Tiếng Việt đứng đâu
+
+Tiếng Việt nằm ở **lớp 4 — "The Underdogs"**, cùng nhóm với tiếng Nga, Hungary, Hà Lan, Hàn. Joshi et al. mô tả lớp này là: có **lượng dữ liệu không nhãn lớn, gần bằng nhóm dẫn đầu**, chỉ thua ở lượng dữ liệu **có nhãn**.
+
+Điều đó khớp với thực tế: web tiếng Việt rất lớn, nên các mô hình tiền huấn luyện đọc tiếng Việt khá tốt; nhưng bộ dữ liệu song ngữ chất lượng cao, bộ test chuẩn theo từng miền (y tế, pháp lý, kỹ thuật) thì mỏng hơn nhiều so với tiếng Anh hay tiếng Pháp.
+
+Cụ thể hơn: tiếng Việt **có** mặt trong FLORES-200, bộ benchmark do người dịch của dự án NLLB (`vie_Latn`), nên ít nhất có thước đo chuẩn để so sánh các hệ thống. Đó đã là một đặc quyền mà hầu hết ngôn ngữ dân tộc thiểu số ở Việt Nam không có.
+
+<CauHoi cau="tai-nguyen-ngon-ngu/q4" />
+
+## Nhiều dữ liệu hơn giúp bao nhiêu?
+
+Đây là câu hỏi tiền bạc: nếu bỏ tiền thuê người dịch thêm 10 nghìn cặp câu, chất lượng tăng bao nhiêu? Câu trả lời phụ thuộc bạn đang đứng ở đâu trên đường cong.
+
+Koehn & Knowles (2017) huấn luyện hệ Anh→Tây Ban Nha trên các phần 1/1024, 1/512, ..., toàn bộ của kho 385.7 triệu từ. Kéo thanh trượt để thấy chuyện gì xảy ra:
+
+<DuongCongDuLieu
+  client:visible
+  i0={0}
+  duDoan={{
+    de: "Ở mốc dữ liệu nhỏ nhất (≈0.38 triệu từ), hệ NMT đạt 1.6 BLEU còn hệ thống kê SMT đạt 16.4. Khi kéo lên toàn bộ 385.7 triệu từ, hệ nào cao hơn?",
+    lua_chon: ["SMT vẫn dẫn trước, vì đã dẫn từ đầu", "NMT vượt lên và cao nhất (31.1 BLEU)", "Hai hệ gặp nhau và bằng nhau"],
+    dap_an: 1,
+    giai_thich: "NMT xuất phát tệ hơn nhiều nhưng dốc hơn hẳn: vượt SMT ở khoảng 24 triệu từ (25.7 so với 24.7) rồi đạt 31.1 BLEU với toàn bộ dữ liệu. Bài học: xếp hạng các phương pháp ở vùng NHIỀU dữ liệu không nói được gì về vùng ÍT dữ liệu."
+  }}
+/>
+
+Hai điều rút ra:
+
+1. **Lợi ích giảm dần.** Với NMT, lần gấp đôi dữ liệu đầu tiên (0.38 → 0.75 triệu từ) thêm **+5.6 BLEU**; lần gấp đôi cuối cùng (192.9 → 385.7 triệu từ) chỉ thêm **+0.8 BLEU**. Cùng một lượng công sức, giá trị khác nhau bảy lần.
+2. **Thứ hạng đảo ngược theo lượng dữ liệu.** Phương pháp tốt nhất ở vùng nhiều dữ liệu có thể là phương pháp tệ nhất ở vùng ít dữ liệu. Đây là lý do bạn không thể sao chép công thức của tiếng Anh sang tiếng Mường.
+
+Lưu ý quan trọng: đây là số của năm 2017, cặp Anh–Tây Ban Nha. Mô hình đa ngữ ngày nay **không xuất phát từ 1.6 BLEU** khi có ít dữ liệu, vì chúng đã học sẵn từ hàng trăm ngôn ngữ khác. Cái cần nhớ là **hình dạng** đường cong, không phải con số tuyệt đối.
+
+## Bốn lý do khiến ít tài nguyên thì khó
+
+Khó không chỉ vì "ít dữ liệu". Bốn vấn đề cộng dồn vào nhau:
+
+**1. Dữ liệu nhiễu.** Kho song ngữ cho ngôn ngữ ít tài nguyên thường được cào tự động và ghép câu bằng máy, nên tỉ lệ cặp câu lệch nhau (misalignment) cao. Với kho lớn, vài phần trăm rác bị pha loãng; với 20 nghìn cặp câu, vài phần trăm rác là một phần đáng kể tín hiệu học.
+
+**2. Miền quá hẹp.** Rất nhiều corpus của ngôn ngữ hiếm đến từ một nguồn duy nhất — thường là văn bản tôn giáo, vì đó là thứ được dịch ra nhiều thứ tiếng nhất. Koehn & Knowles đo chuyện này: hệ NMT huấn luyện trên corpus Kinh Coran đạt 15.9 BLEU **trong miền đó**, nhưng chỉ **0.4 BLEU** trên văn bản luật và **0.0** trên văn bản y tế (Figure 1). Hệ SMT cùng điều kiện được 1.8 và 2.1 — cũng tệ, nhưng tệ ít hơn.
+
+**3. Đánh giá kém tin cậy.** Khi ít dữ liệu, bộ test nhỏ, mà bộ test nhỏ thì chênh lệch điểm giữa hai hệ thống dễ là ngẫu nhiên. Tệ hơn: các thước đo neural hiện đại được huấn luyện trên dữ liệu chấm điểm của các ngôn ngữ nhiều tài nguyên, nên chưa chắc đúng ở ngôn ngữ hiếm. Ban tổ chức WMT25 phải **bỏ toàn bộ các thước đo neural** và chỉ dùng chrF++ cho tiếng Bhojpuri và tiếng Maasai, vì độ tin cậy của các thước đo chính ở hai ngôn ngữ này chưa được xác lập (Kocmi et al. 2025, mục 4.1).
+
+**4. Tokenizer thiên lệch.** Bộ tách token của các mô hình lớn được học chủ yếu trên văn bản tiếng Anh, nên văn bản ngôn ngữ hiếm bị cắt vụn thành nhiều mảnh hơn. Petrov et al. (2023) đo được cùng một đoạn văn dịch sang các ngôn ngữ khác nhau có độ dài token chênh nhau **tới 15 lần**. Cắt vụn nghĩa là: câu dài hơn, chi phí cao hơn, nhét được ít ngữ cảnh hơn, và mô hình phải học ghép nhiều mảnh vô nghĩa lại thành từ.
+
+<CauHoi cau="tai-nguyen-ngon-ngu/q8" />
+
+## Ví dụ thật: các ngôn ngữ dân tộc thiểu số ở Việt Nam
+
+Việt Nam có hàng chục ngôn ngữ dân tộc bên cạnh tiếng Việt: Tày, Thái, Mường, H'Mông, Khơ-me, Chăm, Ba Na, Ê Đê... Đặt chúng vào khung ở trên:
+
+- **Song ngữ:** có, nhưng nhỏ và rời rạc — chủ yếu là sách giáo khoa song ngữ, văn bản hành chính, tài liệu tôn giáo. Một nhóm nghiên cứu làm dịch Ba Na–Việt mô tả trở ngại lớn nhất chính là "thiếu tài nguyên gốc tiếng Ba Na, gồm từ vựng, ngữ pháp, mẫu hội thoại và kho song ngữ" (arXiv:2505.11421).
+- **Đơn ngữ:** ít, và phần lớn nội dung đời sống được nói chứ không viết.
+- **Công cụ:** bảng mã và font cho chữ Chăm, chữ Thái, chữ Nôm Tày chưa phổ biến; nhiều văn bản tồn tại dưới dạng ảnh chụp chứ không phải văn bản số.
+- **Bộ đánh giá:** FLORES-200 phủ 200 ngôn ngữ, trong đó có tiếng Việt (`vie_Latn`) và tiếng Khơ-me (`khm_Khmr`), nhưng **không** có Mường, Tày, H'Mông hay Chăm. Không có thước đo chuẩn thì không so sánh được hệ thống nào tốt hơn.
+- **Người chấm bài:** người song ngữ thì nhiều, người được đào tạo để chấm bài dịch theo quy trình chuẩn thì gần như không có.
+
+Nói cách khác: những ngôn ngữ này ở lớp 0 hoặc lớp 1 của thang Joshi. Và chú ý điểm mấu chốt — **tiếng Việt, ở lớp 4, chính là "ngôn ngữ nhiều tài nguyên" trong bài toán này**. Nhiều hay ít tài nguyên luôn là so với cặp ngôn ngữ cụ thể bạn đang làm.
+
+<CauHoi cau="tai-nguyen-ngon-ngu/q9" />
+
+## Tóm tắt
+
+- Tài nguyên = song ngữ + đơn ngữ + công cụ + bộ đánh giá + người bản ngữ chấm bài. Thiếu mảnh nào cũng đau.
+- Joshi et al. 2020 chia 6 lớp; lớp 0 chiếm 88.38% ngôn ngữ, lớp 5 có 7 ngôn ngữ. Tiếng Việt ở lớp 4.
+- Dữ liệu và chất lượng nối nhau bằng đường cong lợi ích giảm dần: những cặp câu đầu tiên đáng giá nhất.
+- Ít tài nguyên khó vì nhiễu, miền hẹp, đánh giá không tin được, và tokenizer cắt vụn.
+- Tiếp theo: Dịch máy cho ngôn ngữ ít tài nguyên — làm gì khi chỉ có 20 nghìn cặp câu.

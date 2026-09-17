@@ -1,0 +1,160 @@
+---
+ten_vi: "Dịch máy cho ngôn ngữ ít tài nguyên"
+ten_en: "Low-resource Machine Translation"
+tang: 5
+thu_tu: 42
+tien_quyet: ["tai-nguyen-ngon-ngu"]
+trang_thai: nhap
+dinh_nghia: >-
+  Tập hợp các kỹ thuật để xây hệ dịch cho cặp ngôn ngữ chỉ có ít dữ liệu song ngữ, bằng cách
+  mượn nguyên liệu từ chỗ khác: dữ liệu đơn ngữ (back-translation), một cặp ngôn ngữ giàu
+  dữ liệu (transfer learning), hoặc một mô hình đã học sẵn hàng trăm ngôn ngữ (fine-tune mô
+  hình đa ngữ).
+truc_giac: >-
+  Bạn phải nấu một bữa tiệc nhưng trong bếp chỉ có nửa rổ nguyên liệu. Có bốn nước đi: mượn
+  nguyên liệu nhà hàng xóm và tự chế biến lại cho hợp món (back-translation), học nghề từ
+  một đầu bếp đã nấu món khác rất giỏi (transfer learning), thuê hẳn một đầu bếp biết trăm
+  món rồi dạy thêm món của bạn (fine-tune mô hình đa ngữ), hay nấu qua một món trung gian
+  (pivot). Nước đi mạnh nhất hiện nay thường là thứ ba.
+hieu_nham:
+  - "Back-translation không phải là dịch xuôi rồi dịch ngược cùng một câu. Nó lấy câu ĐƠN NGỮ phía đích (thứ bạn có sẵn nhiều), dịch ngược sang phía nguồn bằng một mô hình phụ, rồi ghép thành cặp giả — phía đích luôn là câu người viết thật."
+  - "Cặp giả sinh ra từ back-translation KHÔNG được coi ngang hàng với cặp thật: phía nguồn là văn bản máy sinh, có lỗi. Trộn quá tay (tỉ lệ giả áp đảo) có thể làm mô hình tệ đi."
+  - "Fine-tune một mô hình đa ngữ có sẵn thường thắng việc huấn luyện từ đầu, ngay cả khi mô hình đó chưa từng thấy ngôn ngữ của bạn — nó vẫn đã học được cấu trúc chung của ngôn ngữ."
+  - "Thêm dữ liệu không phải lúc nào cũng tốt hơn chọn dữ liệu. 50 nghìn câu đúng miền thường hơn 500 nghìn câu sai miền."
+y_chinh:
+  - "Back-translation biến dữ liệu đơn ngữ phía đích thành cặp câu huấn luyện giả, là kỹ thuật rẻ và mạnh nhất khi có sẵn nhiều văn bản đơn ngữ"
+  - "Transfer learning: huấn luyện cặp giàu dữ liệu làm mô hình cha rồi chuyển tham số sang cặp nghèo (Zoph et al. 2016: +5.6 BLEU trung bình trên 4 cặp)"
+  - "Fine-tune mô hình đa ngữ (NLLB-200, mBART, M2M-100, MADLAD-400) thường là điểm xuất phát tốt nhất hiện nay"
+  - "Pivot qua tiếng Anh giải được bài toán thiếu dữ liệu trực tiếp nhưng cộng dồn lỗi qua hai chặng"
+  - "Chọn dữ liệu theo miền có thể quan trọng hơn thu thêm dữ liệu"
+  - "Khi ít dữ liệu, bộ test cũng nhỏ nên điểm rất nhiễu: cần khoảng tin cậy, nhiều miền, và người bản ngữ chấm tay"
+tai_lieu:
+  - url: https://aclanthology.org/P16-1009/
+    tieu_de: "Improving Neural Machine Translation Models with Monolingual Data"
+    tac_gia: "Rico Sennrich, Barry Haddow, Alexandra Birch (ACL 2016)"
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: "Bài gốc giới thiệu back-translation. Ngắn, dễ đọc, và là kỹ thuật bạn sẽ dùng đầu tiên trong thực tế."
+  - url: https://arxiv.org/abs/1905.11901
+    tieu_de: "Revisiting Low-Resource Neural Machine Translation: A Case Study"
+    tac_gia: "Rico Sennrich, Biao Zhang (ACL 2019)"
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: "Danh sách 'best practices' cho NMT ít tài nguyên: chỉnh siêu tham số, kích thước từ vựng, regularization. Thực dụng nhất trong ba nguồn này."
+  - url: https://arxiv.org/abs/2207.04672
+    tieu_de: "No Language Left Behind: Scaling Human-Centered Machine Translation"
+    tac_gia: "NLLB Team, Meta AI (2022)"
+    loai: bai_viet
+    muc_do: toan_nang
+    ngon_ngu: en
+    ghi_chu: "Bản dài (hơn 190 trang) của NLLB-200. Không cần đọc hết: xem mục về khai thác dữ liệu và về FLORES-200 để hiểu một dự án ít tài nguyên quy mô lớn làm gì."
+---
+
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Tình huống
+
+Bạn có **20 nghìn cặp câu Việt–Mường** (lấy từ sách song ngữ và văn bản hành chính), khoảng **200 nghìn câu tiếng Mường đơn ngữ** thu được từ báo địa phương và ghi chép, và một máy có GPU. Sếp muốn một hệ dịch Việt → Mường dùng được. Làm gì trước?
+
+Huấn luyện một Transformer từ đầu trên 20 nghìn cặp câu gần như chắc chắn thất bại — Koehn & Knowles (2017) đã đo: ở mốc dữ liệu nhỏ nhất, NMT huấn luyện từ đầu chỉ đạt 1.6 BLEU trong khi hệ thống kê cũ đạt 16.4. Bạn cần mượn nguyên liệu.
+
+## 1. Back-translation — biến văn bản đơn ngữ thành cặp câu
+
+Ý tưởng (Sennrich et al., ACL 2016): bạn muốn dịch Việt → Mường, và bạn có rất nhiều câu **tiếng Mường** đơn ngữ. Vậy:
+
+1. Huấn luyện một mô hình **ngược** (Mường → Việt) trên 20 nghìn cặp thật. Mô hình này tệ, không sao.
+2. Cho nó dịch 200 nghìn câu Mường đơn ngữ sang tiếng Việt → được 200 nghìn câu Việt **giả**.
+3. Ghép lại thành cặp: (câu Việt giả, câu Mường thật).
+4. Trộn 200 nghìn cặp giả này với 20 nghìn cặp thật, huấn luyện mô hình xuôi Việt → Mường.
+
+Chỗ tinh tế nằm ở **hướng của lỗi**. Phía đích (tiếng Mường) luôn là câu do người viết, hoàn toàn sạch — đó chính là thứ mô hình phải học sinh ra. Phía nguồn có lỗi máy, nhưng mô hình chỉ cần *đọc* nó, không cần sinh ra nó. Nhiễu ở đầu vào dễ tha thứ hơn nhiều so với nhiễu ở đầu ra.
+
+Một chi tiết hay bị dùng sai: cách sinh câu giả. Edunov et al. (2018) chỉ ra rằng **sampling** hoặc **beam có thêm nhiễu** cho tín hiệu huấn luyện mạnh hơn beam search thường — nhưng họ nói rõ điều này đúng "in all but resource poor settings". Ở tình huống thật sự nghèo dữ liệu, mô hình ngược quá yếu, nên sampling chỉ tạo thêm rác; beam thường an toàn hơn.
+
+<CauHoi cau="dich-may-it-tai-nguyen/q3" />
+
+## 2. Transfer learning từ một cặp giàu dữ liệu
+
+Zoph et al. (EMNLP 2016) làm thế này: huấn luyện một mô hình **cha** trên cặp giàu dữ liệu (ví dụ Pháp → Anh), rồi lấy tham số của nó khởi tạo mô hình **con** cho cặp nghèo (ví dụ Hausa → Anh), và huấn luyện tiếp trên dữ liệu ít ỏi của cặp con.
+
+Kết quả của họ: **+5.6 BLEU trung bình** trên bốn cặp ít tài nguyên so với huấn luyện từ đầu. Phần decoder (sinh tiếng Anh) gần như dùng lại được nguyên; phần encoder phải học lại nhiều hơn.
+
+Cách này vẫn hữu ích khi hai ngôn ngữ **gần nhau**. Nhóm làm dịch Ba Na–Việt tận dụng đúng điểm đó: họ khởi tạo từ một mô hình seq2seq đã tiền huấn luyện cho tiếng Việt rồi huấn luyện tiếp trên kho song ngữ nhỏ, dựa vào "sự tương đồng đáng kể giữa hai ngôn ngữ" (arXiv:2505.11421).
+
+## 3. Mô hình đa ngữ + fine-tune — nước đi mạnh nhất hiện nay
+
+Thay vì một mô hình cha, dùng một mô hình đã học **hàng trăm** ngôn ngữ cùng lúc. Bốn cái tên hay gặp:
+
+| Mô hình | Phủ | Điểm đáng chú ý (theo bài báo gốc) |
+|---|---|---|
+| **mBART** (2020) | 25 → 50 ngôn ngữ | Tiền huấn luyện khử nhiễu seq2seq; "tới 12 điểm BLEU cho MT ít tài nguyên" |
+| **M2M-100** (2020) | 100 ngôn ngữ | Dịch thẳng giữa cặp không qua tiếng Anh; "hơn 10 BLEU" so với hệ lấy tiếng Anh làm trung tâm |
+| **NLLB-200** (2022/2024) | 200 ngôn ngữ | Mixture-of-Experts; trung bình **+44% BLEU** so với SOTA trước đó, đo trên FLORES-200 |
+| **MADLAD-400** (2023) | 419 ngôn ngữ (đơn ngữ) | Bộ dữ liệu 3T token được kiểm thủ công + mô hình dịch 10.7B tham số phủ hơn 450 ngôn ngữ |
+
+Vì sao hiệu quả: mô hình đã học sẵn cấu trúc chung của ngôn ngữ (trật tự từ, thì, đại từ, cách gắn ngữ cảnh) từ hàng trăm ngôn ngữ khác. 20 nghìn cặp câu của bạn không còn phải dạy nó "ngôn ngữ là gì", chỉ phải dạy "tiếng Mường trông như thế nào".
+
+**Đánh đổi:** mô hình lớn, chạy tốn tài nguyên; và nếu ngôn ngữ của bạn không nằm trong danh sách (Mường, Tày, H'Mông, Chăm đều **không** có trong FLORES-200), bạn phải tự thêm token ngôn ngữ mới và chấp nhận tokenizer cắt vụn tiếng của bạn.
+
+<CauHoi cau="dich-may-it-tai-nguyen/q5" />
+
+## 4. Pivot qua tiếng Anh
+
+Không có dữ liệu Mường ↔ Nhật, nhưng có Mường ↔ Việt và Việt ↔ Nhật? Dịch hai chặng: Mường → Việt → Nhật.
+
+Ưu: dùng được ngay, không cần dữ liệu mới. Nhược: **lỗi cộng dồn** — sai ở chặng một thì chặng hai không thể sửa, vì nó chỉ nhìn thấy bản dịch trung gian chứ không thấy câu gốc. Sắc thái, đại từ xưng hô, giới tính, thể lịch sự đều dễ mất ở chặng trung gian.
+
+Đây chính là động cơ của M2M-100: nhóm tác giả cho thấy dịch **thẳng** giữa các cặp không có tiếng Anh cho "hơn 10 BLEU" so với cách đi vòng qua tiếng Anh (arXiv:2010.11125).
+
+## 5. Tăng cường dữ liệu, self-training và distillation
+
+Ba kỹ thuật rẻ, thường dùng kèm nhau:
+
+- **Tăng cường dữ liệu (data augmentation):** sinh thêm biến thể từ dữ liệu sẵn có — thay từ bằng từ đồng nghĩa trong từ điển, hoán đổi thứ tự cụm, thêm nhiễu ký tự, cắt câu dài thành câu ngắn. Rẻ nhưng lợi ích khiêm tốn và dễ tạo câu không tự nhiên.
+- **Self-training (forward translation):** ngược với back-translation — dịch dữ liệu đơn ngữ **phía nguồn** bằng mô hình hiện tại, rồi dùng làm dữ liệu huấn luyện. Rủi ro cao hơn back-translation, vì lúc này phía **đích** là văn bản máy sinh: mô hình học lại chính lỗi của mình.
+- **Distillation:** dùng một mô hình lớn (ví dụ NLLB-200 hoặc một LLM) sinh bản dịch, rồi huấn luyện một mô hình nhỏ bắt chước. Mục tiêu chính là **giảm chi phí chạy**, không phải vượt mô hình thầy.
+
+## 6. Chọn dữ liệu theo miền
+
+Nếu bạn có 500 nghìn cặp câu tạp nham từ web nhưng cần dịch hồ sơ y tế, phần lớn dữ liệu đó là nhiễu có hại chứ không phải tài nguyên. Quy trình thường dùng:
+
+1. Lấy một mẫu nhỏ văn bản **đúng miền đích** làm mốc.
+2. Chấm điểm mọi câu trong kho lớn theo độ giống miền đích (tf-idf + cosine, hoặc chênh lệch perplexity giữa hai mô hình ngôn ngữ).
+3. Giữ top-k, bỏ phần còn lại.
+4. Fine-tune trên phần đã chọn.
+
+Koehn & Knowles (2017) cho thấy cái giá của việc bỏ qua bước này: mô hình NMT huấn luyện trên corpus Kinh Coran đạt 15.9 BLEU trong miền đó nhưng **0.4 BLEU** trên văn bản luật. Miền lệch không làm chất lượng giảm — nó làm chất lượng biến mất.
+
+## 7. Đánh giá khi ít dữ liệu
+
+Đây là phần dễ bị bỏ qua nhất và cũng dễ tự lừa mình nhất.
+
+- **Bộ test nhỏ thì điểm nhiễu.** Chênh 1 BLEU giữa hai hệ trên 300 câu test có thể chỉ là ngẫu nhiên. Luôn báo cáo khoảng tin cậy (bootstrap resampling) chứ không phải một con số trần trụi.
+- **Thước đo neural chưa chắc đúng.** Ban tổ chức WMT25 phải bỏ toàn bộ thước đo neural và chỉ dùng chrF++ cho tiếng Bhojpuri và Maasai, vì độ tin cậy của chúng ở hai ngôn ngữ này chưa được xác lập (Kocmi et al. 2025).
+- **Chia test theo miền.** Một điểm trung bình che mất chuyện hệ dịch tốt ở miền hành chính và hỏng hoàn toàn ở miền hội thoại.
+- **Không lấy dữ liệu do máy sinh làm test.** Nếu bộ test chứa cặp back-translation, bạn đang chấm mô hình bằng chính đầu ra của một mô hình khác.
+- **Người bản ngữ chấm tay vẫn là chuẩn cuối.** Vài trăm câu được người chấm còn đáng tin hơn vài nghìn câu chấm tự động ở ngôn ngữ mà thước đo chưa được kiểm chứng.
+
+<CauHoi cau="dich-may-it-tai-nguyen/q8" />
+
+## Trả lời câu hỏi mở đầu
+
+Với 20 nghìn cặp Việt–Mường và 200 nghìn câu Mường đơn ngữ, thứ tự thực dụng:
+
+1. **Fine-tune một mô hình đa ngữ có sẵn** (NLLB-200 hoặc tương đương) trên 20 nghìn cặp thật. Đây là baseline, và thường là baseline khó vượt.
+2. **Làm bộ test tử tế trước khi tối ưu:** vài trăm câu, nhiều miền, người bản ngữ kiểm. Không có nó thì mọi cải tiến sau đều là đoán mò.
+3. **Thêm back-translation** từ 200 nghìn câu đơn ngữ, dùng chính mô hình ở bước 1 (chiều ngược) để sinh. Đo lại.
+4. **Lọc theo miền và theo chất lượng**: bỏ cặp giả quá dài/quá ngắn so với nguồn, bỏ cặp lệch miền.
+5. Chỉ khi cả bốn bước trên đã cạn mới nghĩ tới huấn luyện kiến trúc riêng.
+
+## Tóm tắt
+
+- Không huấn luyện từ đầu khi chỉ có vài chục nghìn cặp câu — mượn từ mô hình đa ngữ.
+- Back-translation biến đơn ngữ phía đích thành cặp giả; lỗi nằm ở phía nguồn nên ít hại.
+- Transfer learning và pivot vẫn có chỗ dùng, nhưng pivot cộng dồn lỗi hai chặng.
+- Chọn đúng miền thường đáng giá hơn thu thêm dữ liệu.
+- Xây bộ đánh giá **trước**, không phải sau.
+- Tiếp theo: LLM làm dịch máy — khi nào mô hình ngôn ngữ lớn thay được hệ dịch chuyên dụng.
+

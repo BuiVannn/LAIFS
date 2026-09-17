@@ -1,0 +1,263 @@
+---
+ten_vi: "Kiến trúc Transformer"
+ten_en: Transformer
+tang: 5
+thu_tu: 37
+tien_quyet: ["attention", "lan-truyen-nguoc"]
+trang_thai: nhap
+dinh_nghia: >-
+  Kiến trúc mạng neuron cho chuỗi, bỏ hẳn phần đệ quy của RNN và chỉ dùng attention: mỗi token
+  tự sinh ra ba vector Q (truy vấn), K (khoá), V (giá trị), rồi trộn thông tin từ MỌI token khác
+  bằng softmax(QKᵀ/√d_k)·V. Xếp chồng nhiều khối như vậy — mỗi khối gồm attention nhiều đầu,
+  mạng FFN, kết nối tắt và LayerNorm — ta được encoder và decoder của một mô hình dịch.
+truc_giac: >-
+  RNN đọc câu như người đọc qua khe cửa: mỗi lần một từ, muốn biết từ đầu câu thì phải nhớ suốt
+  chặng đường. Transformer trải cả câu ra bàn cùng lúc. Mỗi từ tự hỏi "tôi cần thông tin gì"
+  (Q), mỗi từ cũng treo biển "tôi có thông tin này" (K); ghép câu hỏi với biển hiệu bằng tích vô
+  hướng là ra mức chú ý, rồi lấy nội dung (V) theo mức đó. Vì trải phẳng nên mất thứ tự từ, phải
+  cộng thêm "toạ độ" vị trí vào đầu vào.
+hieu_nham:
+  - "Self-attention không phải một loại attention mới. Vẫn là công thức attention cũ, chỉ khác ở chỗ Q, K, V cùng đến từ MỘT chuỗi (câu tự nhìn chính nó), thay vì Q từ decoder và K, V từ encoder."
+  - "Q, K, V không phải ba thứ có sẵn trong dữ liệu. Chúng là ba phép chiếu tuyến tính (ba ma trận học được) áp lên cùng một vector đầu vào của token."
+  - "Nhiều đầu (multi-head) KHÔNG làm mô hình to lên nhiều lần: d_model được chia đều cho các đầu (512 = 8 × 64), nên tổng chi phí xấp xỉ bằng một đầu cỡ lớn — cái lợi là mỗi đầu học một kiểu quan hệ riêng."
+  - "Transformer không 'đọc từ trái sang phải'. Encoder nhìn cả câu cùng lúc; chỉ decoder mới bị mask nhân quả chặn không cho nhìn token tương lai, và đó là do mask chứ không phải do kiến trúc."
+  - "Positional encoding được CỘNG vào embedding, không phải nối thêm chiều; nếu bỏ nó đi thì 'Tôi ăn cơm' và 'Cơm ăn tôi' cho đúng một kết quả."
+y_chinh:
+  - "Self-attention: mỗi token chiếu thành Q, K, V; trọng số chú ý = softmax(QKᵀ/√d_k), đầu ra = trọng số nhân V — mọi token trộn với mọi token trong một phép nhân ma trận"
+  - "Chia √d_k để tích vô hướng không phình theo số chiều, tránh softmax bão hoà và gradient teo"
+  - "Nhiều đầu: chia d_model thành h phần (512 = 8 × 64), mỗi đầu attention riêng, nối lại rồi qua W_O; mỗi đầu bắt một kiểu quan hệ khác nhau"
+  - "Mất thứ tự từ vì attention đối xứng với hoán vị, nên phải cộng positional encoding (sin/cos nhiều tần số) vào embedding"
+  - "Khối = attention nhiều đầu + FFN hai lớp, mỗi phần bọc trong kết nối tắt (residual) và LayerNorm; decoder có thêm cross-attention nhìn sang encoder và mask nhân quả ở self-attention"
+  - "Bản base của paper: 6 khối mỗi bên, d_model = 512, h = 8, d_ff = 2048, ~3,15 triệu tham số một khối encoder, 65 triệu tham số cả mô hình; chi phí attention là O(n²) theo độ dài câu"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=eMlx5fFNoYc
+    tieu_de: "Attention in transformers, step-by-step | Deep Learning Chapter 6"
+    tac_gia: 3Blue1Brown
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Hình ảnh hoá Q, K, V và multi-head đúng theo thứ tự bài này trình bày. Xem trước khi đọc phần tính tay.
+  - url: https://poloclub.github.io/transformer-explainer/
+    tieu_de: Transformer Explainer
+    tac_gia: Georgia Tech (Polo Club of Data Science)
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Chạy thật một GPT-2 nhỏ ngay trong trình duyệt, bấm vào từng token để xem ma trận attention và từng bước biến đổi. Dùng để đối chiếu với con số bạn tự tính.
+  - url: https://arxiv.org/abs/1706.03762
+    tieu_de: Attention Is All You Need
+    tac_gia: "Vaswani et al. (2017)"
+    loai: bai_viet
+    muc_do: toan_nang
+    ngon_ngu: en
+    ghi_chu: "Bài gốc. Đọc mục 3 (kiến trúc) và bảng 3 (các cấu hình) là đủ; mọi con số cấu hình trong bài này lấy từ đây."
+---
+
+import AttentionCoMask from '../../src/viz/AttentionCoMask.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Vấn đề của cách đọc tuần tự
+
+Mô hình [seq2seq](/khai-niem/seq2seq) dùng RNN đọc câu nguồn từng từ một. Muốn tính trạng thái ở từ thứ 30 thì phải tính xong từ thứ 29, nên **không song song hoá được** theo chiều dài câu, và thông tin từ đầu câu phải đi qua 29 bước mới tới cuối.
+
+[Attention](/khai-niem/attention) đã gỡ được nút thắt thứ hai: decoder nhìn thẳng vào mọi trạng thái của encoder thay vì chỉ một vector tóm tắt. Bài này lấy ý tưởng đó đẩy đến tận cùng: **vứt luôn phần đệ quy, chỉ giữ attention**. Đó là Transformer.
+
+Ví dụ xuyên suốt: dịch **"Tôi ăn cơm" → "I eat rice"**.
+
+## Self-attention: câu tự nhìn chính nó
+
+Trong seq2seq, attention nối hai chuỗi khác nhau (decoder hỏi, encoder trả lời). **Self-attention** dùng đúng công thức đó nhưng cả ba vai đều lấy từ **một** chuỗi.
+
+Mỗi token có một vector đầu vào $\mathbf{x}_i$ (embedding + vị trí). Từ nó, ba ma trận học được sinh ra ba vector:
+
+$$
+\mathbf{q}_i = W_Q \mathbf{x}_i \qquad \mathbf{k}_i = W_K \mathbf{x}_i \qquad \mathbf{v}_i = W_V \mathbf{x}_i
+$$
+
+| Vai | Đọc là | Dùng để |
+|---|---|---|
+| $\mathbf{q}$ — query (truy vấn) | "tôi đang cần thông tin gì" | so với khoá của mọi token |
+| $\mathbf{k}$ — key (khoá) | "tôi là loại thông tin gì" | để token khác tìm ra mình |
+| $\mathbf{v}$ — value (giá trị) | "nội dung tôi mang theo" | thứ thật sự được lấy đi |
+
+Ẩn dụ: tìm sách trong thư viện. $\mathbf{q}$ là câu hỏi bạn viết ra, $\mathbf{k}$ là nhãn dán trên gáy sách, $\mathbf{v}$ là nội dung bên trong. Khớp câu hỏi với nhãn để biết lấy mỗi cuốn bao nhiêu phần.
+
+Gộp mọi token thành ma trận ($n$ token, mỗi vector $d_k$ chiều):
+
+$$
+\mathrm{Attention}(Q, K, V) = \mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right) V
+$$
+
+Shape phải khớp: $Q, K, V$ đều $(n, d_k)$ → $QK^\top$ là $(n, n)$ → softmax theo **từng hàng** → nhân với $V$ $(n, d_k)$ ra đầu ra $(n, d_k)$. Ma trận $(n, n)$ ở giữa chính là **bảng chú ý**: ô $(i, j)$ là "token $i$ lấy bao nhiêu phần từ token $j$", mỗi hàng cộng lại bằng 1.
+
+<CauHoi cau="transformer/q3" />
+
+## Tính tay một lượt self-attention
+
+Lấy chuỗi đích ba token **I · eat · rice**, giả sử sau khi chiếu ta được $d_k = 2$ và:
+
+$$
+Q = K = V = \begin{pmatrix} 1 & 0 \\ 0 & 1 \\ 1 & 1 \end{pmatrix}
+\quad \text{(hàng 1 = I, hàng 2 = eat, hàng 3 = rice)}
+$$
+
+**Bước 1. Điểm thô.** $QK^\top$ rồi chia $\sqrt{d_k} = \sqrt{2} \approx 1.4142$:
+
+$$
+\frac{QK^\top}{\sqrt{2}} = \begin{pmatrix}
+0.7071 & 0 & 0.7071 \\
+0 & 0.7071 & 0.7071 \\
+0.7071 & 0.7071 & 1.4142
+\end{pmatrix}
+$$
+
+**Bước 2. Softmax từng hàng.** Lấy hàng 3 (token *rice*): $e^{0.7071} = 2.0281$, $e^{0.7071} = 2.0281$, $e^{1.4142} = 4.1133$, tổng $8.1695$. Chia ra:
+
+$$
+(0.2483,\; 0.2483,\; 0.5035)
+$$
+
+*rice* dồn một nửa sự chú ý vào chính nó (vì $\mathbf{q}$ và $\mathbf{k}$ của nó cùng hướng, tích vô hướng lớn nhất), phần còn lại chia đều cho *I* và *eat*.
+
+**Bước 3. Trộn V.** Đầu ra của token *rice*:
+
+$$
+0.2483 \cdot (1, 0) + 0.2483 \cdot (0, 1) + 0.5035 \cdot (1, 1) = (0.7517,\; 0.7517)
+$$
+
+Làm cho cả ba hàng cùng lúc là xong một lớp self-attention. Để ý: không có vòng lặp theo thời gian nào cả, chỉ là hai phép nhân ma trận.
+
+### Vì sao phải chia $\sqrt{d_k}$
+
+Nếu các phần tử của $\mathbf{q}$, $\mathbf{k}$ độc lập với phương sai 1 thì $\mathbf{q}\cdot\mathbf{k}$ có phương sai $d_k$. Với $d_k = 64$, điểm thô hay rơi vào khoảng $\pm 8$ đến $\pm 20$. Softmax của những số đó gần như là một vector one-hot: một ô bằng 1, phần còn lại bằng 0. Mà [softmax](/khai-niem/softmax) bão hoà thì đạo hàm gần 0, [gradient](/khai-niem/lan-truyen-nguoc) không chảy về được. Chia $\sqrt{d_k}$ kéo phương sai về 1 và giữ softmax ở vùng "mềm".
+
+## Mask nhân quả: che tương lai
+
+Encoder được nhìn cả câu nguồn, không sao. Nhưng decoder sinh câu đích **từ trái sang phải**: khi đoán từ thứ 3, nó chỉ được biết từ 1 và 2. Trong lúc huấn luyện, cả câu đích được đưa vào một lượt cho nhanh, nên phải chặn bằng tay: đặt điểm thô ở các ô "tương lai" thành $-\infty$ **trước** khi softmax.
+
+$$
+\text{mask} = \begin{pmatrix}
+0 & -\infty & -\infty \\
+0 & 0 & -\infty \\
+0 & 0 & 0
+\end{pmatrix}
+\;\Longrightarrow\;
+\text{trọng số} = \begin{pmatrix}
+1 & 0 & 0 \\
+0.3302 & 0.6698 & 0 \\
+0.2483 & 0.2483 & 0.5035
+\end{pmatrix}
+$$
+
+$e^{-\infty} = 0$ nên ô bị che nhận trọng số đúng bằng 0, và các ô còn lại **vẫn cộng thành 1** (softmax chỉ chuẩn hoá trên phần không bị che). Hàng 1 chỉ còn chính nó nên trọng số bằng 1.
+
+Bảng dưới tính đúng các con số vừa rồi. Bật/tắt mask để xem hàng nào đổi, hàng nào không:
+
+<AttentionCoMask
+  client:visible
+  duDoan={{
+    de: "Bật mask nhân quả. Hàng của token 'rice' (token cuối) sẽ thay đổi thế nào so với khi không mask?",
+    lua_chon: [
+      "Không đổi gì cả",
+      "Mọi trọng số bị chia nhỏ đi vì có ô bị che",
+      "Trở thành 1 ở ô đầu, 0 ở hai ô còn lại"
+    ],
+    dap_an: 0,
+    giai_thich: "Token cuối cùng vốn đã được nhìn toàn bộ quá khứ, mà mask chỉ che tương lai — nó chẳng có ô nào bị che, nên hàng của nó y nguyên. Chỉ các hàng TRƯỚC mới đổi. Đó cũng là lý do lúc giải mã, thêm một token mới không làm hỏng các trọng số đã tính cho token cũ (các bộ giải mã thật dùng đúng tính chất này để lưu đệm K, V)."
+  }}
+/>
+
+<CauHoi cau="transformer/q6" />
+
+## Nhiều đầu chú ý (multi-head attention)
+
+Một bảng chú ý chỉ diễn tả được **một** kiểu quan hệ. Trong câu "Tôi ăn cơm", có lúc ta cần biết "ai là chủ ngữ của *ăn*", có lúc cần "*cơm* là tân ngữ của động từ nào". Nhét cả hai vào một bảng thì chúng đè lên nhau.
+
+Cách làm: chạy $h$ lượt attention song song, mỗi lượt có bộ $W_Q, W_K, W_V$ riêng và làm việc trên không gian **hẹp hơn**.
+
+Với cấu hình base của paper, $d_{model} = 512$, $h = 8$:
+
+$$
+d_k = d_v = \frac{d_{model}}{h} = \frac{512}{8} = 64
+$$
+
+| Bước | Shape (câu $n$ token) |
+|---|---|
+| Đầu vào $X$ | $(n, 512)$ |
+| $Q_i = XW_Q^{(i)}$, mỗi đầu | $(n, 64)$ — $W_Q^{(i)}$ là $(512, 64)$ |
+| Bảng chú ý $Q_iK_i^\top/\sqrt{64}$, mỗi đầu | $(n, n)$ — có 8 bảng như vậy |
+| Đầu ra một đầu | $(n, 64)$ |
+| Nối 8 đầu lại | $(n, 512)$ |
+| Qua $W_O$ $(512, 512)$ | $(n, 512)$ |
+
+Vì $8 \times 64 = 512$, tổng chi phí xấp xỉ bằng một đầu cỡ $512$: nhiều đầu **không** làm mô hình phình to, chỉ chia không gian ra cho mỗi đầu một việc. Trong thực tế người ta cài bằng đúng bốn ma trận $(512, 512)$ rồi cắt kết quả thành 8 lát.
+
+## Positional encoding: trả lại thứ tự từ
+
+Công thức attention đối xứng với hoán vị: đảo thứ tự các hàng của $X$ thì các hàng đầu ra cũng chỉ đảo theo, nội dung không đổi. Nghĩa là mô hình không phân biệt nổi "Tôi ăn cơm" với "Cơm ăn tôi". Phải **cộng** thêm thông tin vị trí vào embedding trước khi vào khối đầu tiên:
+
+$$
+PE(pos, 2i) = \sin\!\left(\frac{pos}{10000^{2i/d}}\right)
+\qquad
+PE(pos, 2i+1) = \cos\!\left(\frac{pos}{10000^{2i/d}}\right)
+$$
+
+Mỗi cặp chiều là một "kim đồng hồ" quay với tốc độ riêng: chiều đầu quay nhanh (phân biệt hai vị trí cạnh nhau), chiều sau quay rất chậm (phân biệt đầu câu với cuối câu). Với $d = 4$:
+
+| pos | chiều 0 (sin, $\omega=1$) | chiều 1 (cos, $\omega=1$) | chiều 2 (sin, $\omega=0.01$) | chiều 3 (cos, $\omega=0.01$) |
+|---|---|---|---|---|
+| 0 | 0 | 1 | 0 | 1 |
+| 1 | 0.8415 | 0.5403 | 0.0100 | 1.0000 |
+| 2 | 0.9093 | −0.4161 | 0.0200 | 0.9998 |
+| 3 | 0.1411 | −0.9900 | 0.0300 | 0.9996 |
+
+Hai chiều đầu đã đổi rất nhiều giữa pos 1 và 2, còn hai chiều cuối gần như đứng yên — chúng để dành cho khoảng cách xa. Vì mọi giá trị nằm trong $[-1, 1]$, cộng vào embedding không làm lệch thang đo. Cách này không cần học tham số nào và dùng được cho câu dài hơn mọi câu từng thấy lúc huấn luyện; paper cũng thử phương án học vector vị trí và thấy kết quả gần như nhau.
+
+## Một khối trông như thế nào
+
+Khối **encoder** có hai tầng con, mỗi tầng bọc trong kết nối tắt và LayerNorm:
+
+$$
+X' = \mathrm{LayerNorm}\big(X + \mathrm{MultiHead}(X)\big)
+\qquad
+X'' = \mathrm{LayerNorm}\big(X' + \mathrm{FFN}(X')\big)
+$$
+
+$\mathrm{FFN}(\mathbf{x}) = W_2\,\mathrm{ReLU}(W_1\mathbf{x} + \mathbf{b}_1) + \mathbf{b}_2$, phình từ 512 lên $d_{ff} = 2048$ rồi ép về 512, **áp riêng cho từng token** (token nào cũng dùng chung $W_1, W_2$). Attention lo phần "trộn giữa các token", FFN lo phần "xử lý sâu bên trong một token".
+
+Kết nối tắt $X + \dots$ cho gradient một đường đi thẳng xuống các lớp dưới; không có nó thì chồng 6 khối đã rất khó huấn luyện.
+
+Đếm tham số một khối encoder base:
+
+| Phần | Cách tính | Số tham số |
+|---|---|---|
+| 4 ma trận $W_Q, W_K, W_V, W_O$ | $4 \times (512 \times 512 + 512)$ | 1.050.624 |
+| FFN lớp 1 | $512 \times 2048 + 2048$ | 1.050.624 |
+| FFN lớp 2 | $2048 \times 512 + 512$ | 1.049.088 |
+| 2 LayerNorm | $2 \times 2 \times 512$ | 2.048 |
+| **Tổng** | | **3.152.384** |
+
+Khoảng **3,15 triệu** — nhớ nhanh bằng công thức $12 d_{model}^2$ (bỏ bias): $12 \times 512^2 = 3.145.728$. Nhân với 6 khối encoder, cộng phần decoder (mỗi khối decoder còn thêm một tầng cross-attention) và ma trận embedding, ra khoảng 65 triệu tham số của bản base.
+
+<CauHoi cau="transformer/q8" />
+
+Khối **decoder** có ba tầng con, theo thứ tự:
+
+1. **Self-attention có mask nhân quả** trên câu đích đã sinh — nhìn lại những gì mình vừa viết.
+2. **Cross-attention**: $Q$ lấy từ decoder, còn $K$ và $V$ lấy từ **đầu ra encoder**. Đây đúng là attention của seq2seq, và cũng là chỗ câu tiếng Việt đi vào câu tiếng Anh. Bảng chú ý ở đây có shape $(n_{\text{đích}}, n_{\text{nguồn}})$, không vuông.
+3. **FFN** giống encoder.
+
+Cuối cùng, một ma trận chiếu ra kích thước từ điển + softmax cho phân phối xác suất của token kế tiếp. Cách huấn luyện và cách dùng phân phối đó để sinh câu là nội dung bài [Dịch máy neural: huấn luyện & giải mã](/khai-niem/dich-may-nmt).
+
+## Cái giá phải trả: $O(n^2)$
+
+Bảng chú ý có $n^2$ ô. Câu 10 token thì 100 ô, chẳng đáng gì. Văn bản 10.000 token thì 100 triệu ô **cho mỗi đầu, mỗi khối** — vừa tốn bộ nhớ vừa tốn thời gian. Đây là điểm yếu cố hữu của Transformer và là lý do các mô hình ngữ cảnh dài phải dùng đủ mẹo (attention thưa, cửa sổ trượt, nén bộ đệm). Với dịch máy câu-theo-câu ($n$ thường dưới 100) thì $O(n^2)$ hoàn toàn chấp nhận được, đổi lại được song song hoá toàn bộ chiều dài câu — thứ RNN không bao giờ có.
+
+## Tóm tắt
+
+- Self-attention = attention với $Q, K, V$ cùng sinh từ một chuỗi bằng ba phép chiếu học được; $\mathrm{softmax}(QK^\top/\sqrt{d_k})V$, bảng chú ý $(n, n)$, mỗi hàng cộng bằng 1.
+- Chia $\sqrt{d_k}$ để softmax không bão hoà; mask nhân quả đặt $-\infty$ vào ô tương lai trước softmax.
+- Nhiều đầu chia $d_{model}$ thành $h$ lát ($512 = 8 \times 64$), mỗi lát học một kiểu quan hệ, nối lại rồi qua $W_O$ — gần như không tốn thêm tham số.
+- Attention không biết thứ tự, nên phải cộng positional encoding sin/cos nhiều tần số vào embedding.
+- Khối = attention nhiều đầu + FFN, mỗi phần bọc trong residual + LayerNorm; decoder thêm cross-attention nhìn sang encoder.
+- Base: 6+6 khối, $d_{model}=512$, $h=8$, $d_{ff}=2048$; ~3,15 triệu tham số một khối encoder, ~65 triệu cả mô hình; chi phí $O(n^2)$ theo độ dài câu.
