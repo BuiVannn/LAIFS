@@ -17,6 +17,8 @@ const khaiNiem = defineCollection({
     dinh_nghia: z.string().optional(),
     truc_giac: z.string().optional(),
     hieu_nham: z.array(z.string()).default([]),
+    // Ý chính để người học tự so sánh sau khi viết "giải thích lại bằng lời của bạn"
+    y_chinh: z.array(z.string()).default([]),
     tai_lieu: z
       .array(
         z.object({
@@ -39,17 +41,21 @@ const quiz = defineCollection({
   schema: z.object({
     trang_thai: trangThai,
     nguoi_duyet: z.string().optional(),
-    cau_hoi: z.array(
-      z.object({
-        loai: z.enum(['mot', 'nhieu', 'so']),
-        de: z.string(),
-        lua_chon: z.array(z.string()).optional(),
-        dap_an: z.union([z.number(), z.array(z.number())]),
-        sai_so: z.number().default(0.001),
-        do_kho: z.number().int().min(1).max(3),
-        giai_thich: z.string(),
-      }),
-    ),
+    cau_hoi: z
+      .array(
+        z.object({
+          // id cố định, KHÔNG đổi sau khi đã đăng — tiến độ ôn tập của người học gắn vào id này
+          id: z.string().regex(/^[a-z0-9-]+$/),
+          loai: z.enum(['mot', 'nhieu', 'so']),
+          de: z.string(),
+          lua_chon: z.array(z.string()).optional(),
+          dap_an: z.union([z.number(), z.array(z.number())]),
+          sai_so: z.number().default(0.001),
+          do_kho: z.number().int().min(1).max(3),
+          giai_thich: z.string(),
+        }),
+      )
+      .refine((ds) => new Set(ds.map((c) => c.id)).size === ds.length, 'id câu hỏi bị trùng'),
   }),
 });
 

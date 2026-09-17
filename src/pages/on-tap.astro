@@ -1,0 +1,15 @@
+---
+import Layout from '../layouts/Layout.astro';
+import OnTap from '../components/OnTap.tsx';
+import { duLieuCauHoi } from '../lib';
+
+const tatCa = await duLieuCauHoi();
+---
+<Layout tieuDe="Ôn hôm nay">
+  <h1>Ôn hôm nay</h1>
+  <p>
+    Câu hỏi bạn đã làm sẽ quay lại theo lịch: nhớ chắc thì giãn dần, đoán hoặc sai thì quay lại sớm. Ôn đúng lúc sắp quên
+    giúp nhớ lâu hơn nhiều so với học dồn.
+  </p>
+  <OnTap client:load tatCa={tatCa} />
+</Layout>

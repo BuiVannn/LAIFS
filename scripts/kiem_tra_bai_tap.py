@@ -14,6 +14,11 @@ loi = 0
 for thu_muc in sorted((GOC / "content" / "bai-tap").iterdir()):
     if not thu_muc.is_dir():
         continue
+    thieu = [f for f in ("tests.py", "solution.py", "starter.py") if not (thu_muc / f).exists()]
+    if thieu:
+        print(f"SAI {thu_muc.name}: thiếu {', '.join(thieu)}")
+        loi += 1
+        continue
     tests = (thu_muc / "tests.py").read_text()
     for file, can_dat in (("solution.py", True), ("starter.py", False)):
         kq = json.loads(chay((thu_muc / file).read_text(), tests))

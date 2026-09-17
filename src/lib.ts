@@ -10,3 +10,26 @@ export const TEN_TANG: Record<number, string> = {
   5: 'Ngôn ngữ & LLM',
   6: 'Generative & mở rộng',
 };
+
+export type KhaiNiemTom = { id: string; ten: string; coTrang: boolean };
+
+type MucKhaiNiem = { id: string; body?: string; data: { ten_vi: string; trang_thai: string } };
+export const tomTat = (k: MucKhaiNiem): KhaiNiemTom => ({
+  id: k.id,
+  ten: k.data.ten_vi,
+  coTrang: hienThi(k) && !!k.body?.trim(),
+});
+
+// Dữ liệu cho trang ôn tập / tô màu lộ trình: mọi câu hỏi được phép hiện, kèm thông tin khái niệm
+export async function duLieuCauHoi() {
+  const { getCollection } = await import('astro:content');
+  const khaiNiem = await getCollection('khaiNiem');
+  const theoId = new Map(khaiNiem.map((k) => [k.id, k]));
+  const quiz = (await getCollection('quiz')).filter(hienThi);
+  return quiz.flatMap((q) => {
+    const k = theoId.get(q.id);
+    if (!k) return [];
+    const tienQuyet = k.data.tien_quyet.map((t) => theoId.get(t)).filter((x) => x !== undefined).map(tomTat);
+    return q.data.cau_hoi.map((c) => ({ khoa: `${q.id}/${c.id}`, c, khaiNiem: tomTat(k), tienQuyet }));
+  });
+}

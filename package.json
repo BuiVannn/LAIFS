@@ -6,7 +6,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check:bai-tap": "python3 scripts/kiem_tra_bai_tap.py"
+    "check:bai-tap": "python3 scripts/kiem_tra_bai_tap.py",
+    "check:tien-do": "node scripts/kiem_tra_tien_do.ts"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^7.3.1",
@@ -17,7 +18,8 @@
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "rehype-katex": "^7.0.1",
-    "remark-math": "^6.0.0"
+    "remark-math": "^6.0.0",
+    "ts-fsrs": "^5.4.2"
   },
   "devDependencies": {
     "@types/react": "^19.3.0",

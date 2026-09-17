@@ -1,0 +1,20 @@
+---
+// Nhúng 1 câu trắc nghiệm giữa bài MDX: <CauHoi cau="gradient-descent/q2" />
+import { getCollection, getEntry } from 'astro:content';
+import CauHoiView from './CauHoiView.tsx';
+import { tomTat } from '../lib';
+
+const { cau } = Astro.props as { cau: string };
+const [khaiNiem, id] = cau.split('/');
+const quiz = await getEntry('quiz', khaiNiem);
+const c = quiz?.data.cau_hoi.find((x) => x.id === id);
+if (!c) throw new Error(`<CauHoi cau="${cau}">: không tìm thấy câu hỏi`);
+const tatCa = await getCollection('khaiNiem');
+const tienQuyet = (tatCa.find((k) => k.id === khaiNiem)?.data.tien_quyet ?? [])
+  .map((t) => tatCa.find((k) => k.id === t))
+  .filter((k) => k !== undefined)
+  .map(tomTat);
+---
+<div class="cau-hoi-giua-bai">
+  <CauHoiView client:visible khoa={cau} c={c} nhan="Dừng lại một chút" tienQuyet={tienQuyet} />
+</div>

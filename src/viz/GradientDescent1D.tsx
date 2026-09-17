@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
+import DuDoan, { useDuDoan, type DuDoanCauHoi } from '../components/DuDoan';
 
 type Ham = { ten: string; f: (w: number) => number; df: (w: number) => number; x: [number, number]; y: [number, number]; w0: number; lr: number };
 
@@ -16,21 +17,38 @@ const HAM: Record<string, Ham> = {
 };
 
 const W = 600, H = 340, PAD = 30;
-const GIOI_HAN = 1e6; // |w| vượt ngưỡng này coi như phân kỳ
+const GIOI_HAN = 100; // |w| vượt ngưỡng này (miền vẽ chỉ ±3) coi như phân kỳ
 
-export default function GradientDescent1D() {
-  const [khoa, setKhoa] = useState<keyof typeof HAM>('parabol');
+type Props = {
+  ham?: keyof typeof HAM;
+  lr?: number;
+  w0?: number;
+  // Có duDoan: khoá tham số theo kịch bản, phải đoán trước rồi mới được chạy
+  duDoan?: DuDoanCauHoi;
+};
+
+const SO_BUOC_KIEM_CHUNG = 20;
+
+export default function GradientDescent1D(props: Props) {
+  const [khoa, setKhoa] = useState<keyof typeof HAM>(props.ham ?? 'parabol');
   const ham = HAM[khoa];
-  const [lr, setLr] = useState(ham.lr);
-  const [w0, setW0] = useState(ham.w0);
-  const [ws, setWs] = useState<number[]>([ham.w0]);
+  const [lr, setLr] = useState(props.lr ?? ham.lr);
+  const [w0, setW0] = useState(props.w0 ?? ham.w0);
+  const [ws, setWs] = useState<number[]>([props.w0 ?? ham.w0]);
   const [dangChay, setDangChay] = useState(false);
+  const { daDoan, setDaDoan } = useDuDoan();
+  const clipId = 'gd' + useId().replace(/[^a-zA-Z0-9_-]/g, '');
+  const khoaThamSo = !!props.duDoan;
+  const choChay = !props.duDoan || daDoan !== null;
 
   const w = ws[ws.length - 1];
   const phanKy = !Number.isFinite(w) || Math.abs(w) > GIOI_HAN;
+  const daChay = phanKy || ws.length > SO_BUOC_KIEM_CHUNG;
 
-  const sx = (v: number) => PAD + ((v - ham.x[0]) / (ham.x[1] - ham.x[0])) * (W - 2 * PAD);
-  const sy = (v: number) => H - PAD - ((v - ham.y[0]) / (ham.y[1] - ham.y[0])) * (H - 2 * PAD);
+  // Làm tròn toạ độ: Node (SSR) và trình duyệt tính ** lệch nhau ở chữ số cuối → lệch hydration
+  const tron = (x: number) => Math.round(x * 100) / 100;
+  const sx = (v: number) => tron(PAD + ((v - ham.x[0]) / (ham.x[1] - ham.x[0])) * (W - 2 * PAD));
+  const sy = (v: number) => tron(H - PAD - ((v - ham.y[0]) / (ham.y[1] - ham.y[0])) * (H - 2 * PAD));
 
   const duongCong = useMemo(() => {
     const pts = [];
@@ -42,13 +60,15 @@ export default function GradientDescent1D() {
   }, [khoa]);
 
   const buoc = () => setWs((a) => [...a, a[a.length - 1] - lr * ham.df(a[a.length - 1])]);
-  const datLai = (moiW0 = w0) => {
+  const datLai = (moiW0: number = w0) => {
     setDangChay(false);
     setWs([moiW0]);
   };
 
   useEffect(() => {
-    if (!dangChay || phanKy || ws.length > 300) return setDangChay(false);
+    // Chế độ đoán trước: dừng khi đủ số bước kiểm chứng
+    const gioiHan = props.duDoan ? SO_BUOC_KIEM_CHUNG : 300;
+    if (!dangChay || phanKy || ws.length > gioiHan) return setDangChay(false);
     const t = setTimeout(buoc, 250);
     return () => clearTimeout(t);
   }, [dangChay, ws]);
@@ -67,10 +87,11 @@ export default function GradientDescent1D() {
 
   return (
     <figure className="viz">
+      {props.duDoan && <DuDoan q={props.duDoan} daDoan={daDoan} setDaDoan={setDaDoan} daChay={daChay} />}
       <div className="viz-dieu-khien">
         <label>
           Hàm
-          <select value={khoa} onChange={(e) => chonHam(e.target.value as keyof typeof HAM)}>
+          <select disabled={khoaThamSo} value={khoa} onChange={(e) => chonHam(e.target.value as keyof typeof HAM)}>
             {Object.entries(HAM).map(([k, h]) => (
               <option key={k} value={k}>{h.ten}</option>
             ))}
@@ -78,23 +99,23 @@ export default function GradientDescent1D() {
         </label>
         <label>
           Learning rate η = <b>{lr}</b>
-          <input type="range" min={0.01} max={1.1} step={0.01} value={lr} onChange={(e) => { setLr(+e.target.value); datLai(); }} />
+          <input disabled={khoaThamSo} type="range" min={0.01} max={1.1} step={0.01} value={lr} onChange={(e) => { setLr(+e.target.value); datLai(); }} />
         </label>
         <label>
           Điểm xuất phát w₀ = <b>{w0}</b>
-          <input type="range" min={ham.x[0]} max={ham.x[1]} step={0.1} value={w0} onChange={(e) => { setW0(+e.target.value); datLai(+e.target.value); }} />
+          <input disabled={khoaThamSo} type="range" min={ham.x[0]} max={ham.x[1]} step={0.1} value={w0} onChange={(e) => { setW0(+e.target.value); datLai(+e.target.value); }} />
         </label>
       </div>
 
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Đồ thị ${ham.ten} và đường đi của gradient descent`}>
         <defs>
-          <clipPath id="khung-gd"><rect x={PAD} y={PAD} width={W - 2 * PAD} height={H - 2 * PAD} /></clipPath>
+          <clipPath id={clipId}><rect x={PAD} y={PAD} width={W - 2 * PAD} height={H - 2 * PAD} /></clipPath>
         </defs>
         <line x1={PAD} x2={W - PAD} y1={sy(0)} y2={sy(0)} className="truc" />
         <line x1={sx(0)} x2={sx(0)} y1={PAD} y2={H - PAD} className="truc" />
         <text x={W - PAD} y={sy(0) - 6} textAnchor="end" className="nhan">w</text>
         <text x={sx(0) + 6} y={PAD + 10} className="nhan">L(w)</text>
-        <g clipPath="url(#khung-gd)">
+        <g clipPath={`url(#${clipId})`}>
           <polyline points={duongCong} className="duong-cong" />
           {!phanKy && ws.slice(1).map((v, i) => (
             <line key={i} x1={sx(ws[i])} y1={sy(ham.f(ws[i]))} x2={sx(v)} y2={sy(ham.f(v))} className="duong-di" />
@@ -112,14 +133,14 @@ export default function GradientDescent1D() {
       </svg>
 
       <div className="viz-dieu-khien">
-        <button onClick={buoc} disabled={phanKy || dangChay}>1 bước</button>
-        <button onClick={() => setDangChay(!dangChay)} disabled={phanKy}>{dangChay ? 'Dừng' : 'Chạy'}</button>
+        <button onClick={buoc} disabled={!choChay || phanKy || dangChay}>1 bước</button>
+        <button onClick={() => setDangChay(!dangChay)} disabled={!choChay || phanKy}>{dangChay ? 'Dừng' : 'Chạy'}</button>
         <button onClick={() => datLai()}>Đặt lại</button>
       </div>
 
       <figcaption aria-live="polite">
         {phanKy ? (
-          <b className="canh-bao">Phân kỳ sau {ws.length - 1} bước: learning rate quá lớn, w chạy ra xa vô cùng.</b>
+          <b className="canh-bao">Phân kỳ sau {ws.length - 1} bước: w văng ra rất xa (|w| {">"} 100) và còn tiếp tục xa hơn — learning rate quá lớn.</b>
         ) : (
           <>
             Bước <b>{ws.length - 1}</b> · w = <b>{w.toFixed(4)}</b> · L(w) = <b>{ham.f(w).toFixed(4)}</b> · L′(w) = <b>{g.toFixed(4)}</b>

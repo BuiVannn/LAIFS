@@ -17,6 +17,12 @@ hieu_nham:
   - "Learning rate càng lớn chưa chắc càng nhanh: quá lớn thì nhảy qua đáy, dao động hoặc phân kỳ (loss tăng vọt)."
   - "Gradient descent không đảm bảo tìm được cực tiểu toàn cục: với hàm không lồi nó có thể dừng ở cực tiểu cục bộ, tuỳ điểm xuất phát."
   - "Bước đi tự nhỏ lại khi gần đáy dù learning rate cố định, vì độ dốc (gradient) nhỏ dần."
+y_chinh:
+  - Mục tiêu là tìm tham số làm hàm mất mát nhỏ nhất
+  - "Đạo hàm/gradient cho biết hướng dốc lên, nên đi ngược lại: w ← w − η·L′(w)"
+  - Learning rate quyết định độ dài bước; quá nhỏ thì chậm, quá lớn thì dao động hoặc phân kỳ
+  - Bước tự ngắn lại khi gần đáy vì độ dốc nhỏ dần
+  - Có thể kẹt ở cực tiểu cục bộ, tuỳ điểm xuất phát
 tai_lieu:
   - url: https://www.youtube.com/watch?v=sDv4f4s2SB8
     tieu_de: Gradient Descent, Step-by-Step
@@ -42,6 +48,7 @@ tai_lieu:
 ---
 
 import GradientDescent1D from '../../src/viz/GradientDescent1D.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
 
 ## Bài toán: tìm đáy
 
@@ -64,6 +71,8 @@ $$
 
 trong đó $\eta$ (đọc là "eta") là **learning rate**: bước đi dài hay ngắn.
 
+<CauHoi cau="gradient-descent/q2" />
+
 ## Tính tay 3 bước
 
 Lấy $L(w) = w^2$, nên $L'(w) = 2w$. Chọn $\eta = 0.1$, xuất phát từ $w = 2.5$:
@@ -76,17 +85,54 @@ Lấy $L(w) = w^2$, nên $L'(w) = 2w$. Chọn $\eta = 0.1$, xuất phát từ $w
 
 Để ý: bước 1 đi được 0.5, bước 3 chỉ còn 0.32. **Càng gần đáy, dốc càng thoải, bước tự ngắn lại**, dù $\eta$ không đổi.
 
-## Tự thử
+<CauHoi cau="gradient-descent/q3" />
+
+## Tự thử: đoán trước, rồi chạy
+
+Mỗi thí nghiệm dưới đây đã cố định tham số. **Chọn dự đoán trước** thì mới chạy được: đoán sai rồi tự thấy kết quả sẽ nhớ lâu hơn nhiều so với chỉ xem.
+
+<GradientDescent1D
+  client:visible
+  ham="parabol"
+  lr={0.01}
+  w0={2.5}
+  duDoan={{
+    de: "Learning rate rất nhỏ (η = 0.01). Sau 20 bước, w sẽ ở đâu?",
+    lua_chon: ["Đã tới rất gần đáy (w ≈ 0)", "Mới xuống được một đoạn, còn xa đáy", "Vượt qua đáy sang phía âm"],
+    dap_an: 1,
+    giai_thich: "Mỗi bước chỉ nhân w với (1 − 0.02) = 0.98, nên sau 20 bước w ≈ 2.5 × 0.98²⁰ ≈ 1.67. Hướng đúng nhưng quá chậm."
+  }}
+/>
+
+<GradientDescent1D
+  client:visible
+  ham="parabol"
+  lr={1.0}
+  w0={2.5}
+  duDoan={{
+    de: "η = 1.0, xuất phát w = 2.5. Điều gì xảy ra?",
+    lua_chon: ["Hội tụ về 0", "Nhảy qua lại mãi giữa 2.5 và −2.5", "Phân kỳ, văng ra xa"],
+    dap_an: 1,
+    giai_thich: "w ← w − 1.0 × 2w = −w: mỗi bước chỉ đổi dấu, không bao giờ gần đáy hơn. Nếu tăng lên η = 1.05 thì w ← −1.1w và phân kỳ."
+  }}
+/>
+
+<GradientDescent1D
+  client:visible
+  ham="nhieu"
+  lr={0.1}
+  w0={2.8}
+  duDoan={{
+    de: "Hàm có hai đáy: đáy trái (w ≈ −2.35) sâu hơn đáy phải (w ≈ 2.1). Xuất phát từ w = 2.8, gradient descent dừng ở đâu?",
+    lua_chon: ["Đáy trái, vì sâu hơn", "Đáy phải", "Đỉnh ở giữa (w ≈ 0.25)"],
+    dap_an: 1,
+    giai_thich: "Gradient descent chỉ nhìn độ dốc tại chỗ đang đứng, nên rơi vào đáy gần nhất: cực tiểu cục bộ bên phải. Thử ở bảng tự do bên dưới với w₀ = −1 để tới đáy trái."
+  }}
+/>
+
+Bảng tự do, chỉnh gì cũng được:
 
 <GradientDescent1D client:visible />
-
-Gợi ý thí nghiệm:
-
-1. **Parabol**, learning rate `0.01`: đến đáy nhưng rất chậm.
-2. Learning rate `0.9`: nhảy qua nhảy lại hai bên đáy nhưng vẫn hội tụ.
-3. Learning rate `1.0`: nhảy qua lại mãi giữa $2.5$ và $-2.5$, không bao giờ tới đáy. Vì sao? (Gợi ý: tính $w - 1.0 \cdot 2w$.)
-4. Learning rate `1.05`: phân kỳ, càng chạy càng xa đáy.
-5. **Hàm nhiều cực tiểu**, xuất phát `w₀ = 2.8`: kẹt ở đáy bên phải, dù đáy bên trái sâu hơn. Thử xuất phát từ `-1`.
 
 ## Khi có nhiều tham số
 
@@ -99,6 +145,8 @@ $$
 $$
 
 Ý tưởng giữ nguyên: mỗi tham số tự bước ngược hướng dốc của riêng nó, tất cả **cùng lúc**.
+
+<CauHoi cau="gradient-descent/q9" />
 
 ## Khi nào dừng?
 
@@ -113,4 +161,4 @@ Thường dừng khi một trong các điều kiện xảy ra:
 - Gradient descent: lặp lại $w \leftarrow w - \eta \nabla L$ để đi xuống đáy hàm mất mát.
 - Learning rate quá nhỏ thì chậm, quá lớn thì dao động hoặc phân kỳ.
 - Với hàm không lồi, kết quả phụ thuộc điểm xuất phát.
-- Tiếp theo: [Learning rate](/khai-niem/learning-rate), [SGD & mini-batch](/khai-niem/sgd-mini-batch).
+- Tiếp theo (sắp có): Learning rate, SGD & mini-batch.

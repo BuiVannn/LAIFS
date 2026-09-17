@@ -1,8 +1,9 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import Quiz from '../../components/Quiz.tsx';
+import GiaiThichLai from '../../components/GiaiThichLai.tsx';
 import { getCollection, getEntry, render } from 'astro:content';
-import { hienThi, TEN_TANG } from '../../lib';
+import { hienThi, tomTat, TEN_TANG } from '../../lib';
 
 export async function getStaticPaths() {
   const ds = (await getCollection('khaiNiem')).filter((k) => hienThi(k) && k.body?.trim());
@@ -13,22 +14,29 @@ const { k } = Astro.props;
 const d = k.data;
 const { Content } = await render(k);
 const tatCa = await getCollection('khaiNiem');
-const tienQuyet = d.tien_quyet.map((id) => tatCa.find((x) => x.id === id)).filter((x) => x !== undefined);
+const tienQuyet = d.tien_quyet.map((id) => tatCa.find((x) => x.id === id)).filter((x) => x !== undefined).map(tomTat);
 const quiz = await getEntry('quiz', k.id);
+const cauHoi = quiz && hienThi(quiz) ? quiz.data.cau_hoi : [];
+// Câu đã nhúng giữa bài (<CauHoi cau="id/qX" />) thì không lặp lại ở cuối
+const giuaBai = new Set([...(k.body ?? '').matchAll(/<CauHoi\s+cau="[^"/]+\/([^"]+)"/g)].map((m) => m[1]));
+const cauCuoiBai = cauHoi.filter((c) => !giuaBai.has(c.id));
 const baiTap = (await getCollection('baiTap')).filter((b) => b.data.khai_niem === k.id && hienThi(b));
 const ytId = (url: string) => new URL(url).searchParams.get('v');
 const MUC_DO = { nhap_mon: 'Nhập môn', sau: 'Đào sâu', toan_nang: 'Toán nặng' };
 ---
 <Layout tieuDe={d.ten_vi}>
   <p class="duong-dan"><a href="/">Lộ trình</a> › Tầng {d.tang}: {TEN_TANG[d.tang]}</p>
-  <h1>{d.ten_vi} {d.ten_en && d.ten_en !== d.ten_vi && <small>({d.ten_en})</small>}</h1>
+  <h1>
+    {d.ten_vi} {d.ten_en && d.ten_en !== d.ten_vi && <small>({d.ten_en})</small>}
+    <span class="muc-do" data-muc-do={JSON.stringify(cauHoi.map((c) => `${k.id}/${c.id}`))}></span>
+  </h1>
   {d.trang_thai === 'nhap' && <p class="nhan-nhap">Bản nháp — chưa được duyệt</p>}
 
   <aside class="the-khai-niem">
     {d.dinh_nghia && <p><b>Định nghĩa.</b> {d.dinh_nghia}</p>}
     {d.truc_giac && <p><b>Hiểu ý.</b> {d.truc_giac}</p>}
     {tienQuyet.length > 0 && (
-      <p><b>Cần biết trước:</b> {tienQuyet.map((t, i) => <>{i > 0 && ', '}<a href={`/khai-niem/${t.id}`}>{t.data.ten_vi}</a></>)}</p>
+      <p><b>Cần biết trước:</b> {tienQuyet.map((t, i) => <>{i > 0 && ', '}{t.coTrang ? <a href={`/khai-niem/${t.id}`}>{t.ten}</a> : t.ten}</>)}</p>
     )}
     {d.hieu_nham.length > 0 && (
       <details>
@@ -40,12 +48,18 @@ const MUC_DO = { nhap_mon: 'Nhập môn', sau: 'Đào sâu', toan_nang: 'Toán n
 
   <article><Content /></article>
 
-  {quiz && hienThi(quiz) && (
+  {cauCuoiBai.length > 0 && (
     <section>
       <h2>Trắc nghiệm</h2>
-      <Quiz client:visible id={k.id} cauHoi={quiz.data.cau_hoi} />
+      <p class="nhan">Trả lời xong, chọn <b>chắc chắn</b> hoặc <b>đang đoán</b> — câu đoán sẽ quay lại sớm hơn trong <a href="/on-tap">Ôn hôm nay</a>.</p>
+      <Quiz client:visible khaiNiem={k.id} cauHoi={cauCuoiBai} tienQuyet={tienQuyet} />
     </section>
   )}
+
+  <section>
+    <h2>Giải thích lại bằng lời của bạn</h2>
+    <GiaiThichLai client:visible khaiNiem={k.id} ten={d.ten_vi} yChinh={d.y_chinh} />
+  </section>
 
   {baiTap.length > 0 && (
     <section>
@@ -79,7 +93,14 @@ const MUC_DO = { nhap_mon: 'Nhập môn', sau: 'Đào sâu', toan_nang: 'Toán n
   )}
 </Layout>
 <script>
-  document.querySelectorAll<HTMLElement>('[data-bai]').forEach((el) => {
-    try { if (localStorage.getItem(`bai-tap:${el.dataset.bai}`)) el.textContent = '✓ đã đạt'; } catch {}
-  });
+  import { doc, theoDoi, ganNhanMucDo } from '../../tien-do';
+  ganNhanMucDo();
+  const baiTap = () => {
+    const td = doc();
+    document.querySelectorAll<HTMLElement>('[data-bai]').forEach((el) => {
+      el.textContent = td.baiTap[el.dataset.bai!] ? '✓ đã đạt' : '';
+    });
+  };
+  baiTap();
+  theoDoi(baiTap);
 </script>

@@ -1,6 +1,7 @@
 trang_thai: nhap
 cau_hoi:
-  - loai: mot
+  - id: q1
+    loai: mot
     do_kho: 1
     de: Gradient descent dùng để làm gì trong huấn luyện mô hình?
     lua_chon:
@@ -11,7 +12,8 @@ cau_hoi:
     dap_an: 0
     giai_thich: Mục tiêu là tối thiểu hoá hàm mất mát. Việc tính đạo hàm chỉ là một bước bên trong thuật toán, không phải mục đích.
 
-  - loai: mot
+  - id: q2
+    loai: mot
     do_kho: 1
     de: "Tại điểm hiện tại, đạo hàm L′(w) = 4 (dương). Bước cập nhật tiếp theo sẽ làm w thay đổi thế nào?"
     lua_chon:
@@ -22,21 +24,24 @@ cau_hoi:
     dap_an: 1
     giai_thich: "w ← w − η·L′(w). Với η > 0 và L′(w) > 0 thì ta trừ đi một số dương, nên w giảm. Độ lớn của bước phụ thuộc η, nhưng chiều thì không."
 
-  - loai: so
+  - id: q3
+    loai: so
     do_kho: 1
     de: "L(w) = w², learning rate η = 0.1, đang ở w = 3. Sau MỘT bước gradient descent, w bằng bao nhiêu?"
     dap_an: 2.4
     sai_so: 0.001
     giai_thich: "L′(w) = 2w = 6. w mới = 3 − 0.1 × 6 = 2.4."
 
-  - loai: so
+  - id: q4
+    loai: so
     do_kho: 2
     de: "L(w) = (w − 1)², η = 0.25, xuất phát từ w = 5. Sau HAI bước, w bằng bao nhiêu?"
     dap_an: 2
     sai_so: 0.001
     giai_thich: "L′(w) = 2(w − 1). Bước 1: L′(5) = 8, w = 5 − 0.25 × 8 = 3. Bước 2: L′(3) = 4, w = 3 − 0.25 × 4 = 2."
 
-  - loai: mot
+  - id: q5
+    loai: mot
     do_kho: 2
     de: "Với L(w) = w², chọn learning rate η = 1.0 và xuất phát từ w = 2.5. Điều gì xảy ra?"
     lua_chon:
@@ -47,7 +52,8 @@ cau_hoi:
     dap_an: 1
     giai_thich: "w ← w − 1.0 × 2w = −w. Mỗi bước chỉ đổi dấu w, nên dao động mãi giữa 2.5 và −2.5. Thử trong phần trực quan hoá để thấy."
 
-  - loai: nhieu
+  - id: q6
+    loai: nhieu
     do_kho: 2
     de: Những dấu hiệu nào cho thấy learning rate có thể đang QUÁ LỚN? (chọn tất cả ý đúng)
     lua_chon:
@@ -58,7 +64,8 @@ cau_hoi:
     dap_an: [0, 1, 3]
     giai_thich: "Bước quá dài làm nhảy qua đáy (dao động) hoặc văng ra xa (phân kỳ, tràn số thành NaN/inf). Loss giảm đều mà chậm là dấu hiệu learning rate quá NHỎ."
 
-  - loai: mot
+  - id: q7
+    loai: mot
     do_kho: 2
     de: "Learning rate giữ cố định. Vì sao các bước đi của gradient descent vẫn ngắn dần khi đến gần đáy?"
     lua_chon:
@@ -69,7 +76,8 @@ cau_hoi:
     dap_an: 1
     giai_thich: "Độ dài bước = η × |L′(w)|. Gần đáy hàm mượt thì mặt phẳng dần, |L′(w)| nhỏ đi, nên bước cũng ngắn lại dù η không đổi."
 
-  - loai: mot
+  - id: q8
+    loai: mot
     do_kho: 2
     de: "Hàm mất mát có hai đáy: một đáy nông và một đáy sâu hơn. Gradient descent sẽ dừng ở đâu?"
     lua_chon:
@@ -80,7 +88,8 @@ cau_hoi:
     dap_an: 2
     giai_thich: "Gradient descent chỉ nhìn độ dốc tại chỗ, không nhìn được toàn bộ hàm. Xuất phát gần đáy nào thì thường rơi vào đáy đó. Đây là lý do gọi là cực tiểu cục bộ."
 
-  - loai: mot
+  - id: q9
+    loai: mot
     do_kho: 1
     de: Gradient ∇L của một hàm nhiều biến chỉ hướng nào?
     lua_chon:
@@ -91,7 +100,8 @@ cau_hoi:
     dap_an: 0
     giai_thich: "Gradient chỉ hướng dốc LÊN nhanh nhất. Vì vậy công thức cập nhật dùng dấu trừ: w ← w − η∇L, để đi theo hướng ngược lại."
 
-  - loai: so
+  - id: q10
+    loai: so
     do_kho: 3
     de: "Hồi quy tuyến tính ŷ = wx + b với loss MSE, dữ liệu chỉ có 1 điểm (x = 2, y = 5). Đang ở w = 1, b = 0, η = 0.1. Sau một bước, w bằng bao nhiêu?"
     dap_an: 2.2

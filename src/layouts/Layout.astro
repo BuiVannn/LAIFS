@@ -9,11 +9,30 @@ const { tieuDe } = Astro.props;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>" />
-    <title>{tieuDe ? `${tieuDe} · Học AI` : 'Học AI'}</title>
+    <title>{tieuDe ? `${tieuDe} · LAIFS` : 'LAIFS · Học AI'}</title>
   </head>
   <body>
-    <header><a href="/" class="logo">🧠 Học AI</a></header>
+    <header>
+      <a href="/" class="logo">🧠 LAIFS</a>
+      <nav>
+        <a href="/">Lộ trình</a>
+        <a href="/on-tap">Ôn hôm nay <span class="huy-hieu" data-so-on hidden></span></a>
+      </nav>
+    </header>
     <main><slot /></main>
     {import.meta.env.DEV && <footer>Chế độ dev: đang hiện cả bản nháp.</footer>}
+    <script>
+      import { doc, theoDoi } from '../tien-do';
+      // Số câu đến hạn: đếm trên mọi thẻ đã lưu (có thể gồm câu đã bị xoá khỏi nội dung — chỉ là huy hiệu gợi ý)
+      const capNhat = () => {
+        const el = document.querySelector<HTMLElement>('[data-so-on]');
+        if (!el) return;
+        const n = Object.values(doc().cauHoi).filter((x) => x.the.due.getTime() <= Date.now()).length;
+        el.textContent = String(n);
+        el.hidden = n === 0;
+      };
+      capNhat();
+      theoDoi(capNhat);
+    </script>
   </body>
 </html>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { ghiBaiTapDat } from '../tien-do';
 
 type Test = { ten: string; dat: boolean; loi?: string };
 type KetQua = { loi: string | null; stdout: string; tests: Test[] };
@@ -13,7 +14,7 @@ export default function CodeRunner({ id, starter, tests }: { id: string; starter
   const taoWorker = () => {
     worker.current?.terminate();
     setTrangThai('dang-tai');
-    const w = new Worker('/pyodide-worker.js');
+    const w = new Worker('/pyodide-worker.js', { type: 'module' });
     w.onmessage = (e) => {
       if (e.data.sanSang) return setTrangThai('san-sang');
       if (e.data.dangTai) return;
@@ -21,7 +22,7 @@ export default function CodeRunner({ id, starter, tests }: { id: string; starter
       const moi: KetQua = { loi: e.data.loi ?? null, stdout: e.data.stdout ?? '', tests: e.data.tests ?? [] };
       setKq(moi);
       if (!moi.loi && moi.tests.length && moi.tests.every((t) => t.dat)) {
-        try { localStorage.setItem(`bai-tap:${id}`, 'dat'); } catch {}
+        ghiBaiTapDat(id);
       }
     };
     worker.current = w;

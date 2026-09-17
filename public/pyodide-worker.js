@@ -1,4 +1,5 @@
-importScripts('https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pyodide.js');
+// Module worker (new Worker(..., { type: 'module' })): importScripts từ CDN bị Chrome chặn nên dùng bản ESM
+import { loadPyodide } from 'https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pyodide.mjs';
 
 const sanSang = (async () => {
   const py = await loadPyodide();
@@ -16,5 +17,4 @@ onmessage = async (e) => {
     postMessage({ ok: false, loi: String(err) });
   }
 };
-postMessage({ dangTai: true });
 sanSang.then(() => postMessage({ sanSang: true }), (err) => postMessage({ ok: false, loi: String(err) }));
