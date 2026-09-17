@@ -1,0 +1,15 @@
+---
+import Layout from '../layouts/Layout.astro';
+import KeHoachForm from '../components/KeHoachForm.tsx';
+---
+<Layout tieuDe="Kế hoạch học" trang="ke-hoach">
+  <div class="trang-hep">
+    <p class="nhan-muc">Kế hoạch học</p>
+    <h1>Học đều thắng học nhiều</h1>
+    <p class="mo" style="max-width: 60ch">
+      Người tự học bỏ cuộc chủ yếu vì không giữ được thời gian học cố định. Chọn nhịp nhỏ mà bạn chắc giữ được; buổi nào bận
+      thì ôn 5 phút vẫn tính là giữ nhịp.
+    </p>
+    <KeHoachForm client:load />
+  </div>
+</Layout>

@@ -16,8 +16,9 @@ const pyFiles = import.meta.glob<string>('/content/bai-tap/*/{starter,tests}.py'
 const starter = pyFiles[`/content/bai-tap/${b.id}/starter.py`];
 const tests = pyFiles[`/content/bai-tap/${b.id}/tests.py`];
 ---
-<Layout tieuDe={b.data.tieu_de}>
-  <p class="duong-dan"><a href="/">Lộ trình</a> › {khaiNiem && <a href={`/khai-niem/${khaiNiem.id}`}>{khaiNiem.data.ten_vi}</a>}</p>
+<Layout tieuDe={b.data.tieu_de} trang="luyen-code">
+  <div class="trang-hep">
+  <p class="duong-dan"><a href="/luyen-code">Luyện code</a> › {khaiNiem && <a href={`/khai-niem/${khaiNiem.id}`}>{khaiNiem.data.ten_vi}</a>}</p>
   <h1>{b.data.tieu_de}</h1>
   {b.data.trang_thai === 'nhap' && <p class="nhan-nhap">Bản nháp — chưa được duyệt</p>}
   <article><Content /></article>
@@ -26,4 +27,5 @@ const tests = pyFiles[`/content/bai-tap/${b.id}/tests.py`];
     <summary>Xem các test sẽ chấm</summary>
     <pre>{tests}</pre>
   </details>
+  </div>
 </Layout>

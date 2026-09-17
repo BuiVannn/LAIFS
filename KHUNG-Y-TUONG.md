@@ -229,7 +229,7 @@ Chi tiết và nguồn: [research/01-cach-hoc.md](research/01-cach-hoc.md) · [r
 | Giai đoạn | Nội dung | Kích hoạt |
 |---|---|---|
 | **A. Học hiệu quả** (không backend) ✅ xong 2026-09-17 | 1) `id` cố định cho từng câu quiz · 2) quiz hỏi "chắc/đoán", lưu kết quả từng câu · 3) câu hỏi nhúng giữa bài MDX · 4) ô "giải thích lại bằng lời của bạn" · 5) viz "đoán trước rồi chạy" · 6) trang **Ôn hôm nay** (`ts-fsrs`, trộn nhiều khái niệm) + xuất/nhập tiến độ JSON · 7) 4 mức thành thạo tô màu lộ trình, gợi ý ôn tiền quyết khi vấp | Ngay |
-| **B. Thiết kế lại UI/UX** | Bố cục có sẵn chỗ cho các khu: **Học nền tảng · Blog · Nghiên cứu · Engineering**; editor `@uiw/react-codemirror`; viz dựng trên `mafs`; lộ trình dạng đồ thị bằng `xyflow`; tìm kiếm Pagefind | Song song với A |
+| **B. Thiết kế lại UI/UX** ✅ xong 2026-09-18 | Bố cục có sẵn chỗ cho các khu: **Học nền tảng · Blog · Nghiên cứu · Engineering**; editor `@uiw/react-codemirror`; viz dựng trên `mafs`; lộ trình dạng đồ thị bằng `xyflow`; tìm kiếm Pagefind | Song song với A |
 | **C. Nội dung** 🚧 đợt 1 xong 2026-09-18: 12 khái niệm chuỗi tới backprop (bản nháp, chờ duyệt) | Soạn chuỗi khái niệm dẫn tới backprop · chuyển `numpy-100` thành bài code · từ điển thuật ngữ dựa trên d2l-vi / ebookMLCB (ghi CC BY-SA) · nhúng TensorFlow Playground Việt hoá · dự án mồi đầu mỗi tầng · chuỗi "mini-micrograd" | Liên tục |
 | **G1. Nhiều người viết** | Collections `baiViet`, `tacGia`, `huongDan` (`khu: nghien-cuu \| engineering`) chung lõi trường · Pages CMS cho người không biết Git · Giscus bình luận · deploy Cloudflare + bản xem trước có nháp (`HIEN_NHAP=1`) | Có bài blog/hướng dẫn đầu tiên |
 | **G2. Tài khoản** | Supabase Free: bảng `tien_do` có RLS, localStorage làm dự phòng | Có người mất tiến độ giữa các thiết bị, hoặc ôn tập được dùng đều |
@@ -242,3 +242,20 @@ Tensor-Puzzles bằng NumPy · tokenizer playground tiếng Việt (gpt-tokenize
 - **Không chép:** Deep-ML (Educational Use Only), roadmap.sh (chỉ dùng cá nhân), fastbook (phần lời), udlbook (CC BY-NC-ND), bộ câu hỏi không có license → chỉ đặt link.
 - **Dùng được, phải giữ license:** d2l, MLU-Explain, ebookMLCB (CC BY-SA 4.0) → gắn `license` theo từng bài dẫn xuất.
 - **Dùng thoải mái (MIT/Apache):** numpy-100, micrograd, ts-fsrs, mafs, xyflow, TensorFlow Playground, TorchLeet, transformers.js.
+
+---
+
+## 10. Thiết kế giữ nhịp học (giai đoạn B, 2026-09-18)
+
+Bố cục chốt: **khung A** (thanh bên + trang Hôm nay) · **chế độ buổi học C** · **bản đồ mục tiêu B** nằm trong trang Lộ trình.
+Bản mẫu: https://claude.ai/artifact/SMrL4NYDfADqVyFqSxdVia
+
+| Cơ chế | Cách làm | Căn cứ |
+|---|---|---|
+| **80/20** | Chọn mục tiêu → web tính đóng bao tiền quyết, chỉ học các khái niệm nằm trên đường (mục tiêu Perceptron: 7/32 khái niệm). Mỗi bài mở đầu bằng thẻ "Nắm ý trong 30 giây". | Cách ưu tiên dựa trên `tien_quyet` sẵn có, không phải kỹ thuật có nghiên cứu riêng |
+| **Buổi học tập trung** | `/buoi-hoc`: ôn (câu quá hạn lâu nhất, trộn khái niệm) → học mới (mở bài ở chế độ tập trung) → chốt lại (giải thích lại) → tổng kết. Thanh tiến trình + đồng hồ, không chặn. | Ôn trước = tự kiểm tra (bằng chứng mạnh); đồng hồ chỉ là tiện ích |
+| **Streak mềm** | Đơn vị là **tuần**: đạt khi số ngày có học ≥ số buổi trong kế hoạch. Mỗi 4 tuần có 1 tuần nghỉ phép tự động. Một ngày chỉ cần 1 câu là tính. Tuần hiện tại chưa đạt không làm đứt chuỗi. | Chuỗi đứt gây nản, cho "sửa" thì đỡ; lỡ một ngày không ảnh hưởng thói quen |
+| **Bền bỉ** | Kế hoạch học (ngày nào, bao lâu, sau việc gì, nếu bận thì sao) + file `.ics`; lịch ôn 7 ngày tới; buổi sau bắt đầu đúng chỗ đang dở; nghỉ ≥ 7 ngày thì chỉ ôn tối đa 15 câu; báo cáo tuần dán vào nhóm chat. | Bỏ cuộc chủ yếu vì không giữ được giờ cố định; nhắc lập kế hoạch có ích nhưng hiệu quả nhỏ |
+| **Không làm** | Bảng xếp hạng, XP, thông báo đe doạ, khoá bài theo điểm. | Không có bằng chứng cho người mới; nhóm nhỏ dễ tạo người "đứng bét" |
+
+Trang: `/` Hôm nay · `/lo-trinh` bản đồ mục tiêu · `/buoi-hoc` buổi học · `/on-tap` ôn tập · `/ke-hoach` kế hoạch · `/luyen-code` · `/khai-niem/<id>` (3 cột) · `/bai-tap/<id>`.

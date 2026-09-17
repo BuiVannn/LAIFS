@@ -2,8 +2,10 @@
 import Layout from '../../layouts/Layout.astro';
 import Quiz from '../../components/Quiz.tsx';
 import GiaiThichLai from '../../components/GiaiThichLai.tsx';
+import DuongMucTieu from '../../components/DuongMucTieu.tsx';
+import ThanhBuoi from '../../components/ThanhBuoi.tsx';
 import { getCollection, getEntry, render } from 'astro:content';
-import { hienThi, tomTat, TEN_TANG } from '../../lib';
+import { duLieuKhaiNiem, hienThi, tomTat, TEN_TANG } from '../../lib';
 
 export async function getStaticPaths() {
   const ds = (await getCollection('khaiNiem')).filter((k) => hienThi(k) && k.body?.trim());
@@ -12,85 +14,131 @@ export async function getStaticPaths() {
 
 const { k } = Astro.props;
 const d = k.data;
-const { Content } = await render(k);
+const { Content, headings } = await render(k);
+const ds = await duLieuKhaiNiem();
 const tatCa = await getCollection('khaiNiem');
 const tienQuyet = d.tien_quyet.map((id) => tatCa.find((x) => x.id === id)).filter((x) => x !== undefined).map(tomTat);
 const quiz = await getEntry('quiz', k.id);
 const cauHoi = quiz && hienThi(quiz) ? quiz.data.cau_hoi : [];
+const khoaCua = (id: string) => ds.find((x) => x.id === id)?.khoa ?? [];
 // Câu đã nhúng giữa bài (<CauHoi cau="id/qX" />) thì không lặp lại ở cuối
 const giuaBai = new Set([...(k.body ?? '').matchAll(/<CauHoi\s+cau="[^"/]+\/([^"]+)"/g)].map((m) => m[1]));
 const cauCuoiBai = cauHoi.filter((c) => !giuaBai.has(c.id));
 const baiTap = (await getCollection('baiTap')).filter((b) => b.data.khai_niem === k.id && hienThi(b));
+const mucLuc = headings.filter((h) => h.depth === 2);
 const ytId = (url: string) => new URL(url).searchParams.get('v');
 const MUC_DO = { nhap_mon: 'Nhập môn', sau: 'Đào sâu', toan_nang: 'Toán nặng' };
 ---
 <Layout tieuDe={d.ten_vi}>
-  <p class="duong-dan"><a href="/">Lộ trình</a> › Tầng {d.tang}: {TEN_TANG[d.tang]}</p>
-  <h1>
-    {d.ten_vi} {d.ten_en && d.ten_en !== d.ten_vi && <small>({d.ten_en})</small>}
-    <span class="muc-do" data-muc-do={JSON.stringify(cauHoi.map((c) => `${k.id}/${c.id}`))}></span>
-  </h1>
-  {d.trang_thai === 'nhap' && <p class="nhan-nhap">Bản nháp — chưa được duyệt</p>}
+  <ThanhBuoi slot="tren-cung" client:load khaiNiem={k.id} />
+  <div class="trang-kn">
+    <div class="cot-trai">
+      <DuongMucTieu client:load ds={ds} hienTai={k.id} />
+    </div>
 
-  <aside class="the-khai-niem">
-    {d.dinh_nghia && <p><b>Định nghĩa.</b> {d.dinh_nghia}</p>}
-    {d.truc_giac && <p><b>Hiểu ý.</b> {d.truc_giac}</p>}
-    {tienQuyet.length > 0 && (
-      <p><b>Cần biết trước:</b> {tienQuyet.map((t, i) => <>{i > 0 && ', '}{t.coTrang ? <a href={`/khai-niem/${t.id}`}>{t.ten}</a> : t.ten}</>)}</p>
-    )}
-    {d.hieu_nham.length > 0 && (
-      <details>
-        <summary>Hay hiểu nhầm</summary>
-        <ul>{d.hieu_nham.map((h) => <li>{h}</li>)}</ul>
-      </details>
-    )}
-  </aside>
+    <article>
+      <p class="duong-dan an-khi-tap-trung">Tầng {d.tang}: {TEN_TANG[d.tang]}</p>
+      <h1>{d.ten_vi} {d.ten_en && d.ten_en !== d.ten_vi && <small class="mo" style="font-size: 0.55em">({d.ten_en})</small>}</h1>
+      <p class="hang">
+        <span class="muc-do" data-muc-do={JSON.stringify(khoaCua(k.id))}></span>
+        {d.trang_thai === 'nhap' && <span class="nhan-nhap">Bản nháp — chưa được duyệt</span>}
+      </p>
 
-  <article><Content /></article>
+      <aside class="the-khai-niem">
+        <p class="nhan-muc xanh">Nắm ý trong 30 giây</p>
+        {d.truc_giac && <p class="nam-y">{d.truc_giac}</p>}
+        {d.dinh_nghia && <p><b>Nói gọn.</b> {d.dinh_nghia}</p>}
+        {d.hieu_nham.length > 0 && (
+          <details>
+            <summary>Hay hiểu nhầm ({d.hieu_nham.length})</summary>
+            <ul>{d.hieu_nham.map((h) => <li>{h}</li>)}</ul>
+          </details>
+        )}
+      </aside>
 
-  {cauCuoiBai.length > 0 && (
-    <section>
-      <h2>Trắc nghiệm</h2>
-      <p class="nhan">Trả lời xong, chọn <b>chắc chắn</b> hoặc <b>đang đoán</b> — câu đoán sẽ quay lại sớm hơn trong <a href="/on-tap">Ôn hôm nay</a>.</p>
-      <Quiz client:visible khaiNiem={k.id} cauHoi={cauCuoiBai} tienQuyet={tienQuyet} />
-    </section>
-  )}
+      <Content />
 
-  <section>
-    <h2>Giải thích lại bằng lời của bạn</h2>
-    <GiaiThichLai client:visible khaiNiem={k.id} ten={d.ten_vi} yChinh={d.y_chinh} />
-  </section>
+      {cauCuoiBai.length > 0 && (
+        <section>
+          <h2 id="trac-nghiem">Trắc nghiệm</h2>
+          <p class="mo">Chọn <b>chắc chắn</b> hoặc <b>đang đoán</b> khi nộp — câu đoán sẽ quay lại sớm hơn trong <a href="/on-tap">Ôn tập</a>.</p>
+          <Quiz client:visible khaiNiem={k.id} cauHoi={cauCuoiBai} tienQuyet={tienQuyet} />
+        </section>
+      )}
 
-  {baiTap.length > 0 && (
-    <section>
-      <h2>Luyện code</h2>
-      <ul>
-        {baiTap.map((b) => (
-          <li><a href={`/bai-tap/${b.id}`}>{b.data.tieu_de}</a> {'●'.repeat(b.data.do_kho)}{'○'.repeat(3 - b.data.do_kho)} <small class="tien-do" data-bai={b.id}></small></li>
-        ))}
-      </ul>
-    </section>
-  )}
+      <section>
+        <h2 id="giai-thich-lai">Giải thích lại bằng lời của bạn</h2>
+        <GiaiThichLai client:visible khaiNiem={k.id} ten={d.ten_vi} yChinh={d.y_chinh} />
+      </section>
 
-  {d.tai_lieu.length > 0 && (
-    <section>
-      <h2>Đào sâu</h2>
-      <ul class="tai-lieu">
-        {d.tai_lieu.map((t) => (
-          <li>
-            {t.loai === 'video' && ytId(t.url) && (
-              <a href={t.url} target="_blank" rel="noopener"><img src={`https://i.ytimg.com/vi/${ytId(t.url)}/mqdefault.jpg`} alt="" width="160" height="90" loading="lazy" /></a>
-            )}
-            <div>
-              <a href={t.url} target="_blank" rel="noopener"><b>{t.tieu_de}</b></a>
-              <br /><small>{t.tac_gia} · {MUC_DO[t.muc_do]} · {t.ngon_ngu.toUpperCase()}{t.moc && ` · ${t.moc}`}</small>
-              <p>{t.ghi_chu}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </section>
-  )}
+      {baiTap.length > 0 && (
+        <section>
+          <h2 id="luyen-code">Luyện code</h2>
+          <ul class="danh-sach-bai">
+            {baiTap.map((b) => (
+              <li>
+                <a href={`/bai-tap/${b.id}`}>{b.data.tieu_de}</a>
+                <span>
+                  <span class="mo">{'●'.repeat(b.data.do_kho)}{'○'.repeat(3 - b.data.do_kho)}</span>
+                  <span class="tien-do" data-bai={b.id}></span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {d.tai_lieu.length > 0 && (
+        <section>
+          <h2 id="dao-sau">Đào sâu</h2>
+          <ul class="tai-lieu">
+            {d.tai_lieu.map((t) => (
+              <li>
+                {t.loai === 'video' && ytId(t.url) && (
+                  <a href={t.url} target="_blank" rel="noopener"><img src={`https://i.ytimg.com/vi/${ytId(t.url)}/mqdefault.jpg`} alt="" width="160" height="90" loading="lazy" /></a>
+                )}
+                <div>
+                  <a href={t.url} target="_blank" rel="noopener"><b>{t.tieu_de}</b></a>
+                  <br /><small class="mo">{t.tac_gia} · {MUC_DO[t.muc_do]} · {t.ngon_ngu.toUpperCase()}{t.moc && ` · ${t.moc}`}</small>
+                  <p>{t.ghi_chu}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </article>
+
+    <div class="cot-phai">
+      <button class="phu" id="nut-tap-trung" style="width: 100%; margin-bottom: 16px">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4"></path></svg>
+        Chế độ tập trung
+      </button>
+      {mucLuc.length > 0 && (
+        <div class="muc-luc-khoi">
+          <p class="nhan-muc">Trong bài</p>
+          <ul class="muc-luc">
+            {mucLuc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}
+          </ul>
+        </div>
+      )}
+      {tienQuyet.length > 0 && (
+        <div class="the">
+          <p class="nhan-muc">Cần biết trước</p>
+          <div class="hang-the">
+            {tienQuyet.map((t) => (
+              <a class="muc-do" href={t.coTrang ? `/khai-niem/${t.id}` : '/lo-trinh'} data-muc-do={JSON.stringify(khoaCua(t.id))} data-ten={t.ten}></a>
+            ))}
+          </div>
+        </div>
+      )}
+      <div class="the">
+        <p class="nhan-muc">Học xong bài này</p>
+        <p>{cauHoi.length} câu vào lịch ôn{baiTap.length ? ` · ${baiTap.length} bài code` : ''}</p>
+      </div>
+      {d.tai_lieu.length > 0 && <p><a href="#dao-sau">Đào sâu ({d.tai_lieu.length} nguồn)</a></p>}
+    </div>
+  </div>
 </Layout>
 <script>
   import { doc, theoDoi, ganNhanMucDo } from '../../tien-do';
@@ -103,4 +151,19 @@ const MUC_DO = { nhap_mon: 'Nhập môn', sau: 'Đào sâu', toan_nang: 'Toán n
   };
   baiTap();
   theoDoi(baiTap);
+
+  // Chế độ tập trung: ẩn hai cột bên và điều hướng
+  const nut = document.getElementById('nut-tap-trung');
+  const thoat = document.createElement('button');
+  thoat.className = 'phu';
+  thoat.textContent = 'Thoát tập trung';
+  thoat.style.cssText = 'position: fixed; right: 16px; top: 16px; z-index: 11; background: var(--the)';
+  thoat.hidden = true;
+  thoat.onclick = () => { document.body.classList.remove('tap-trung'); thoat.hidden = true; };
+  document.body.append(thoat);
+  nut?.addEventListener('click', () => {
+    document.body.classList.add('tap-trung');
+    thoat.hidden = document.querySelector('.thanh-buoi') !== null; // trong buổi học đã có nút thoát riêng
+    scrollTo({ top: 0 });
+  });
 </script>

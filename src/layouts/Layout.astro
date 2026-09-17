@@ -1,26 +1,53 @@
 ---
 import 'katex/dist/katex.min.css';
 import '../styles.css';
-const { tieuDe } = Astro.props;
+
+type Props = { tieuDe?: string; trang?: 'hom-nay' | 'lo-trinh' | 'on-tap' | 'luyen-code' | 'ke-hoach' | 'khac'; tapTrung?: boolean };
+const { tieuDe, trang = 'khac', tapTrung = false } = Astro.props as Props;
+const hienTai = (t: Props['trang']) => (t === trang ? 'page' : undefined);
 ---
 <!doctype html>
 <html lang="vi">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28' fill='none' stroke='%230E6B63' stroke-width='2.4'><circle cx='7' cy='14' r='3'/><circle cx='21' cy='7' r='3'/><circle cx='21' cy='21' r='3'/><path d='M10 13l8-5M10 15l8 5'/></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet" />
     <title>{tieuDe ? `${tieuDe} · LAIFS` : 'LAIFS · Học AI'}</title>
   </head>
-  <body>
-    <header>
-      <a href="/" class="logo">🧠 LAIFS</a>
-      <nav>
-        <a href="/">Lộ trình</a>
-        <a href="/on-tap">Ôn hôm nay <span class="huy-hieu" data-so-on hidden></span></a>
+  <body class={tapTrung ? 'tap-trung' : undefined}>
+    <slot name="tren-cung" />
+    <div class="khung">
+      <nav class="thanh-ben" aria-label="Điều hướng chính">
+        <a href="/" class="logo">
+          <svg width="26" height="26" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color: var(--nhan)"><circle cx="7" cy="14" r="3"></circle><circle cx="21" cy="7" r="3"></circle><circle cx="21" cy="21" r="3"></circle><path d="M10 13l8-5M10 15l8 5"></path></svg>
+          LAIFS
+        </a>
+        <div class="nhom-nav">
+          <div class="nhan-nhom">Học</div>
+          <a class="muc-nav" href="/" aria-current={hienTai('hom-nay')}>Hôm nay</a>
+          <a class="muc-nav" href="/lo-trinh" aria-current={hienTai('lo-trinh')}>Lộ trình</a>
+          <a class="muc-nav" href="/on-tap" aria-current={hienTai('on-tap')}>Ôn tập <span class="huy-hieu" data-so-on hidden></span></a>
+          <a class="muc-nav" href="/luyen-code" aria-current={hienTai('luyen-code')}>Luyện code</a>
+        </div>
+        <div class="nhom-nav">
+          <div class="nhan-nhom">Khám phá</div>
+          <span class="muc-nav sap-co">Blog <span class="nhan-nho">sắp có</span></span>
+          <span class="muc-nav sap-co">Nghiên cứu <span class="nhan-nho">sắp có</span></span>
+          <span class="muc-nav sap-co">AI Engineering <span class="nhan-nho">sắp có</span></span>
+        </div>
+        <div class="nhom-nav phan-cuoi" style="margin-top: auto">
+          <a class="muc-nav" href="/ke-hoach" aria-current={hienTai('ke-hoach')}>Kế hoạch học</a>
+          <a class="muc-nav" href="/on-tap#sao-luu">Sao lưu tiến độ</a>
+        </div>
       </nav>
-    </header>
-    <main><slot /></main>
-    {import.meta.env.DEV && <footer>Chế độ dev: đang hiện cả bản nháp.</footer>}
+      <main class="noi-dung">
+        <slot />
+        {import.meta.env.DEV && <p class="chan-trang">Chế độ dev: đang hiện cả bản nháp.</p>}
+      </main>
+    </div>
     <script>
       import { doc, theoDoi } from '../tien-do';
       // Số câu đến hạn: đếm trên mọi thẻ đã lưu (có thể gồm câu đã bị xoá khỏi nội dung — chỉ là huy hiệu gợi ý)

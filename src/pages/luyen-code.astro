@@ -1,0 +1,40 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import { hienThi } from '../lib';
+
+const khaiNiem = new Map((await getCollection('khaiNiem')).map((k) => [k.id, k]));
+const baiTap = (await getCollection('baiTap'))
+  .filter(hienThi)
+  .sort((a, b) => (khaiNiem.get(a.data.khai_niem)?.data.thu_tu ?? 99) - (khaiNiem.get(b.data.khai_niem)?.data.thu_tu ?? 99) || a.data.do_kho - b.data.do_kho);
+---
+<Layout tieuDe="Luyện code" trang="luyen-code">
+  <div class="trang-hep">
+    <p class="nhan-muc">Luyện code</p>
+    <h1>Tự cài đặt bằng NumPy</h1>
+    <p class="mo">Code chạy ngay trên trình duyệt và được chấm tự động. Xếp theo thứ tự học.</p>
+    <ul class="danh-sach-bai">
+      {baiTap.map((b) => {
+        const k = khaiNiem.get(b.data.khai_niem);
+        return (
+          <li>
+            <div>
+              <a href={`/bai-tap/${b.id}`}><b>{b.data.tieu_de}</b></a>
+              <div class="mo" style="font-size: 14px">{k?.data.ten_vi} · <span aria-label={`độ khó ${b.data.do_kho}/3`}>{'●'.repeat(b.data.do_kho)}{'○'.repeat(3 - b.data.do_kho)}</span></div>
+            </div>
+            <span class="tien-do" data-bai={b.id}></span>
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+</Layout>
+<script>
+  import { doc, theoDoi } from '../tien-do';
+  const capNhat = () => {
+    const td = doc();
+    document.querySelectorAll<HTMLElement>('[data-bai]').forEach((el) => { el.textContent = td.baiTap[el.dataset.bai!] ? '✓ đã đạt' : ''; });
+  };
+  capNhat();
+  theoDoi(capNhat);
+</script>

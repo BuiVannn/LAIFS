@@ -33,3 +33,22 @@ export async function duLieuCauHoi() {
     return q.data.cau_hoi.map((c) => ({ khoa: `${q.id}/${c.id}`, c, khaiNiem: tomTat(k), tienQuyet }));
   });
 }
+
+// Dữ liệu gọn của mọi khái niệm cho các island (Hôm nay, Lộ trình, Buổi học…)
+export async function duLieuKhaiNiem() {
+  const { getCollection } = await import('astro:content');
+  const quiz = new Map((await getCollection('quiz')).filter(hienThi).map((q) => [q.id, q.data.cau_hoi.map((c) => `${q.id}/${c.id}`)]));
+  return (await getCollection('khaiNiem'))
+    .map((k) => ({
+      id: k.id,
+      ten: k.data.ten_vi,
+      tang: k.data.tang,
+      thuTu: k.data.thu_tu,
+      tienQuyet: k.data.tien_quyet,
+      coTrang: tomTat(k).coTrang,
+      dinhNghia: k.data.dinh_nghia,
+      yChinh: k.data.y_chinh,
+      khoa: quiz.get(k.id) ?? [],
+    }))
+    .sort((a, b) => a.thuTu - b.thuTu);
+}

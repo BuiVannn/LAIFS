@@ -1,0 +1,11 @@
+---
+import Layout from '../layouts/Layout.astro';
+import BanDoMucTieu from '../components/BanDoMucTieu.tsx';
+import { duLieuKhaiNiem } from '../lib';
+
+const ds = await duLieuKhaiNiem();
+---
+<Layout tieuDe="Lộ trình" trang="lo-trinh">
+  <p class="nhan-muc">Lộ trình</p>
+  <BanDoMucTieu client:load ds={ds} />
+</Layout>

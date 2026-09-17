@@ -10,6 +10,12 @@ npm run check:bai-tap  # kiểm tra lời giải mẫu đạt hết test (cần 
 npm run check:tien-do  # kiểm tra logic lịch ôn tập và mức thành thạo
 ```
 
+## Các trang
+
+`/` Hôm nay (buổi học hôm nay, nhịp tuần, lịch ôn) · `/lo-trinh` bản đồ mục tiêu · `/buoi-hoc` chế độ buổi học · `/on-tap` · `/ke-hoach` · `/luyen-code` · `/khai-niem/<id>` · `/bai-tap/<id>`.
+
+Thiết kế giữ nhịp học: xem mục 10 của [KHUNG-Y-TUONG.md](KHUNG-Y-TUONG.md).
+
 ## Thêm nội dung
 
 Mọi thứ gắn với một **khái niệm** qua id (tên file).
@@ -26,7 +32,7 @@ Cấu trúc frontmatter đầy đủ: `src/content.config.ts` (sai định dạn
 
 ## Tiến độ người học
 
-Lưu trong localStorage (khoá `laifs:v1`, xem `src/tien-do.ts`): kết quả từng câu + thẻ lịch ôn FSRS, bài giải thích lại, bài code đã đạt. Người học tự sao lưu ở trang **Ôn hôm nay**.
+Lưu trong localStorage (khoá `laifs:v1`, xem `src/tien-do.ts`): kết quả từng câu + thẻ lịch ôn FSRS, nhật ký số câu theo ngày (dùng cho nhịp tuần), kế hoạch học, mục tiêu, bài giải thích lại, bài code đã đạt. Đồ thị mục tiêu ở `src/do-thi.ts`. Người học tự sao lưu ở trang **Ôn hôm nay**.
 
 ## Quy trình duyệt
 

@@ -97,7 +97,7 @@ export default function OnTap({ tatCa }: { tatCa: MucOnTap[] }) {
         </>
       )}
 
-      <details className="sao-luu">
+      <details className="sao-luu" id="sao-luu">
         <summary>Sao lưu tiến độ</summary>
         <p>Tiến độ chỉ lưu trong trình duyệt này. Xoá dữ liệu trình duyệt hoặc đổi máy sẽ mất — hãy tải file về định kỳ.</p>
         <button onClick={taiXuong}>Tải file tiến độ</button>{' '}

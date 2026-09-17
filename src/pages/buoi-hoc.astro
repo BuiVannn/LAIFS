@@ -1,0 +1,11 @@
+---
+import Layout from '../layouts/Layout.astro';
+import BuoiHoc from '../components/BuoiHoc.tsx';
+import { duLieuCauHoi, duLieuKhaiNiem } from '../lib';
+
+const ds = await duLieuKhaiNiem();
+const cauHoi = await duLieuCauHoi();
+---
+<Layout tieuDe="Buổi học" tapTrung>
+  <BuoiHoc client:load ds={ds} cauHoi={cauHoi} />
+</Layout>

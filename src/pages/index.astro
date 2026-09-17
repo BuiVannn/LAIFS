@@ -1,41 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { getCollection } from 'astro:content';
-import { hienThi, tomTat, TEN_TANG } from '../lib';
+import HomNay from '../components/HomNay.tsx';
+import { duLieuKhaiNiem } from '../lib';
 
-const khaiNiem = (await getCollection('khaiNiem')).sort((a, b) => a.data.thu_tu - b.data.thu_tu);
-const quiz = (await getCollection('quiz')).filter(hienThi);
-const khoaCua = (id: string) => quiz.find((q) => q.id === id)?.data.cau_hoi.map((c) => `${id}/${c.id}`) ?? [];
-const cacTang = [...new Set(khaiNiem.map((k) => k.data.tang))].sort();
+const ds = await duLieuKhaiNiem();
 ---
-<Layout>
-  <h1>Lộ trình học</h1>
-  <p>Mỗi khái niệm: đọc bài → đoán rồi chạy trực quan → trắc nghiệm → giải thích lại → luyện code. Sau đó để <a href="/on-tap">Ôn hôm nay</a> nhắc bạn ôn đúng lúc.</p>
-  <p class="chu-giai">
-    <span class="muc-do chua-hoc">Chưa học</span>
-    <span class="muc-do da-thu">Đã thử</span>
-    <span class="muc-do hieu">Hiểu</span>: làm hết, đúng ≥ 80%
-    <span class="muc-do vung">Vững</span>: vẫn đúng và chắc chắn khi ôn lại sau ít nhất 1 ngày
-  </p>
-  {cacTang.map((t) => (
-    <section>
-      <h2>Tầng {t}: {TEN_TANG[t]}</h2>
-      <ol class="lo-trinh">
-        {khaiNiem.filter((k) => k.data.tang === t).map((k) => {
-          const tt = tomTat(k);
-          return (
-            <li class={tt.coTrang ? '' : 'chua-co'}>
-              {tt.coTrang ? <a href={`/khai-niem/${k.id}`}>{tt.ten}</a> : <span>{tt.ten}</span>}
-              {k.data.trang_thai === 'nhap' && tt.coTrang && <small class="nhan-nhap">nháp</small>}
-              {khoaCua(k.id).length > 0 && <span class="muc-do" data-muc-do={JSON.stringify(khoaCua(k.id))}></span>}
-            </li>
-          );
-        })}
-      </ol>
-    </section>
-  ))}
+<Layout trang="hom-nay">
+  <HomNay client:load ds={ds} />
 </Layout>
-<script>
-  import { ganNhanMucDo } from '../tien-do';
-  ganNhanMucDo();
-</script>
