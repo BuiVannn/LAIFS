@@ -1,0 +1,101 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: so
+    do_kho: 1
+    de: "Một MLP có kiến trúc 2-3-1 (2 đầu vào, 3 neuron ẩn, 1 đầu ra). Tổng số tham số (trọng số + bias) là bao nhiêu?"
+    dap_an: 13
+    sai_so: 0
+    giai_thich: "Lớp vào → ẩn: 2×3 trọng số + 3 bias = 9. Lớp ẩn → ra: 3×1 + 1 = 4. Tổng 9 + 4 = 13."
+
+  - id: q2
+    loai: so
+    do_kho: 2
+    de: "MLP 784-128-10 (ảnh 28×28, một lớp ẩn 128 neuron, 10 lớp đầu ra) có tổng cộng bao nhiêu tham số?"
+    dap_an: 101770
+    sai_so: 0
+    giai_thich: "784×128 + 128 = 100 480. 128×10 + 10 = 1 290. Tổng 101 770."
+
+  - id: q3
+    loai: mot
+    do_kho: 1
+    de: "Theo quy ước z = W·a + b, một lớp nhận 4 đầu vào và có 5 neuron. Ma trận trọng số W có shape gì?"
+    lua_chon:
+      - "(4, 5)"
+      - "(5, 4)"
+      - "(5, 5)"
+      - "(20,)"
+    dap_an: 1
+    giai_thich: "W có shape (số neuron lớp này, số đầu vào) = (5, 4): mỗi hàng là 4 trọng số của một neuron. Khi đó W·a với a shape (4,) cho ra vector shape (5,)."
+
+  - id: q4
+    loai: mot
+    do_kho: 2
+    de: "Đưa một batch 32 mẫu (mỗi mẫu 10 đặc trưng, mỗi mẫu một hàng) qua MLP 10-20-3. Đầu ra có shape gì?"
+    lua_chon:
+      - "(32, 3)"
+      - "(3,)"
+      - "(32, 20)"
+      - "(3, 32)"
+    dap_an: 0
+    giai_thich: "Shape đi qua mạng: (32, 10) → (32, 20) → (32, 3). Số mẫu giữ nguyên, chiều thứ hai là số neuron của lớp."
+
+  - id: q5
+    loai: mot
+    do_kho: 2
+    de: "Một MLP có 5 lớp ẩn nhưng mọi hàm kích hoạt đều là hàm đồng nhất f(z) = z. Nó phân loại được dữ liệu XOR không?"
+    lua_chon:
+      - Được, vì có nhiều lớp ẩn
+      - Được, nếu mỗi lớp ẩn đủ rộng
+      - Không, vì cả mạng tương đương một hàm tuyến tính, đường biên vẫn là đường thẳng
+      - Không, vì 5 lớp là quá sâu
+    dap_an: 2
+    giai_thich: "Ghép các lớp tuyến tính cho ra một lớp tuyến tính W′x + b′. Đường biên vẫn thẳng nên không tách được XOR, dù sâu hay rộng cỡ nào."
+
+  - id: q6
+    loai: nhieu
+    do_kho: 2
+    de: Những phát biểu nào về MLP là ĐÚNG? (chọn tất cả ý đúng)
+    lua_chon:
+      - Mỗi neuron ở một lớp nhận đầu ra của mọi neuron ở lớp trước
+      - Lớp vào có trọng số và bias riêng
+      - Số tham số không phụ thuộc vào kích thước batch
+      - Hàm kích hoạt phi tuyến ở lớp ẩn là cần thiết để vẽ được biên cong
+    dap_an: [0, 2, 3]
+    giai_thich: "Lớp vào chỉ là dữ liệu, không có tham số. Các ý còn lại đúng: kết nối đầy đủ; tham số chỉ phụ thuộc số neuron các lớp; thiếu phi tuyến thì mạng sụp về tuyến tính."
+
+  - id: q7
+    loai: so
+    do_kho: 1
+    de: "MLP có kiến trúc 3-4-4-2. Mạng có bao nhiêu ma trận trọng số W?"
+    dap_an: 3
+    sai_so: 0
+    giai_thich: "Mỗi cặp lớp liền kề có một ma trận: 3→4, 4→4, 4→2. Tổng 3 ma trận (bằng số lớp trừ 1)."
+
+  - id: q8
+    loai: so
+    do_kho: 2
+    de: "Mạng XOR: h₁ = step(x₁ + x₂ − 0.5), h₂ = step(−x₁ − x₂ + 1.5), ŷ = step(h₁ + h₂ − 1.5), với step(z) = 1 nếu z ≥ 0, ngược lại 0. Với x = (1, 1), ŷ bằng bao nhiêu?"
+    dap_an: 0
+    sai_so: 0
+    giai_thich: "h₁ = step(1.5) = 1. h₂ = step(−0.5) = 0. ŷ = step(1 + 0 − 1.5) = step(−0.5) = 0. Đúng với XOR(1, 1) = 0."
+
+  - id: q9
+    loai: mot
+    do_kho: 2
+    de: "Trong mạng XOR 2-2-1 giải bằng tay, lớp ẩn đóng vai trò gì?"
+    lua_chon:
+      - Lưu lại dữ liệu huấn luyện
+      - Biến đổi dữ liệu sang không gian mới (h₁, h₂) mà ở đó một đường thẳng tách được hai lớp
+      - Chuẩn hoá dữ liệu về khoảng (0, 1)
+      - Giảm số tham số của mạng
+    dap_an: 1
+    giai_thich: "Mỗi neuron ẩn kẻ một đường thẳng và báo điểm nằm phía nào. Trong toạ độ (h₁, h₂) mới, hai lớp tách được bằng đường h₁ + h₂ = 1.5, nên neuron ra (một perceptron) làm nốt được."
+
+  - id: q10
+    loai: so
+    do_kho: 3
+    de: "MLP 3-4-4-2 có tổng cộng bao nhiêu tham số?"
+    dap_an: 46
+    sai_so: 0
+    giai_thich: "3→4: 3×4 + 4 = 16. 4→4: 4×4 + 4 = 20. 4→2: 4×2 + 2 = 10. Tổng 16 + 20 + 10 = 46."

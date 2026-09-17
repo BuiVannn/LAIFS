@@ -1,0 +1,175 @@
+---
+ten_vi: "Perceptron & đường biên quyết định"
+ten_en: "Perceptron & Decision Boundary"
+tang: 3
+thu_tu: 24
+tien_quyet: ["hoi-quy-logistic"]
+trang_thai: nhap
+dinh_nghia: >-
+  Perceptron là một neuron nhân tạo đơn giản nhất: tính tổng có trọng số của đầu vào cộng bias,
+  z = w·x + b, rồi trả về 1 nếu z ≥ 0 và 0 nếu ngược lại. Tập các điểm có z = 0 là đường biên
+  quyết định (decision boundary), luôn là một đường thẳng (mặt phẳng khi nhiều chiều).
+truc_giac: >-
+  Hình dung một người gác cổng chấm điểm hồ sơ: mỗi tiêu chí được nhân với mức độ quan trọng
+  (trọng số), cộng lại, rồi so với một ngưỡng (bias). Đủ điểm thì cho qua, thiếu thì không.
+  Trên mặt phẳng, việc này giống như kẻ một đường thẳng chia hai phe: bên này là "qua", bên kia là "không qua".
+hieu_nham:
+  - "Perceptron không vẽ được đường cong: đường biên của nó luôn thẳng (siêu phẳng), nên dữ liệu kiểu XOR thì không có bộ trọng số nào phân loại đúng hết."
+  - "Thuật toán học perceptron chỉ sửa trọng số khi đoán SAI; điểm đoán đúng thì không làm gì cả, kể cả khi nó nằm sát đường biên."
+  - "Perceptron khác hồi quy logistic ở chỗ dùng hàm bậc thang (ra 0/1 cứng) thay vì sigmoid (ra xác suất), nên không có đạo hàm hữu ích để dùng gradient descent."
+  - "Nhân cả w và b với cùng một số dương không đổi đường biên: đường thẳng chỉ phụ thuộc tỉ lệ giữa các hệ số, không phụ thuộc độ lớn."
+y_chinh:
+  - "Perceptron tính z = w·x + b rồi dùng hàm bậc thang: z ≥ 0 thì ra 1, ngược lại ra 0"
+  - "Đường biên quyết định là tập điểm có z = 0, luôn là đường thẳng (siêu phẳng)"
+  - "Vector w vuông góc với đường biên và chỉ về phía dự đoán 1; b dịch đường biên đi"
+  - "Học: với mỗi điểm đoán sai, w ← w + η(y − ŷ)x và b ← b + η(y − ŷ)"
+  - "Nếu dữ liệu tách được bằng đường thẳng thì thuật toán dừng sau hữu hạn bước; XOR thì không bao giờ dừng"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=4Gac5I64LM4
+    tieu_de: Perceptron
+    tac_gia: ritvikmath
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Giảng trên bảng trắng từ trực giác tới luật cập nhật, ngắn gọn. Nên xem đầu tiên.
+  - url: https://www.youtube.com/watch?v=OFbnpY_k7js
+    tieu_de: Perceptron | Neural Networks
+    tac_gia: First Principles of Computer Vision (Shree Nayar, Columbia)
+    loai: video
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Trình bày hình học của đường biên, vì sao luật cập nhật xoay đường biên về đúng hướng, và giới hạn với dữ liệu không tách được.
+---
+
+import Perceptron2D from '../../src/viz/Perceptron2D.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Từ hồi quy logistic tới một "neuron"
+
+Ở bài Hồi quy logistic, ta tính $z = w_1 x_1 + w_2 x_2 + b$ rồi đưa qua sigmoid để ra xác suất. **Perceptron** làm y hệt phần đầu, nhưng thay sigmoid bằng một quyết định cứng:
+
+$$
+z = w_1 x_1 + w_2 x_2 + b, \qquad
+\hat{y} = \begin{cases} 1 & \text{nếu } z \ge 0 \\ 0 & \text{nếu } z < 0 \end{cases}
+$$
+
+Hàm "nhảy" từ 0 lên 1 tại $z = 0$ này gọi là **hàm bậc thang** (step function). Perceptron được Frank Rosenblatt đề xuất năm 1958, lấy cảm hứng từ tế bào thần kinh: nhận nhiều tín hiệu, cộng lại, vượt ngưỡng thì "bắn".
+
+Ý nghĩa từng phần:
+
+- $x_1, x_2$: đặc trưng đầu vào
+- $w_1, w_2$ (**trọng số**, weights): mỗi đặc trưng quan trọng tới đâu, và đẩy về phía nào (dấu)
+- $b$ (**bias**): ngưỡng. $b$ càng âm thì càng khó ra 1
+
+<CauHoi cau="perceptron/q2" />
+
+## Đường biên quyết định
+
+Mọi điểm có $z = 0$ nằm trên ranh giới giữa "đoán 1" và "đoán 0". Tập điểm đó là **đường biên quyết định** (decision boundary):
+
+$$
+w_1 x_1 + w_2 x_2 + b = 0
+$$
+
+Đây là phương trình một **đường thẳng**. Với 3 đầu vào nó là một mặt phẳng, nhiều chiều hơn thì gọi là siêu phẳng (hyperplane). Dù nhiều chiều cỡ nào, nó vẫn "thẳng".
+
+Hai điều hình học đáng nhớ:
+
+- Vector $(w_1, w_2)$ **vuông góc** với đường biên và chỉ về phía các điểm được đoán 1.
+- Đổi $b$ thì đường biên **tịnh tiến** song song; đổi $w$ thì đường biên **xoay**.
+
+## Tính tay: cổng AND
+
+Cổng AND chỉ ra 1 khi cả hai đầu vào đều bằng 1. Thử $w_1 = 1$, $w_2 = 1$, $b = -1.5$:
+
+| $x_1$ | $x_2$ | $z = x_1 + x_2 - 1.5$ | $\hat{y}$ | Nhãn đúng |
+|---|---|---|---|---|
+| 0 | 0 | −1.5 | 0 | 0 |
+| 0 | 1 | −0.5 | 0 | 0 |
+| 1 | 0 | −0.5 | 0 | 0 |
+| 1 | 1 | 0.5 | 1 | 1 |
+
+Đúng cả 4. Đường biên ở đây là $x_1 + x_2 = 1.5$: một đường chéo cắt riêng góc $(1, 1)$ ra khỏi ba điểm còn lại.
+
+## Perceptron tự học trọng số thế nào?
+
+Tự chọn trọng số như trên chỉ làm được với bài đồ chơi. **Thuật toán học perceptron** (perceptron learning rule) tìm trọng số từ dữ liệu, rất đơn giản:
+
+Lần lượt xét từng điểm $(\mathbf{x}, y)$. Tính $\hat{y}$. Rồi cập nhật:
+
+$$
+\mathbf{w} \leftarrow \mathbf{w} + \eta\,(y - \hat{y})\,\mathbf{x}, \qquad b \leftarrow b + \eta\,(y - \hat{y})
+$$
+
+Vì $y$ và $\hat{y}$ chỉ là 0 hoặc 1, nên $(y - \hat{y})$ chỉ có ba khả năng:
+
+- **Đoán đúng** ($y - \hat{y} = 0$): không đổi gì.
+- **Nhãn 1 mà đoán 0** ($+1$): cộng $\mathbf{x}$ vào $\mathbf{w}$, làm $z$ của điểm đó lớn lên.
+- **Nhãn 0 mà đoán 1** ($-1$): trừ $\mathbf{x}$ khỏi $\mathbf{w}$, làm $z$ nhỏ đi.
+
+Mỗi lần sửa, đường biên xoay/dịch một chút về phía đúng cho điểm vừa sai. Duyệt hết dữ liệu một lượt gọi là một **epoch**.
+
+Tính tay epoch đầu cho cổng AND, xuất phát $w = (0, 0)$, $b = 0$, $\eta = 1$:
+
+| Điểm | $y$ | $z$ | $\hat{y}$ | $y - \hat{y}$ | $w$ sau | $b$ sau |
+|---|---|---|---|---|---|---|
+| (0, 0) | 0 | 0 | 1 | −1 | (0, 0) | −1 |
+| (0, 1) | 0 | −1 | 0 | 0 | (0, 0) | −1 |
+| (1, 0) | 0 | −1 | 0 | 0 | (0, 0) | −1 |
+| (1, 1) | 1 | −1 | 0 | +1 | (1, 1) | 0 |
+
+Lưu ý dòng đầu: $z = 0$ nên $\hat{y} = 1$ (quy ước $z \ge 0$ ra 1). Chạy tiếp, sau 5 epoch thuật toán ra $w = (2, 1)$, $b = -3$ và epoch thứ 6 không phải sửa lần nào nữa: phân loại đúng cả 4 điểm. Đây là một đường biên khác với $x_1 + x_2 = 1.5$ ở trên, nhưng cũng đúng. Bài toán thường có **nhiều** đường biên đạt yêu cầu.
+
+<CauHoi cau="perceptron/q3" />
+
+## Tự thử: đoán trước, rồi chạy
+
+Vòng xanh là nhãn 1, chấm đỏ là nhãn 0. Nền xanh nhạt là vùng perceptron đoán 1, nền đỏ nhạt là vùng đoán 0. Điểm bị khoanh nét đứt là điểm đang đoán sai.
+
+<Perceptron2D
+  client:visible
+  du_lieu="tach-duoc"
+  w1={-2}
+  w2={1}
+  b={1}
+  duDoan={{
+    de: "Đường biên xuất phát gần như ngược hướng: sai 9/12 điểm. Cho thuật toán học perceptron chạy (η = 0.5). Kết quả?",
+    lua_chon: ["Tìm được đường biên không sai điểm nào rồi tự dừng", "Xoay mãi không dừng vì xuất phát quá tệ", "Chỉ giảm được còn khoảng một nửa số điểm sai"],
+    dap_an: 0,
+    giai_thich: "Dữ liệu này tách được bằng một đường thẳng, nên thuật toán chắc chắn dừng sau hữu hạn lần sửa (định lý hội tụ perceptron). Ở đây chỉ cần 5 lần sửa trong epoch đầu, epoch thứ hai không phải sửa gì."
+  }}
+/>
+
+<Perceptron2D
+  client:visible
+  du_lieu="xor"
+  w1={1}
+  w2={1}
+  b={0}
+  duDoan={{
+    de: "Dữ liệu XOR: nhãn 1 ở góc trên-phải và dưới-trái, nhãn 0 ở hai góc còn lại. Chạy thuật toán học 20 epoch. Kết quả?",
+    lua_chon: ["Về 0 điểm sai sau vài epoch", "Về 0 điểm sai nếu đủ 20 epoch", "Không bao giờ hết sai: đường biên cứ nhảy qua lại, thuật toán không tự dừng"],
+    dap_an: 2,
+    giai_thich: "Không có đường thẳng nào tách được XOR: mọi đường thẳng đều sai ít nhất 2/8 điểm. Mỗi lần sửa cho điểm này lại làm sai điểm khác, nên thuật toán lặp mãi. Muốn giải XOR cần nhiều neuron ghép thành mạng nhiều lớp."
+  }}
+/>
+
+Bảng tự do: kéo $w_1, w_2, b$ để tự tìm đường biên, hoặc cho thuật toán học. Thử tìm đường thẳng tốt nhất cho XOR bằng tay: bạn sẽ không xuống dưới 2 điểm sai được.
+
+<Perceptron2D client:visible />
+
+<CauHoi cau="perceptron/q6" />
+
+## Giới hạn và bước tiếp theo
+
+- Perceptron chỉ vẽ được **đường thẳng**. Dữ liệu tách được tuyến tính (linearly separable) thì học được, còn XOR thì bó tay. Chính phát hiện này (Minsky & Papert, 1969) từng làm nghiên cứu mạng neuron chững lại nhiều năm.
+- Hàm bậc thang có đạo hàm bằng 0 ở mọi nơi (trừ điểm nhảy), nên không dùng được [gradient descent](/khai-niem/gradient-descent). Thay nó bằng một hàm mượt là ý tưởng của [hàm kích hoạt](/khai-niem/ham-kich-hoat).
+- Ghép nhiều neuron thành nhiều lớp sẽ vẽ được biên cong, gấp khúc: đó là [mạng nhiều lớp (MLP)](/khai-niem/mlp).
+
+## Tóm tắt
+
+- Perceptron: $z = \mathbf{w} \cdot \mathbf{x} + b$, ra 1 nếu $z \ge 0$, ngược lại ra 0.
+- Đường biên quyết định $\mathbf{w} \cdot \mathbf{x} + b = 0$ luôn thẳng; $\mathbf{w}$ quyết định hướng, $b$ quyết định vị trí.
+- Học bằng cách sửa khi sai: $\mathbf{w} \leftarrow \mathbf{w} + \eta(y - \hat{y})\mathbf{x}$.
+- Dữ liệu tách được tuyến tính thì hội tụ; XOR thì không bao giờ.
+- Tiếp theo: [Hàm kích hoạt](/khai-niem/ham-kich-hoat), [Mạng nhiều lớp](/khai-niem/mlp).

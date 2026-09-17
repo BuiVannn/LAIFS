@@ -1,0 +1,176 @@
+---
+ten_vi: "Hàm kích hoạt (sigmoid, tanh, ReLU)"
+ten_en: "Activation Functions"
+tang: 3
+thu_tu: 25
+tien_quyet: ["perceptron"]
+trang_thai: nhap
+dinh_nghia: >-
+  Hàm kích hoạt là hàm phi tuyến áp dụng lên đầu ra z = w·x + b của mỗi neuron, a = f(z).
+  Ba hàm phổ biến: sigmoid (ép về khoảng (0, 1)), tanh (ép về (−1, 1)) và ReLU (giữ số dương, cắt số âm về 0).
+  Nhờ chúng, mạng nhiều lớp mới biểu diễn được quan hệ phi tuyến và vẫn tính được đạo hàm để học.
+truc_giac: >-
+  Hàm kích hoạt giống cái van trên đường ống: quyết định tín hiệu đi qua neuron mạnh hay yếu.
+  Sigmoid và tanh là van xoay tròn, mở tới một mức thì kẹt, vặn thêm cũng không đổi (bão hoà).
+  ReLU là van một chiều: dòng âm bị chặn hoàn toàn, dòng dương đi qua nguyên vẹn.
+hieu_nham:
+  - "Hàm kích hoạt không phải để 'làm đẹp' đầu ra: thiếu nó thì chồng bao nhiêu lớp tuyến tính cũng chỉ bằng MỘT lớp tuyến tính."
+  - "Sigmoid đạt giá trị gần 1 khi x lớn KHÔNG có nghĩa là học tốt: lúc đó đạo hàm gần 0 (bão hoà), tín hiệu học gần như tắt."
+  - "Đạo hàm của sigmoid lớn nhất chỉ là 0.25 (tại x = 0), không phải 1; tanh mới có đạo hàm lớn nhất bằng 1."
+  - "ReLU không phải tuyến tính: nó tuyến tính từng khúc, và chỗ gấp tại 0 chính là thứ tạo ra tính phi tuyến."
+y_chinh:
+  - "Mỗi neuron: z = w·x + b rồi a = f(z), với f là hàm kích hoạt phi tuyến"
+  - "Không có hàm kích hoạt phi tuyến thì mạng nhiều lớp sụp về một mô hình tuyến tính"
+  - "Sigmoid ra (0, 1), đạo hàm σ(1 − σ) tối đa 0.25; tanh ra (−1, 1), đạo hàm 1 − tanh² tối đa 1"
+  - "Sigmoid và tanh bão hoà khi |x| lớn: đạo hàm gần 0 nên học chậm (vanishing gradient)"
+  - "ReLU = max(0, x): đạo hàm 1 khi x > 0, bằng 0 khi x < 0; rẻ, không bão hoà phía dương, nhưng neuron có thể 'chết'"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=Xvg00QnyaIY
+    tieu_de: Activation Functions (C1W3L06)
+    tac_gia: DeepLearningAI (Andrew Ng)
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: So sánh sigmoid, tanh, ReLU, leaky ReLU và khi nào nên chọn hàm nào. Nên xem đầu tiên.
+  - url: https://www.youtube.com/watch?v=P7_jFxTtJEo
+    tieu_de: Derivatives Of Activation Functions (C1W3L08)
+    tac_gia: DeepLearningAI (Andrew Ng)
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Tính đạo hàm của từng hàm kích hoạt, khớp với phần công thức trong bài này.
+  - url: https://www.youtube.com/watch?v=68BZ5f7P94E
+    tieu_de: "Neural Networks Pt. 3: ReLU In Action!!!"
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Tính tay từng bước xem ReLU uốn các đường thẳng thành đường gấp khúc để khớp dữ liệu. Xem trước khi học Mạng nhiều lớp.
+---
+
+import HamKichHoat from '../../src/viz/HamKichHoat.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Vì sao cần hàm kích hoạt?
+
+Ở bài [Perceptron](/khai-niem/perceptron), mỗi neuron tính $z = \mathbf{w} \cdot \mathbf{x} + b$ rồi qua hàm bậc thang. Hàm bậc thang có hai vấn đề:
+
+1. Nó **phẳng** ở mọi nơi (đạo hàm bằng 0), nên [gradient descent](/khai-niem/gradient-descent) không biết nên chỉnh trọng số theo hướng nào.
+2. Nó nhảy đột ngột, không cho biết "gần đúng" hay "sai xa".
+
+Giải pháp là thay nó bằng một hàm **mượt** nhưng vẫn **phi tuyến** (nonlinear). Hàm đó gọi là **hàm kích hoạt** (activation function):
+
+$$
+z = \mathbf{w} \cdot \mathbf{x} + b, \qquad a = f(z)
+$$
+
+Tại sao phải phi tuyến? Giả sử bỏ $f$ đi, ghép hai lớp tuyến tính: $W_2(W_1 \mathbf{x} + \mathbf{b}_1) + \mathbf{b}_2 = (W_2 W_1)\mathbf{x} + (W_2 \mathbf{b}_1 + \mathbf{b}_2)$. Kết quả **vẫn chỉ là một lớp tuyến tính**. Chồng 100 lớp cũng vậy. Hàm kích hoạt phi tuyến chen giữa các lớp là thứ ngăn chúng "gộp" lại thành một.
+
+<CauHoi cau="ham-kich-hoat/q6" />
+
+## Ba hàm phổ biến
+
+### Sigmoid
+
+$$
+\sigma(x) = \frac{1}{1 + e^{-x}}, \qquad \sigma'(x) = \sigma(x)\,\big(1 - \sigma(x)\big)
+$$
+
+- Ép mọi số thực về khoảng $(0, 1)$, nên hay dùng khi cần một **xác suất** (như trong hồi quy logistic).
+- Đạo hàm lớn nhất tại $x = 0$: $\sigma'(0) = 0.5 \times 0.5 = 0.25$.
+
+### Tanh
+
+$$
+\tanh(x) = \frac{e^{x} - e^{-x}}{e^{x} + e^{-x}}, \qquad \tanh'(x) = 1 - \tanh^2(x)
+$$
+
+- Hình dạng giống sigmoid nhưng ra khoảng $(-1, 1)$ và **đối xứng quanh 0**.
+- Đạo hàm lớn nhất $\tanh'(0) = 1$, gấp 4 lần sigmoid.
+
+### ReLU
+
+$$
+\text{ReLU}(x) = \max(0, x), \qquad \text{ReLU}'(x) = \begin{cases} 1 & x > 0 \\ 0 & x < 0 \end{cases}
+$$
+
+- **ReLU** (Rectified Linear Unit) cực rẻ để tính: chỉ là so sánh với 0.
+- Tại đúng $x = 0$ đạo hàm không xác định; trong code người ta quy ước lấy 0 (hoặc 1), không ảnh hưởng thực tế.
+- Là lựa chọn mặc định cho lớp ẩn trong hầu hết mạng hiện đại.
+
+## Tính tay vài giá trị
+
+| $x$ | $\sigma(x)$ | $\sigma'(x)$ | $\tanh(x)$ | $\tanh'(x)$ | ReLU | ReLU′ |
+|---|---|---|---|---|---|---|
+| −2 | 0.1192 | 0.1050 | −0.9640 | 0.0707 | 0 | 0 |
+| 0 | 0.5 | 0.25 | 0 | 1 | 0 | 0* |
+| 2 | 0.8808 | 0.1050 | 0.9640 | 0.0707 | 2 | 1 |
+| 5 | 0.9933 | 0.0066 | 0.9999 | 0.0002 | 5 | 1 |
+
+(*) quy ước.
+
+Nhìn cột đạo hàm: khi $|x|$ lớn, sigmoid và tanh gần như **phẳng lì**, đạo hàm tiến về 0. Hiện tượng này gọi là **bão hoà** (saturation). Còn ReLU giữ đạo hàm bằng 1 với mọi $x > 0$, dù lớn cỡ nào.
+
+<CauHoi cau="ham-kich-hoat/q9" />
+
+## Tự thử: đoán trước, rồi chạy
+
+Nét liền là hàm, nét đứt đỏ là đạo hàm, đoạn xanh là tiếp tuyến tại điểm đang xét (độ dốc của nó chính là đạo hàm).
+
+<HamKichHoat
+  client:visible
+  ham="sigmoid"
+  x={6}
+  duDoan={{
+    de: "Sigmoid tại x = 6 cho giá trị ≈ 0.9975, rất gần 1. Đạo hàm tại đó gần với số nào?",
+    lua_chon: ["≈ 1, vì hàm đã gần 1", "≈ 0.25, như tại x = 0", "≈ 0.0025, gần như bằng 0"],
+    dap_an: 2,
+    giai_thich: "σ′(6) = σ(6)(1 − σ(6)) ≈ 0.9975 × 0.0025 ≈ 0.0025. Đường cong đã nằm ngang (bão hoà), nên chỉnh trọng số một chút cũng gần như không làm đầu ra đổi: tín hiệu học rất yếu."
+  }}
+/>
+
+<HamKichHoat
+  client:visible
+  ham="relu"
+  x={-4}
+  duDoan={{
+    de: "ReLU tại x = −4. Đạo hàm bằng bao nhiêu?",
+    lua_chon: ["0", "1", "−1"],
+    dap_an: 0,
+    giai_thich: "Với x < 0, ReLU luôn bằng 0 nên đạo hàm bằng 0. Nếu một neuron ReLU nhận z < 0 với MỌI dữ liệu, nó không bao giờ nhận được tín hiệu học để thoát ra: gọi là neuron chết (dying ReLU)."
+  }}
+/>
+
+Bảng tự do: đổi hàm và kéo $x$. Thử so sánh độ cao đỉnh của đường đạo hàm giữa sigmoid (0.25) và tanh (1).
+
+<HamKichHoat client:visible />
+
+## Bão hoà thì sao?
+
+Khi huấn luyện mạng nhiều lớp, tín hiệu học đi ngược từ lớp cuối về lớp đầu và bị **nhân** với đạo hàm của hàm kích hoạt ở mỗi lớp (cơ chế này là nội dung bài Lan truyền ngược). Với sigmoid, mỗi lần nhân với một số không quá 0.25. Qua 5 lớp, tối đa còn $0.25^5 \approx 0.001$. Tín hiệu teo dần gần về 0: đây là hiện tượng **vanishing gradient**, khiến các lớp đầu học rất chậm. ReLU giảm nhẹ vấn đề này vì đạo hàm bằng 1 ở phía dương.
+
+## Chọn hàm nào?
+
+| Vị trí | Gợi ý cho người mới |
+|---|---|
+| Lớp ẩn | ReLU (mặc định). Tanh nếu cần đầu ra đối xứng quanh 0 |
+| Lớp ra, phân loại 2 lớp | Sigmoid (ra xác suất) |
+| Lớp ra, hồi quy | Không dùng hàm kích hoạt (để nguyên $z$) |
+
+Ngoài ra còn các biến thể như Leaky ReLU (cho phía âm một độ dốc nhỏ để tránh neuron chết), GELU, và softmax cho phân loại nhiều lớp (bài Softmax).
+
+## Lưu ý khi code sigmoid
+
+Viết thẳng `1 / (1 + np.exp(-x))` sẽ gặp rắc rối khi `x = -1000`: `np.exp(1000)` tràn số thành `inf` và numpy phát cảnh báo overflow. Cách ổn định là tách hai nhánh:
+
+- $x \ge 0$: dùng $\dfrac{1}{1 + e^{-x}}$ (lúc này $e^{-x} \le 1$, không tràn)
+- $x < 0$: dùng dạng tương đương $\dfrac{e^{x}}{1 + e^{x}}$ (lúc này $e^{x} < 1$)
+
+Bạn sẽ tự cài cách này trong bài code bên dưới.
+
+## Tóm tắt
+
+- Hàm kích hoạt phi tuyến là thứ giúp mạng nhiều lớp không sụp về một lớp tuyến tính.
+- Sigmoid: $(0, 1)$, đạo hàm $\le 0.25$. Tanh: $(-1, 1)$, đạo hàm $\le 1$. Cả hai bão hoà khi $|x|$ lớn.
+- ReLU $= \max(0, x)$: đạo hàm 1 khi $x > 0$, 0 khi $x < 0$; mặc định cho lớp ẩn.
+- Tiếp theo: [Mạng nhiều lớp (MLP)](/khai-niem/mlp).

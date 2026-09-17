@@ -1,0 +1,188 @@
+---
+ten_vi: "Đạo hàm & ý nghĩa độ dốc"
+ten_en: Derivative
+tang: 1
+thu_tu: 3
+tien_quyet: []
+trang_thai: nhap
+dinh_nghia: >-
+  Đạo hàm f′(x) là tốc độ thay đổi tức thời của f tại x: độ dốc của tiếp tuyến với đồ thị tại điểm đó.
+  Nó là giới hạn của [f(x + h) − f(x)] / h khi h tiến về 0.
+truc_giac: >-
+  Bạn lái xe và nhìn đồng hồ tốc độ. Quãng đường là hàm của thời gian, còn con số trên đồng hồ là đạo hàm:
+  nó cho biết ngay lúc này quãng đường đang tăng nhanh cỡ nào. Trên đồ thị, đó là độ dốc của đường cong
+  khi phóng to thật sát vào một điểm, tới mức đường cong trông như đường thẳng.
+hieu_nham:
+  - "Đạo hàm là một con số tại MỘT điểm, không phải độ dốc trung bình của cả đoạn. Độ dốc trung bình (cát tuyến) chỉ tiến gần tới đạo hàm khi khoảng cách h rất nhỏ."
+  - "f′(x) = 0 không có nghĩa chắc chắn là đáy. Có thể là đỉnh, đáy, hoặc một chỗ bằng phẳng như x³ tại x = 0."
+  - "Đạo hàm lớn không có nghĩa giá trị hàm lớn. f′ nói hàm đang thay đổi nhanh cỡ nào, không nói hàm đang cao hay thấp."
+  - "Dấu của đạo hàm quan trọng như độ lớn: f′ > 0 là hàm đang tăng, f′ < 0 là hàm đang giảm. Gradient descent dựa đúng vào dấu này để chọn chiều đi."
+y_chinh:
+  - "Đạo hàm f′(x) là độ dốc tiếp tuyến tại x, tức tốc độ thay đổi tức thời"
+  - "Nó là giới hạn của độ dốc cát tuyến [f(x + h) − f(x)] / h khi h → 0"
+  - "f′ > 0: hàm tăng; f′ < 0: hàm giảm; f′ = 0: chỗ bằng phẳng (đỉnh, đáy hoặc không phải cả hai)"
+  - "Gần một điểm, f(x + Δ) ≈ f(x) + f′(x)·Δ"
+  - "Máy tính có thể xấp xỉ đạo hàm bằng sai phân; sai phân trung tâm chính xác hơn sai phân tiến"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=9vKqVkMQHKk
+    tieu_de: The paradox of the derivative (Essence of calculus, chapter 2)
+    tac_gia: 3Blue1Brown
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Giải thích vì sao "tốc độ tức thời" nghe mâu thuẫn mà vẫn có nghĩa, bằng hình ảnh dx nhỏ dần. Nên xem đầu tiên.
+  - url: https://www.youtube.com/watch?v=N2PpRnFqnqY
+    tieu_de: Derivative as a concept
+    tac_gia: Khan Academy
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Ngắn, đi từ độ dốc đường thẳng tới độ dốc tiếp tuyến. Hợp với người chưa học giải tích.
+  - url: https://www.youtube.com/watch?v=S0_qX4VJhMQ
+    tieu_de: Derivative formulas through geometry (Essence of calculus, chapter 3)
+    tac_gia: 3Blue1Brown
+    loai: video
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Vì sao đạo hàm của x² là 2x, của x³ là 3x². Xem khi muốn hiểu các quy tắc thay vì chỉ nhớ.
+---
+
+import CatTuyenTiepTuyen from '../../src/viz/CatTuyenTiepTuyen.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Vì sao học máy cần đạo hàm?
+
+Huấn luyện mô hình là chỉnh tham số $w$ sao cho hàm mất mát $L(w)$ nhỏ đi. Muốn biết nên **tăng** hay **giảm** $w$, ta cần trả lời một câu hỏi rất cụ thể: *nếu nhích $w$ một chút, loss thay đổi thế nào?*
+
+Đạo hàm (derivative) chính là câu trả lời cho câu hỏi đó.
+
+## Từ độ dốc đường thẳng tới độ dốc đường cong
+
+Với đường thẳng, độ dốc dễ tính: đi ngang 1 đơn vị thì đi lên bao nhiêu. Đường $y = 3x + 1$ có độ dốc 3 ở mọi nơi.
+
+Đường cong thì khác: chỗ dốc, chỗ thoải. Muốn đo độ dốc **tại một điểm** $x$, ta làm thế này:
+
+1. Lấy thêm một điểm gần đó, cách một khoảng $h$: $x + h$.
+2. Nối hai điểm bằng một đường thẳng, gọi là **cát tuyến** (secant line). Độ dốc của nó là
+$$
+\frac{f(x + h) - f(x)}{h}
+$$
+3. Cho $h$ nhỏ dần. Cát tuyến xoay dần và áp sát vào **tiếp tuyến** (tangent line), đường thẳng chỉ "chạm" đồ thị tại $x$.
+
+Độ dốc của tiếp tuyến là **đạo hàm**:
+
+$$
+f'(x) = \lim_{h \to 0} \frac{f(x + h) - f(x)}{h}
+$$
+
+## Tính tay: $f(x) = x^2$ tại $x = 3$
+
+Ta có $f(3) = 9$. Thử các $h$ nhỏ dần:
+
+| $h$ | $f(3 + h)$ | Độ dốc cát tuyến $\frac{f(3+h) - 9}{h}$ |
+|---|---|---|
+| 1 | 16 | 7 |
+| 0.1 | 9.61 | 6.1 |
+| 0.01 | 9.0601 | 6.01 |
+| 0.001 | 9.006001 | 6.001 |
+
+Con số dồn về **6**. Thật vậy, khai triển ra: $\frac{(3+h)^2 - 9}{h} = \frac{6h + h^2}{h} = 6 + h$, và khi $h \to 0$ thì còn đúng 6. Làm y hệt với điểm $x$ bất kỳ sẽ được $f'(x) = 2x$.
+
+<CauHoi cau="dao-ham/q2" />
+
+## Tự thử: thu nhỏ h
+
+Đường **nét đứt** là cát tuyến, chấm mờ là điểm $x_0 + h$. Khi $h$ đủ nhỏ, tiếp tuyến (nét liền) hiện ra để bạn so sánh. **Đoán trước** rồi mới được thu nhỏ $h$.
+
+<CatTuyenTiepTuyen
+  client:visible
+  ham="parabol"
+  x0={1}
+  h={2}
+  duDoan={{
+    de: "f(x) = x², x₀ = 1. Lúc đầu h = 2, cát tuyến có độ dốc 4. Khi h thu dần về 0, độ dốc cát tuyến tiến tới đâu?",
+    lua_chon: ["Vẫn là 4", "Tiến tới 2", "Tiến tới 0", "Tăng mãi, không dừng"],
+    dap_an: 1,
+    giai_thich: "Độ dốc cát tuyến tại x₀ = 1 là [(1 + h)² − 1] / h = 2 + h. Khi h → 0 nó tiến tới 2, đúng bằng f′(1) = 2·1."
+  }}
+/>
+
+<CatTuyenTiepTuyen
+  client:visible
+  ham="bac3"
+  x0={1}
+  h={1.5}
+  duDoan={{
+    de: "f(x) = x³ − 3x, x₀ = 1. Lúc đầu cát tuyến dốc lên khá mạnh (độ dốc 6.75). Khi h → 0, tiếp tuyến tại x₀ = 1 trông thế nào?",
+    lua_chon: ["Dốc lên", "Dốc xuống", "Nằm ngang"],
+    dap_an: 2,
+    giai_thich: "Độ dốc cát tuyến là 3h + h², tiến về 0. Tại x = 1 hàm có một đáy cục bộ: f′(1) = 3·1² − 3 = 0, tiếp tuyến nằm ngang. Đây chính là loại điểm gradient descent tìm tới."
+  }}
+/>
+
+Bảng tự do, chỉnh gì cũng được:
+
+<CatTuyenTiepTuyen client:visible />
+
+## Dấu của đạo hàm nói gì
+
+- $f'(x) > 0$: đi sang phải thì hàm **tăng**.
+- $f'(x) < 0$: đi sang phải thì hàm **giảm**.
+- $f'(x) = 0$: tại đó đồ thị **bằng phẳng**. Có thể là đáy, đỉnh, hoặc không phải cả hai (ví dụ $x^3$ tại $x = 0$ bằng phẳng nhưng vẫn tăng tiếp).
+
+Độ lớn $|f'(x)|$ cho biết dốc cỡ nào: càng lớn thì nhích $x$ một chút, $f$ thay đổi càng nhiều.
+
+<CauHoi cau="dao-ham/q9" />
+
+## Vài quy tắc hay dùng
+
+Không cần tính giới hạn mỗi lần. Các quy tắc sau đủ cho phần lớn bài học ML ban đầu:
+
+| Hàm | Đạo hàm |
+|---|---|
+| hằng số $c$ | $0$ |
+| $x^n$ | $n x^{n-1}$ |
+| $e^x$ | $e^x$ |
+| $\ln x$ | $1/x$ |
+| $c \cdot f(x)$ | $c \cdot f'(x)$ |
+| $f(x) + g(x)$ | $f'(x) + g'(x)$ |
+
+Ví dụ: $L(w) = (w - 3)^2 = w^2 - 6w + 9$ nên $L'(w) = 2w - 6$. Tại $w = 1$: $L'(1) = -4 < 0$, loss đang giảm khi tăng $w$, vậy nên **tăng** $w$. Đó đúng là điều [gradient descent](/khai-niem/gradient-descent) làm.
+
+Hàm lồng nhau như $(3x + 1)^2$ cần thêm [quy tắc chuỗi](/khai-niem/chain-rule).
+
+## Đạo hàm là "xấp xỉ tuyến tính"
+
+Rất gần điểm $x$, đồ thị gần như trùng tiếp tuyến, nên:
+
+$$
+f(x + \Delta) \approx f(x) + f'(x) \cdot \Delta
+$$
+
+Với $f(x) = x^2$ tại $x = 3$, $\Delta = 0.1$: ước lượng $9 + 6 \times 0.1 = 9.6$, giá trị thật $3.1^2 = 9.61$. Sai số chỉ 0.01. Đây là lý do một bước gradient descent **nhỏ** thì đáng tin: trong vùng nhỏ, đạo hàm dự đoán đúng loss sẽ đi về đâu.
+
+## Để máy tính tự tính: đạo hàm số
+
+Khi không có công thức, ta dùng luôn định nghĩa với một $h$ nhỏ, gọi là **sai phân** (finite difference):
+
+- Sai phân tiến: $\dfrac{f(x + h) - f(x)}{h}$
+- Sai phân trung tâm: $\dfrac{f(x + h) - f(x - h)}{2h}$
+
+Sai phân trung tâm lấy hai điểm đối xứng quanh $x$, nên các sai lệch hai bên triệt tiêu bớt. Với $f(x) = x^3$ tại $x = 2$ (đạo hàm thật $= 12$) và $h = 0.1$:
+
+| Cách | Kết quả | Sai số |
+|---|---|---|
+| Sai phân tiến | 12.61 | 0.61 |
+| Sai phân trung tâm | 12.01 | 0.01 |
+
+Trong thực tế, đạo hàm số chạy chậm nên không dùng để huấn luyện, nhưng rất hữu ích để **kiểm tra** đạo hàm mình tính tay hoặc code có đúng không.
+
+<CauHoi cau="dao-ham/q7" />
+
+## Tóm tắt
+
+- Đạo hàm $f'(x)$ là độ dốc tiếp tuyến tại $x$, giới hạn của độ dốc cát tuyến khi $h \to 0$.
+- Dấu cho biết hàm tăng hay giảm; độ lớn cho biết thay đổi nhanh cỡ nào.
+- Gần một điểm: $f(x + \Delta) \approx f(x) + f'(x)\Delta$.
+- Sai phân trung tâm là cách xấp xỉ đạo hàm đơn giản và khá chính xác.
+- Tiếp theo: [đạo hàm riêng & gradient](/khai-niem/dao-ham-rieng-gradient) (hàm nhiều biến), [quy tắc chuỗi](/khai-niem/chain-rule) (hàm lồng nhau).

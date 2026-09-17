@@ -1,0 +1,189 @@
+---
+ten_vi: Hồi quy tuyến tính
+ten_en: Linear Regression
+tang: 2
+thu_tu: 10
+tien_quyet: [nhan-ma-tran, ml-la-gi]
+trang_thai: nhap
+dinh_nghia: >-
+  Mô hình dự đoán một con số (giá nhà, nhiệt độ, doanh thu) bằng tổng có trọng số của các đặc trưng
+  cộng thêm một hằng số: ŷ = w₁x₁ + w₂x₂ + … + b. Huấn luyện là tìm các trọng số w và hệ số chặn b
+  sao cho dự đoán lệch với giá trị thật ít nhất (thường đo bằng MSE).
+truc_giac: >-
+  Bạn có một đám điểm trên giấy và một cây thước. Đặt thước sao cho nó "chui" qua giữa đám điểm,
+  càng sát càng tốt. Xoay thước là đổi độ dốc w, trượt thước lên xuống là đổi hệ số chặn b.
+  Hồi quy tuyến tính là cách chọn vị trí đặt thước một cách có quy tắc.
+hieu_nham:
+  - "Đường khớp tốt nhất không nhất thiết đi qua điểm dữ liệu nào cả. Nó chỉ làm tổng bình phương sai số nhỏ nhất."
+  - "\"Tuyến tính\" là tuyến tính theo tham số w, b, không phải theo x. ŷ = w₁x + w₂x² + b vẫn là hồi quy tuyến tính."
+  - "Một điểm ngoại lai có thể kéo lệch cả đường thẳng, nhất là khi nó nằm xa về một phía theo trục x."
+  - "Hồi quy tuyến tính dự đoán một số liên tục. Bài toán chọn nhãn (spam hay không) là phân loại, cần mô hình khác như hồi quy logistic."
+y_chinh:
+  - "Mô hình: ŷ = wx + b với một đặc trưng, hoặc ŷ = X·w + b dạng vector hoá với nhiều đặc trưng"
+  - "w là độ dốc (x tăng 1 thì ŷ tăng w), b là giá trị dự đoán khi mọi x bằng 0"
+  - "Sai số của mỗi điểm là y − ŷ; mục tiêu là chọn w, b để MSE (trung bình bình phương sai số) nhỏ nhất"
+  - "Tìm w, b bằng nghiệm đóng (công thức trực tiếp) hoặc bằng gradient descent"
+  - "Với X có shape (n, d): w có shape (d,), ŷ có shape (n,), tổng cộng d + 1 tham số"
+  - Điểm ngoại lai kéo lệch đường thẳng vì sai số bị bình phương
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=CtsRRUddV2s
+    tieu_de: Linear Regression in 2 minutes
+    tac_gia: Visually Explained
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Rất ngắn, hình ảnh gọn. Xem đầu tiên để có bức tranh tổng thể.
+  - url: https://www.youtube.com/watch?v=nk2CQITm_eo
+    tieu_de: Linear Regression, Clearly Explained!!!
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Giải thích chậm và kỹ cách khớp đường thẳng bằng bình phương nhỏ nhất, kèm R² và p-value (phần sau có thể lướt qua).
+  - url: https://www.youtube.com/watch?v=5u4G23_OohI
+    tieu_de: Lecture 2 | Machine Learning (Stanford)
+    tac_gia: Andrew Ng (Stanford)
+    loai: video
+    muc_do: toan_nang
+    ngon_ngu: en
+    ghi_chu: Bài giảng CS229 gốc, dài hơn 1 giờ, dẫn dắt từ hồi quy tuyến tính tới gradient descent và nghiệm đóng (normal equation) bằng ma trận.
+---
+
+import HoiQuyTuyenTinh from '../../src/viz/HoiQuyTuyenTinh.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Bài toán: đoán một con số
+
+Bạn muốn đoán giá một căn nhà từ diện tích. Trong tay có vài căn đã bán: biết diện tích $x$ và giá thật $y$. Nhìn lên đồ thị, các điểm xếp gần như thành một đường xiên lên: nhà càng rộng càng đắt.
+
+Ý tưởng đơn giản nhất: vẽ một **đường thẳng** đi xuyên qua đám điểm, rồi dùng nó để đoán giá cho căn nhà mới. Đó là **hồi quy tuyến tính** (linear regression). "Hồi quy" nghĩa là dự đoán một giá trị số liên tục, khác với **phân loại** (classification) là chọn một nhãn.
+
+## Mô hình: một đường thẳng
+
+$$
+\hat{y} = w x + b
+$$
+
+- $\hat{y}$ (đọc là "y mũ"): giá trị mô hình **dự đoán**, để phân biệt với $y$ là giá trị thật
+- $w$ (weight, trọng số): **độ dốc**. $x$ tăng 1 đơn vị thì $\hat{y}$ tăng $w$ đơn vị
+- $b$ (bias, hệ số chặn): giá trị $\hat{y}$ khi $x = 0$, tức là trượt cả đường thẳng lên hoặc xuống
+
+Ví dụ: giá (tỷ đồng) $= 0.05 \times$ diện tích (m²) $+ 0.5$. Căn nhà 60 m² được đoán giá $0.05 \times 60 + 0.5 = 3.5$ tỷ.
+
+<CauHoi cau="hoi-quy-tuyen-tinh/q2" />
+
+## Thế nào là "khớp tốt"?
+
+Với mỗi điểm dữ liệu, khoảng cách theo chiều dọc giữa giá trị thật và đường thẳng gọi là **sai số** (residual):
+
+$$
+e_i = y_i - \hat{y}_i
+$$
+
+Đường tốt thì các sai số nhỏ. Để gom tất cả thành một con số, ta lấy **trung bình bình phương sai số** (Mean Squared Error, MSE):
+
+$$
+\text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2
+$$
+
+Vì sao phải bình phương, và có lựa chọn nào khác, xem bài [Hàm mất mát](/khai-niem/ham-mat-mat). Ở đây chỉ cần nhớ: **huấn luyện = tìm $w$, $b$ làm MSE nhỏ nhất**.
+
+## Tự thử: đặt cây thước
+
+Kéo hai thanh trượt để xoay ($w$) và trượt ($b$) đường thẳng. Các đoạn đỏ là sai số của từng điểm. Thử tự tìm đường có MSE nhỏ nhất trước khi bấm **Khớp tốt nhất**.
+
+<HoiQuyTuyenTinh client:visible />
+
+Giờ đến phần đoán trước. Đường đang vẽ là đường khớp tốt nhất cho 6 điểm ($\hat{y} = x + 1$). Bấm **Chạy** sẽ thêm một điểm lạ rồi khớp lại.
+
+<HoiQuyTuyenTinh
+  client:visible
+  them={[3.5, 8.5]}
+  duDoan={{
+    de: "Thêm một điểm ngoại lai nằm cao hẳn lên, ở ĐÚNG GIỮA theo trục x (x = 3.5, y = 8.5). Đường khớp tốt nhất mới sẽ thế nào?",
+    lua_chon: ["Dịch song song lên trên, độ dốc giữ nguyên", "Nghiêng hẳn đi, độ dốc thay đổi rõ", "Không thay đổi gì vì chỉ có 1 điểm"],
+    dap_an: 0,
+    giai_thich: "Điểm nằm đúng giữa theo x nên không kéo đầu nào của đường lên nhiều hơn đầu kia: độ dốc vẫn là 1.00, chỉ b tăng từ 1.00 lên 1.57. Nhưng MSE nhỏ nhất vọt từ 0.127 lên 2.068, vì một sai số lớn bình phương lên rất lớn."
+  }}
+/>
+
+<HoiQuyTuyenTinh
+  client:visible
+  them={[7.5, 1]}
+  duDoan={{
+    de: "Lần này điểm ngoại lai nằm THẤP và XA VỀ BÊN PHẢI (x = 7.5, y = 1). Đường khớp tốt nhất mới sẽ thế nào?",
+    lua_chon: ["Dịch song song xuống dưới", "Bị kéo nghiêng: độ dốc giảm mạnh", "Gần như không đổi vì 6 điểm kia vẫn thẳng hàng"],
+    dap_an: 1,
+    giai_thich: "Điểm nằm xa về một phía giống như một cánh tay đòn dài: nó ghì đầu phải của đường xuống. Độ dốc tụt từ 1.00 còn khoảng 0.18, b tăng lên 3.28. Chỉ một điểm mà làm đường thẳng gần như nằm ngang."
+  }}
+/>
+
+## Nhiều đặc trưng: viết dạng vector
+
+Giá nhà không chỉ phụ thuộc diện tích mà còn số phòng, khoảng cách tới trung tâm… Với $d$ đặc trưng:
+
+$$
+\hat{y} = w_1 x_1 + w_2 x_2 + \dots + w_d x_d + b = \mathbf{x} \cdot \mathbf{w} + b
+$$
+
+Khi có $n$ căn nhà, xếp dữ liệu thành ma trận $X$ gồm $n$ hàng (mỗi hàng một căn), $d$ cột (mỗi cột một đặc trưng). Dự đoán cho **tất cả** các căn cùng lúc chỉ là một phép nhân ma trận (xem bài Nhân ma trận):
+
+$$
+\hat{\mathbf{y}} = X \mathbf{w} + b
+$$
+
+| Đại lượng | Shape |
+|---|---|
+| $X$ | $(n, d)$ |
+| $\mathbf{w}$ | $(d,)$ |
+| $b$ | một số, được cộng vào từng phần tử |
+| $\hat{\mathbf{y}} = X\mathbf{w} + b$ | $(n,)$ |
+
+Trong numpy viết đúng một dòng: `y_hat = X @ w + b`. Không cần vòng lặp.
+
+<CauHoi cau="hoi-quy-tuyen-tinh/q4" />
+
+## Tìm w, b: hai con đường
+
+**Cách 1: gradient descent.** Bắt đầu từ $w, b$ bất kỳ, lặp lại việc nhích chúng theo hướng làm MSE giảm. Cách này dùng được cho mọi mô hình, kể cả mạng neuron. Xem bài [Gradient Descent](/khai-niem/gradient-descent) (ở đó có cả bài code hồi quy bằng gradient descent).
+
+**Cách 2: nghiệm đóng** (closed-form solution). Riêng hồi quy tuyến tính với MSE có công thức tính thẳng ra đáp án. Với một đặc trưng:
+
+$$
+w = \frac{\sum (x_i - \bar{x})(y_i - \bar{y})}{\sum (x_i - \bar{x})^2}
+\qquad
+b = \bar{y} - w \bar{x}
+$$
+
+trong đó $\bar{x}$, $\bar{y}$ là trung bình của $x$ và $y$. Công thức của $b$ cho thấy một điều thú vị: đường khớp tốt nhất **luôn đi qua điểm trung bình** $(\bar{x}, \bar{y})$.
+
+### Tính tay
+
+Dữ liệu 3 điểm: $x = [1, 2, 3]$, $y = [2, 2, 5]$. Ta có $\bar{x} = 2$, $\bar{y} = 3$.
+
+| $x_i$ | $y_i$ | $x_i - \bar{x}$ | $y_i - \bar{y}$ | tích | $(x_i - \bar{x})^2$ |
+|---|---|---|---|---|---|
+| 1 | 2 | −1 | −1 | 1 | 1 |
+| 2 | 2 | 0 | −1 | 0 | 0 |
+| 3 | 5 | 1 | 2 | 2 | 1 |
+| | | | **Tổng** | **3** | **2** |
+
+Vậy $w = 3 / 2 = 1.5$ và $b = 3 - 1.5 \times 2 = 0$. Đường $\hat{y} = 1.5x$ dự đoán $[1.5, 3, 4.5]$, sai số $[0.5, -1, 0.5]$, MSE $= (0.25 + 1 + 0.25)/3 = 0.5$. Không đường thẳng nào khác cho MSE nhỏ hơn 0.5 trên 3 điểm này.
+
+Với nhiều đặc trưng, công thức tổng quát (normal equation) là $\mathbf{w} = (X^\top X)^{-1} X^\top \mathbf{y}$ (khi đã gộp $b$ vào bằng cách thêm một cột toàn số 1 vào $X$). Bạn sẽ tự cài nó trong bài code bên dưới.
+
+<CauHoi cau="hoi-quy-tuyen-tinh/q6" />
+
+Vậy sao không luôn dùng nghiệm đóng? Vì nó chỉ có cho vài mô hình đơn giản, và với hàng triệu đặc trưng thì tính ma trận nghịch đảo quá tốn. Gradient descent chậm hơn một chút nhưng dùng được ở mọi nơi.
+
+## "Tuyến tính" theo cái gì?
+
+Tuyến tính là theo **tham số** $w, b$, không phải theo $x$. Mô hình $\hat{y} = w_1 x + w_2 x^2 + b$ vẽ ra một đường cong, nhưng vẫn là hồi quy tuyến tính: chỉ cần coi $x^2$ là một đặc trưng mới. Ngược lại $\hat{y} = e^{wx}$ thì không, vì $w$ nằm trong hàm mũ.
+
+## Tóm tắt
+
+- Hồi quy tuyến tính dự đoán một số: $\hat{y} = X\mathbf{w} + b$.
+- $w$ là độ dốc, $b$ là hệ số chặn; với $d$ đặc trưng có $d + 1$ tham số.
+- Huấn luyện là tìm $w, b$ làm MSE nhỏ nhất, bằng nghiệm đóng hoặc gradient descent.
+- Điểm ngoại lai, nhất là điểm nằm xa theo trục $x$, có thể kéo lệch cả đường.
+- Tiếp theo: [Hàm mất mát](/khai-niem/ham-mat-mat), rồi [Gradient Descent](/khai-niem/gradient-descent).

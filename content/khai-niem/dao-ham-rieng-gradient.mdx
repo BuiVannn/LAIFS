@@ -1,0 +1,172 @@
+---
+ten_vi: "Đạo hàm riêng & gradient"
+ten_en: Partial derivative & gradient
+tang: 1
+thu_tu: 4
+tien_quyet: ["dao-ham"]
+trang_thai: nhap
+dinh_nghia: >-
+  Với hàm nhiều biến, đạo hàm riêng ∂f/∂x là đạo hàm theo x khi giữ nguyên mọi biến khác.
+  Gradient ∇f là vector gom tất cả đạo hàm riêng; nó chỉ hướng làm f tăng nhanh nhất.
+truc_giac: >-
+  Bạn đứng trên sườn đồi. Đạo hàm riêng theo x là độ dốc nếu chỉ bước về hướng đông, theo y là độ dốc
+  nếu chỉ bước về hướng bắc. Gộp hai con số đó thành một mũi tên, ta được gradient: mũi tên chỉ đường
+  lên dốc gắt nhất ngay dưới chân bạn.
+hieu_nham:
+  - "Gradient chỉ hướng f TĂNG nhanh nhất, không phải hướng giảm. Muốn giảm loss phải đi theo −∇f."
+  - "Gradient không chỉ thẳng về điểm cực tiểu. Nó chỉ nhìn độ dốc tại chỗ, nên với hàm hình elip nó thường lệch khỏi hướng về tâm."
+  - "Khi tính ∂f/∂x, các biến khác được coi là HẰNG SỐ, không phải bằng 0. Ví dụ ∂(x²y)/∂x = 2xy, không phải 0."
+  - "Gradient có cùng shape với tham số: tham số là ma trận 3×4 thì gradient cũng là ma trận 3×4, không phải một con số."
+y_chinh:
+  - "Đạo hàm riêng: đạo hàm theo một biến, giữ các biến khác là hằng số"
+  - "Gradient ∇f gom mọi đạo hàm riêng thành một vector (hoặc mảng) cùng shape với đầu vào"
+  - "∇f chỉ hướng f tăng nhanh nhất; −∇f là hướng giảm nhanh nhất, dùng trong gradient descent"
+  - "Tại cực tiểu (hoặc cực đại) của hàm mượt, gradient bằng vector 0"
+  - "Gần một điểm, f(x + Δ) ≈ f(x) + ∇f · Δ"
+  - "Có thể kiểm tra gradient bằng cách nhích từng biến một chút (gradient số)"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=AXqhWeUEtQU
+    tieu_de: Partial derivatives, introduction
+    tac_gia: Khan Academy
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Giải thích đạo hàm riêng bằng hình ảnh lát cắt đồ thị 3D. Nên xem đầu tiên.
+  - url: https://www.youtube.com/watch?v=tIpKfDc295M
+    tieu_de: Gradient
+    tac_gia: Khan Academy
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Cách gom các đạo hàm riêng thành vector gradient, kèm ví dụ tính tay.
+  - url: https://www.youtube.com/watch?v=_-02ze7tf08
+    tieu_de: Gradient and graphs
+    tac_gia: Khan Academy
+    loai: video
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Vì sao gradient chỉ hướng dốc lên nhanh nhất, nhìn trên đồ thị. Xem sau hai video trên.
+---
+
+import GradientDuongDongMuc from '../../src/viz/GradientDuongDongMuc.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Mô hình có nhiều tham số
+
+Ở bài [đạo hàm](/khai-niem/dao-ham), hàm chỉ có một biến. Nhưng mô hình thật có nhiều tham số: hồi quy tuyến tính đơn giản nhất đã có $w$ và $b$, mạng neuron có hàng triệu. Hàm mất mát là $L(w_1, w_2, \dots)$.
+
+Câu hỏi vẫn như cũ: *nhích từng tham số một chút thì loss đổi thế nào?* Chỉ khác là giờ phải hỏi cho **từng** tham số.
+
+## Đạo hàm riêng: nhích một biến, giữ nguyên phần còn lại
+
+**Đạo hàm riêng** (partial derivative) của $f$ theo $x$, viết $\frac{\partial f}{\partial x}$, là đạo hàm theo $x$ khi coi mọi biến khác là **hằng số**.
+
+Lấy $f(x, y) = x^2 + 3y^2$:
+
+- Theo $x$: coi $3y^2$ là hằng số, đạo hàm của nó bằng 0. Vậy $\frac{\partial f}{\partial x} = 2x$.
+- Theo $y$: coi $x^2$ là hằng số. Vậy $\frac{\partial f}{\partial y} = 6y$.
+
+Một ví dụ mà biến "hằng số" không biến mất: $g(x, y) = x^2 y + y$.
+
+- $\frac{\partial g}{\partial x} = 2xy$ (coi $y$ như một hệ số, giống đạo hàm của $5x^2$ là $10x$)
+- $\frac{\partial g}{\partial y} = x^2 + 1$ (coi $x^2$ như một hệ số)
+
+Tại $(1, 2)$: $\frac{\partial g}{\partial x} = 4$, $\frac{\partial g}{\partial y} = 2$.
+
+<CauHoi cau="dao-ham-rieng-gradient/q1" />
+
+## Gradient: gom lại thành một vector
+
+**Gradient** (đọc "nabla f") xếp mọi đạo hàm riêng thành một vector:
+
+$$
+\nabla f = \left( \frac{\partial f}{\partial x}, \frac{\partial f}{\partial y} \right)
+$$
+
+Với $f(x, y) = x^2 + 3y^2$ thì $\nabla f = (2x, 6y)$. Tại điểm $(1, 2)$: $f = 13$ và $\nabla f = (2, 12)$.
+
+Đọc con số này thế nào? Tại $(1, 2)$, $f$ nhạy với $y$ gấp 6 lần so với $x$: nhích $y$ một chút thì $f$ đổi nhiều hơn hẳn.
+
+### Shape của gradient
+
+Gradient luôn có **cùng shape với đầu vào**, vì mỗi phần tử đầu vào có đúng một đạo hàm riêng:
+
+| Tham số | Shape tham số | Shape gradient |
+|---|---|---|
+| $(x, y)$ | 2 số | 2 số |
+| vector $\mathbf{w}$ gồm 5 số | $(5,)$ | $(5,)$ |
+| ma trận trọng số $W$ | $(3, 4)$ | $(3, 4)$ |
+
+Loss luôn là **một con số**, nhưng gradient của nó theo $W$ là cả một ma trận: mỗi ô cho biết trọng số tương ứng nên nhích lên hay xuống.
+
+<CauHoi cau="dao-ham-rieng-gradient/q4" />
+
+## Gradient chỉ hướng dốc lên nhanh nhất
+
+Trên mặt phẳng $(x, y)$, vẽ các **đường đồng mức** (contour lines): mỗi đường nối các điểm có cùng giá trị $f$, giống đường đồng mức trên bản đồ địa hình. Với $f = x^2 + 3y^2$, đó là các elip.
+
+Tại mỗi điểm, mũi tên $\nabla f$:
+
+- chỉ hướng $f$ **tăng nhanh nhất**,
+- vuông góc với đường đồng mức đi qua điểm đó,
+- dài hơn ở chỗ dốc (các đường đồng mức sát nhau).
+
+Vì vậy [gradient descent](/khai-niem/gradient-descent) đi theo $-\nabla f$.
+
+<GradientDuongDongMuc
+  client:visible
+  ham="elip"
+  x={2}
+  y={1}
+  duDoan={{
+    de: "f(x, y) = x² + 3y², đang ở điểm (2, 1). Mũi tên −∇f (hướng gradient descent đi) chỉ về đâu?",
+    lua_chon: ["Thẳng về tâm (0, 0)", "Về phía tâm nhưng lệch: giảm y nhiều hơn giảm x", "Dọc theo đường đồng mức"],
+    dap_an: 1,
+    giai_thich: "∇f = (2·2, 6·1) = (4, 6), nên −∇f = (−4, −6). Hướng thẳng về tâm là (−2, −1), còn −∇f nghiêng hẳn về phía giảm y vì f nhạy với y hơn. Gradient chỉ nhìn độ dốc tại chỗ, không 'biết' tâm ở đâu."
+  }}
+/>
+
+Bảng tự do: kéo điểm tới nhiều vị trí, đổi sang hàm tròn $x^2 + y^2$ để thấy khi nào gradient chỉ thẳng về tâm.
+
+<GradientDuongDongMuc client:visible />
+
+## Xấp xỉ tuyến tính và một bước gradient descent
+
+Giống bản một biến, gần một điểm:
+
+$$
+f(\mathbf{x} + \boldsymbol{\Delta}) \approx f(\mathbf{x}) + \nabla f \cdot \boldsymbol{\Delta}
+$$
+
+trong đó $\cdot$ là tích vô hướng: nhân từng cặp rồi cộng lại.
+
+Tính tay với $f = x^2 + 3y^2$ tại $(1, 2)$, nhích $\boldsymbol{\Delta} = (0.1, -0.1)$:
+
+| | Giá trị |
+|---|---|
+| $f(1, 2)$ | 13 |
+| $\nabla f \cdot \boldsymbol{\Delta} = 2 \times 0.1 + 12 \times (-0.1)$ | −1.0 |
+| Ước lượng $f(1.1, 1.9)$ | 12.0 |
+| Giá trị thật $1.1^2 + 3 \times 1.9^2$ | 12.04 |
+
+Một bước gradient descent với $\eta = 0.1$ từ $(1, 2)$: $(1, 2) - 0.1 \times (2, 12) = (0.8, 0.8)$. Cả hai biến cùng cập nhật một lúc, $y$ đi xa hơn vì dốc hơn.
+
+<CauHoi cau="dao-ham-rieng-gradient/q7" />
+
+## Gradient số: nhích từng biến
+
+Không chắc gradient tính tay có đúng? Nhích **từng biến một** bằng sai phân trung tâm, giữ các biến khác nguyên:
+
+$$
+\frac{\partial f}{\partial x_i} \approx \frac{f(\dots, x_i + h, \dots) - f(\dots, x_i - h, \dots)}{2h}
+$$
+
+Có $n$ biến thì cần $2n$ lần tính $f$. Với mạng triệu tham số, cách này quá chậm để huấn luyện (đó là lý do cần lan truyền ngược), nhưng rất tốt để **kiểm tra** code gradient trên bài toán nhỏ. Bài code bên dưới làm đúng việc này.
+
+## Tóm tắt
+
+- Đạo hàm riêng: đạo hàm theo một biến, các biến khác giữ làm hằng số.
+- Gradient gom mọi đạo hàm riêng, cùng shape với đầu vào.
+- $\nabla f$ chỉ hướng tăng nhanh nhất, vuông góc với đường đồng mức; gradient descent đi theo $-\nabla f$.
+- Gần một điểm: $f(\mathbf{x} + \boldsymbol{\Delta}) \approx f(\mathbf{x}) + \nabla f \cdot \boldsymbol{\Delta}$.
+- Tiếp theo: [quy tắc chuỗi](/khai-niem/chain-rule), cách tính đạo hàm của hàm lồng nhiều lớp.

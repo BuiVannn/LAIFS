@@ -1,0 +1,181 @@
+---
+ten_vi: "Lan truyền xuôi (forward pass)"
+ten_en: Forward propagation
+tang: 3
+thu_tu: 27
+tien_quyet: ["mlp", "nhan-ma-tran"]
+trang_thai: nhap
+dinh_nghia: >-
+  Quá trình đưa đầu vào qua mạng neuron theo thứ tự từ lớp đầu đến lớp cuối: mỗi lớp nhân
+  ma trận trọng số, cộng bias, áp hàm kích hoạt, rồi chuyển kết quả cho lớp sau, cho tới khi
+  ra dự đoán (và loss nếu đang huấn luyện).
+truc_giac: >-
+  Giống một dây chuyền: nguyên liệu (dữ liệu) đi qua từng trạm, mỗi trạm biến đổi một chút rồi
+  chuyển tiếp. Không trạm nào nhìn ngược lại. Trong lúc huấn luyện, ta ghi chép lại sản phẩm
+  trung gian ở mỗi trạm, vì lượt đi ngược (backprop) sẽ cần đến chúng.
+hieu_nham:
+  - "Lan truyền xuôi không làm thay đổi trọng số. Nó chỉ tính ra dự đoán; việc sửa trọng số là của lan truyền ngược và gradient descent."
+  - "Không phải tính từng mẫu dữ liệu một bằng vòng lặp: cả batch được tính cùng lúc bằng một phép nhân ma trận, mỗi hàng là một mẫu."
+  - "Ma trận trọng số W của một lớp có shape (số neuron của lớp đó, số đầu vào), không phải ngược lại. Viết z = Wx + b thì số hàng của W là số đầu ra."
+  - "Bỏ hàm kích hoạt thì xếp nhiều lớp cũng vô ích: tích của các phép tuyến tính vẫn chỉ là một phép tuyến tính."
+y_chinh:
+  - "Mỗi lớp làm hai việc: z = Wx + b (tổ hợp tuyến tính), rồi h = f(z) (hàm kích hoạt)"
+  - Đầu ra của lớp này là đầu vào của lớp sau; tính lần lượt từ đầu vào tới dự đoán
+  - "W có shape (số đầu ra, số đầu vào); với cả batch X shape (n, d) thì Z = X·Wᵀ + b có shape (n, số đầu ra)"
+  - "Khi huấn luyện, cuối lượt xuôi còn tính loss, và lưu lại x, z, h (cache) để dùng cho lượt ngược"
+  - Lượt xuôi chỉ tính toán, không thay đổi trọng số
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=aircAruvnKk
+    tieu_de: "But what is a neural network? | Deep learning chapter 1"
+    tac_gia: 3Blue1Brown
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Hình ảnh rất rõ về việc giá trị chảy qua từng lớp, và vì sao viết gọn được thành phép nhân ma trận. Nên xem đầu tiên.
+  - url: https://www.youtube.com/watch?v=CqOfi41LfDw
+    tieu_de: The Essential Main Ideas of Neural Networks
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Tính tay từng neuron trên một mạng rất nhỏ, chậm và dễ theo. Hợp với phần ví dụ tính tay trong bài.
+---
+
+import DoThiTinhToan from '../../src/viz/DoThiTinhToan.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Mạng neuron chỉ là một chuỗi phép tính
+
+Nghe "mạng neuron" thì có vẻ bí ẩn, nhưng khi mạng **dự đoán**, nó chỉ làm một việc rất bình thường: lấy các con số đầu vào, cộng nhân theo một trình tự cố định, rồi ra một con số đầu ra. Tính lần lượt từ đầu vào tới đầu ra như vậy gọi là **lan truyền xuôi** (forward propagation, hay forward pass).
+
+Bài này tính tay một lượt xuôi trên một mạng cực nhỏ. Bài sau, [Lan truyền ngược](/khai-niem/lan-truyen-nguoc), dùng lại **đúng mạng này và đúng các con số này**, nên hãy theo kỹ.
+
+## Một neuron làm gì?
+
+Một neuron nhận vài đầu vào $x_1, x_2, \dots$ và làm hai việc:
+
+1. **Tổ hợp tuyến tính:** nhân mỗi đầu vào với một trọng số (weight) rồi cộng thêm bias:
+   $$z = w_1 x_1 + w_2 x_2 + b$$
+2. **Áp hàm kích hoạt** (activation function). Bài này dùng sigmoid:
+   $$h = \sigma(z) = \frac{1}{1 + e^{-z}}$$
+
+Sigmoid ép mọi số thực vào khoảng $(0, 1)$. Hai giá trị nên nhớ: $\sigma(0) = 0.5$, và $\sigma(1) \approx 0.7311$.
+
+## Mạng mẫu: 2 đầu vào → 2 neuron ẩn → 1 đầu ra
+
+Mỗi đầu vào nối tới **cả hai** neuron ẩn, cả hai neuron ẩn nối tới **một** neuron đầu ra:
+
+$$
+(x_1, x_2) \;\longrightarrow\; (h_1, h_2) \;\longrightarrow\; \hat{y} \;\longrightarrow\; L = (\hat{y} - y)^2
+$$
+
+Các con số:
+
+| | Giá trị |
+|---|---|
+| Đầu vào | $x_1 = 1,\; x_2 = 2$ |
+| Đích (đáp án đúng) | $y = 1$ |
+| Neuron ẩn 1 | trọng số $(0.2,\; -0.1)$, bias $0$ |
+| Neuron ẩn 2 | trọng số $(0.5,\; 0.25)$, bias $0$ |
+| Đầu ra | trọng số $(1,\; -1)$ nhân với $(h_1, h_2)$, bias $0.5$, **không** có hàm kích hoạt |
+
+Hàm mất mát (loss function) là bình phương sai số $L = (\hat{y} - y)^2$, giống bài [Gradient Descent](/khai-niem/gradient-descent).
+
+## Tính tay từng bước
+
+**Lớp ẩn, neuron 1:**
+$$z_1 = 0.2 \cdot 1 + (-0.1) \cdot 2 + 0 = 0 \qquad h_1 = \sigma(0) = 0.5$$
+
+**Lớp ẩn, neuron 2:**
+$$z_2 = 0.5 \cdot 1 + 0.25 \cdot 2 + 0 = 1 \qquad h_2 = \sigma(1) \approx 0.7311$$
+
+**Lớp ra:** đầu vào của lớp này chính là $h_1, h_2$ vừa tính.
+$$\hat{y} = 1 \cdot h_1 + (-1) \cdot h_2 + 0.5 = 0.5 - 0.7311 + 0.5 = 0.2689$$
+
+**Loss:**
+$$L = (0.2689 - 1)^2 = (-0.73106)^2 \approx 0.5344$$
+
+(Các số làm tròn 4 chữ số; tính không làm tròn thì $L \approx 0.53445$.)
+
+Mạng đoán $0.2689$ trong khi đáp án là $1$: đoán thấp quá. Loss $0.5344$ đo độ sai đó. Muốn mạng đoán tốt hơn thì phải chỉnh trọng số, và câu hỏi "chỉnh trọng số nào, theo chiều nào" là việc của lượt ngược.
+
+<CauHoi cau="lan-truyen-xuoi/q3" />
+
+## Viết gọn bằng ma trận
+
+Hai neuron ẩn làm cùng một kiểu phép tính, chỉ khác trọng số. Xếp trọng số của mỗi neuron thành **một hàng** ta được ma trận:
+
+$$
+W_1 = \begin{pmatrix} 0.2 & -0.1 \\ 0.5 & 0.25 \end{pmatrix}, \quad
+\mathbf{b}_1 = \begin{pmatrix} 0 \\ 0 \end{pmatrix}, \quad
+W_2 = \begin{pmatrix} 1 & -1 \end{pmatrix}, \quad
+b_2 = 0.5
+$$
+
+Cả lượt xuôi gói lại trong ba dòng:
+
+$$
+\mathbf{z} = W_1 \mathbf{x} + \mathbf{b}_1 \qquad
+\mathbf{h} = \sigma(\mathbf{z}) \qquad
+\hat{y} = W_2 \mathbf{h} + b_2
+$$
+
+Trong đó $\sigma$ áp riêng cho **từng phần tử** của vector. Tự nhân $W_1 \mathbf{x}$ ra sẽ thấy hàng 1 cho $z_1 = 0$, hàng 2 cho $z_2 = 1$, khớp với phần tính tay.
+
+**Quy tắc shape:** $W$ của một lớp có shape **(số đầu ra, số đầu vào)**. $W_1$ biến 2 đầu vào thành 2 giá trị ẩn nên là $(2, 2)$; $W_2$ biến 2 giá trị ẩn thành 1 đầu ra nên là $(1, 2)$. Mạng 784 đầu vào, 128 neuron ẩn thì $W_1$ có shape $(128, 784)$.
+
+<CauHoi cau="lan-truyen-xuoi/q4" />
+
+## Cả batch cùng lúc
+
+Khi huấn luyện, ta không đưa từng mẫu một mà đưa cả **batch** (một lô) $n$ mẫu. Xếp mỗi mẫu thành một **hàng** của ma trận $X$ có shape $(n, d)$. Khi đó:
+
+$$
+Z = X W_1^{\top} + \mathbf{b}_1
+$$
+
+- $X W_1^{\top}$: $(n, d) \times (k, d)^{\top} = (n, d) \times (d, k) = (n, k)$ với $k$ là số neuron ẩn. Hàng $i$ của $Z$ là $\mathbf{z}$ của mẫu thứ $i$.
+- $\mathbf{b}_1$ shape $(k,)$ được **cộng vào mọi hàng** (numpy gọi là broadcasting).
+
+Trong numpy chỉ là `Z1 = X @ W1.T + b1`. Một dòng tính cho 1 mẫu hay 10 000 mẫu đều giống nhau, và nhanh hơn vòng lặp `for` rất nhiều.
+
+## Tự thử: đồ thị tính toán
+
+Để chuẩn bị cho lượt ngược, ta nhìn lượt xuôi theo cách khác: vẽ mỗi phép tính thành một **nút**, mũi tên nối kết quả của nút này vào nút sau. Hình vẽ đó gọi là **đồ thị tính toán** (computational graph). Dưới đây là đồ thị của **một** neuron sigmoid kèm loss:
+
+$$L = (\sigma(w \cdot x + b) - y)^2$$
+
+Đoán trước, rồi bấm "Bước tiếp" để tính từng nút từ trái sang phải.
+
+<DoThiTinhToan
+  client:visible
+  cheDo="xuoi"
+  w={0.5}
+  x={2}
+  b={-1}
+  y={1}
+  duDoan={{
+    de: "w = 0.5, x = 2, b = −1. Giá trị a sau nút σ bằng bao nhiêu?",
+    lua_chon: ["0", "0.5", "1", "Khoảng 0.73"],
+    dap_an: 1,
+    giai_thich: "m = 0.5 × 2 = 1, z = 1 + (−1) = 0, và σ(0) = 1/(1 + 1) = 0.5. Mỗi nút chỉ cần biết giá trị của các nút ngay trước nó."
+  }}
+/>
+
+Bảng tự do: kéo thanh trượt rồi chạy lại. Thử cho $z$ rất lớn (ví dụ $w = 3$, $x = 3$) để thấy $a$ dính sát 1.
+
+<DoThiTinhToan client:visible cheDo="xuoi" />
+
+## Nhớ lại những gì đã tính (cache)
+
+Nếu chỉ cần dự đoán, lượt xuôi xong là hết việc. Nhưng khi **huấn luyện**, ngay sau lượt xuôi là lượt ngược, và lượt ngược cần dùng lại các giá trị trung gian: $\mathbf{x}$, $\mathbf{z}$, $\mathbf{h}$. Vì vậy code thường trả về thêm một "cache" chứa chúng, thay vì tính lại lần nữa. Đây cũng là lý do huấn luyện tốn bộ nhớ hơn nhiều so với chỉ dự đoán.
+
+<CauHoi cau="lan-truyen-xuoi/q6" />
+
+## Tóm tắt
+
+- Lan truyền xuôi: tính lần lượt từng lớp, $\mathbf{z} = W\mathbf{x} + \mathbf{b}$ rồi $\mathbf{h} = \sigma(\mathbf{z})$, đầu ra lớp trước là đầu vào lớp sau.
+- $W$ có shape (số đầu ra, số đầu vào). Với batch: `Z = X @ W.T + b`, mỗi hàng một mẫu.
+- Mạng mẫu: $\mathbf{h} = (0.5,\; 0.7311)$, $\hat{y} = 0.2689$, $L \approx 0.5344$.
+- Khi huấn luyện, lưu lại $\mathbf{x}, \mathbf{z}, \mathbf{h}$ cho lượt ngược.
+- Tiếp theo: [Lan truyền ngược](/khai-niem/lan-truyen-nguoc), tìm xem mỗi trọng số nên chỉnh thế nào để $L$ giảm.

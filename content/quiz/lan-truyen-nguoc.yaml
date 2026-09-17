@@ -1,0 +1,105 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: Lan truyền ngược (backprop) làm ra cái gì?
+    lua_chon:
+      - Trọng số mới đã được cập nhật
+      - Gradient của loss theo từng tham số của mạng
+      - Dự đoán ŷ của mạng
+      - Learning rate phù hợp
+    dap_an: 1
+    giai_thich: "Backprop chỉ TÍNH gradient ∂L/∂(tham số). Dự đoán là việc của lượt xuôi; dùng gradient để cập nhật trọng số là việc của gradient descent."
+
+  - id: q2
+    loai: mot
+    do_kho: 1
+    de: "Mạng có lớp ẩn và lớp ra. Trong lượt ngược, gradient của lớp nào được tính trước, và vì sao?"
+    lua_chon:
+      - Lớp ẩn trước, vì nó nằm gần đầu vào
+      - Lớp ra trước, vì gradient của lớp ẩn cần dùng gradient chuyển về từ lớp ra
+      - Tính cùng lúc, thứ tự không quan trọng
+      - Lớp ra trước, vì lớp ra có ít tham số hơn
+    dap_an: 1
+    giai_thich: "Theo quy tắc chuỗi, ∂L/∂h (lớp ẩn) = ∂L/∂ŷ × ∂ŷ/∂h. Phải có gradient phía sau thì mới tính được gradient phía trước, nên đi ngược từ loss về đầu vào."
+
+  - id: q3
+    loai: so
+    do_kho: 2
+    de: "L = (w·x + b − y)² với w = 2, x = 3, b = 1, y = 4. Tính ∂L/∂w."
+    dap_an: 18
+    sai_so: 0.001
+    giai_thich: "Xuôi: w·x + b − y = 6 + 1 − 4 = 3. Ngược: ∂L/∂(sai số) = 2 × 3 = 6. Qua nút + chuyển nguyên: 6. Qua nút ×, nhân với đầu vào còn lại x = 3: ∂L/∂w = 6 × 3 = 18."
+
+  - id: q4
+    loai: so
+    do_kho: 1
+    de: "Một neuron sigmoid có đầu ra h = σ(z) = 0.8. Đạo hàm cục bộ σ′(z) bằng bao nhiêu?"
+    dap_an: 0.16
+    sai_so: 0.001
+    giai_thich: "σ′(z) = h(1 − h) = 0.8 × 0.2 = 0.16. Không cần biết z, chỉ cần h đã lưu từ lượt xuôi."
+
+  - id: q5
+    loai: mot
+    do_kho: 1
+    de: "Lớp ẩn có W₁ shape (4, 3). Gradient ∂L/∂W₁ có shape bao nhiêu?"
+    lua_chon:
+      - (3, 4)
+      - (4, 3)
+      - (4,)
+      - Tuỳ kích thước batch
+    dap_an: 1
+    giai_thich: "Mỗi số trong W₁ có đúng một đạo hàm riêng, nên gradient có cùng shape với tham số: (4, 3). Nhờ vậy mới viết được W₁ ← W₁ − η·∂L/∂W₁. Kích thước batch không ảnh hưởng vì gradient được cộng/trung bình trên các mẫu."
+
+  - id: q6
+    loai: so
+    do_kho: 3
+    de: "Mạng mẫu trong bài (h = (0.5, 0.7311), ŷ = 0.2689, L = (ŷ − y)²), nhưng đổi đích thành y = 0. Tính ∂L/∂w₂,₁, gradient của trọng số nối h₁ tới đầu ra."
+    dap_an: 0.2689
+    sai_so: 0.001
+    giai_thich: "Lượt xuôi không đổi vì không phụ thuộc y. ∂L/∂ŷ = 2(0.2689 − 0) = 0.5379. ŷ = w₂,₁·h₁ + ..., nên ∂L/∂w₂,₁ = 0.5379 × h₁ = 0.5379 × 0.5 ≈ 0.2689. Dương: mạng đang đoán cao hơn đích, giảm w₂,₁ sẽ kéo ŷ xuống."
+
+  - id: q7
+    loai: mot
+    do_kho: 2
+    de: "Batch X shape (32, 3), lớp ẩn W₁ shape (4, 3). Lượt ngược đã có Δ₁ = ∂L/∂Z₁ shape (32, 4). Công thức nào cho ∂L/∂W₁?"
+    lua_chon:
+      - Δ₁ᵀ X
+      - Xᵀ Δ₁
+      - Δ₁ X
+      - "X Δ₁ᵀ"
+    dap_an: 0
+    giai_thich: "Cần shape (4, 3) giống W₁. Δ₁ᵀ X là (4, 32) × (32, 3) = (4, 3). Xᵀ Δ₁ ra (3, 4), sai shape; Δ₁ X và X Δ₁ᵀ thì không nhân được."
+
+  - id: q8
+    loai: nhieu
+    do_kho: 2
+    de: Những phát biểu nào ĐÚNG? (chọn tất cả ý đúng)
+    lua_chon:
+      - "σ′(z) = h(1 − h) không bao giờ lớn hơn 0.25"
+      - Backprop cho gradient chính xác, không phải xấp xỉ như gradient số
+      - Backprop tự cập nhật trọng số sau khi tính xong
+      - "Nếu một đầu vào x = 0 thì gradient của trọng số nhân với x đó (trong mẫu này) bằng 0"
+    dap_an: [0, 1, 3]
+    giai_thich: "h(1 − h) lớn nhất là 0.25 khi h = 0.5. Backprop là quy tắc chuỗi áp dụng chính xác. Backprop không cập nhật gì, đó là việc của gradient descent. Với nút nhân m = w·x, ∂L/∂w = ∂L/∂m × x = 0 khi x = 0."
+
+  - id: q9
+    loai: mot
+    do_kho: 2
+    de: "Vì sao không huấn luyện mạng lớn bằng gradient số (nhích từng tham số rồi chạy lại lượt xuôi)?"
+    lua_chon:
+      - Vì gradient số luôn sai dấu
+      - Vì mỗi tham số cần khoảng 2 lượt xuôi; với hàng triệu tham số thì quá chậm
+      - Vì gradient số không dùng được với hàm sigmoid
+      - Vì gradient số cần learning rate rất nhỏ
+    dap_an: 1
+    giai_thich: "Gradient số đúng (gần đúng rất tốt), nhưng chi phí tỉ lệ với số tham số. Backprop tính mọi gradient với chi phí chỉ cỡ vài lượt xuôi. Gradient số vẫn hữu ích để kiểm tra code backprop trên mạng nhỏ."
+
+  - id: q10
+    loai: so
+    do_kho: 3
+    de: "Giá trị h = 2 được dùng ở hai chỗ: p = 3h và q = h². Loss L = p + q. Tính ∂L/∂h."
+    dap_an: 7
+    sai_so: 0.001
+    giai_thich: "Khi một giá trị đi vào nhiều nhánh, cộng gradient từ các nhánh. Nhánh p: ∂L/∂p × ∂p/∂h = 1 × 3 = 3. Nhánh q: 1 × 2h = 4. Tổng ∂L/∂h = 3 + 4 = 7 (khớp với đạo hàm trực tiếp của 3h + h² là 3 + 2h)."

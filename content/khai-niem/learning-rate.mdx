@@ -1,0 +1,170 @@
+---
+ten_vi: Learning rate
+ten_en: Learning Rate
+tang: 2
+thu_tu: 13
+tien_quyet: [gradient-descent]
+trang_thai: nhap
+dinh_nghia: >-
+  Hệ số η (eta) trong bước cập nhật w ← w − η·∇L, quyết định mỗi bước gradient descent đi xa bao nhiêu.
+  Đây là siêu tham số (hyperparameter): do người huấn luyện chọn, không tự học ra từ dữ liệu.
+truc_giac: >-
+  Xuống dốc trong sương mù: gradient chỉ hướng, learning rate là độ dài sải chân. Bước quá ngắn thì tới nơi
+  lúc trời tối. Bước quá dài thì nhảy vọt qua đáy thung lũng sang sườn bên kia, có khi còn lên cao hơn chỗ cũ.
+hieu_nham:
+  - "Không có một learning rate \"chuẩn\" dùng cho mọi bài toán. Giá trị tốt phụ thuộc hình dạng hàm mất mát: thung lũng càng dốc, càng hẹp thì learning rate phải càng nhỏ."
+  - "Loss dao động lên xuống chưa chắc đã hỏng: với learning rate hơi lớn, w vẫn có thể nhảy qua lại quanh đáy và hội tụ dần."
+  - "Learning rate khác với độ dài bước thực tế. Độ dài bước là η nhân độ lớn gradient, nên cùng một η nhưng bước lớn ở chỗ dốc và nhỏ ở gần đáy."
+  - "Thử learning rate theo cấp số cộng (0.01, 0.02, 0.03…) rất tốn công. Nên thử theo thang log: 0.001, 0.01, 0.1, 1."
+y_chinh:
+  - "Learning rate η nhân với gradient để ra độ dài bước: w ← w − η·∇L"
+  - "Quá nhỏ: hội tụ rất chậm. Vừa phải: xuống đáy nhanh. Hơi lớn: dao động quanh đáy rồi hội tụ. Quá lớn: phân kỳ"
+  - "Với L = w², mỗi bước nhân w với (1 − 2η), nên hội tụ khi 0 < η < 1"
+  - "Thung lũng càng dốc (hàm càng cong) thì learning rate tối đa cho phép càng nhỏ"
+  - Chọn learning rate bằng cách thử theo thang log và nhìn đường cong loss
+  - "Có thể giảm learning rate dần trong quá trình huấn luyện (learning rate schedule)"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=jWT-AX9677k
+    tieu_de: Learning Rate in a Neural Network explained
+    tac_gia: deeplizard
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Video ngắn giải thích learning rate là gì và hệ quả của việc chọn quá lớn hoặc quá nhỏ.
+  - url: https://www.youtube.com/watch?v=qg4PchTECck
+    tieu_de: Gradient Descent in 3 minutes
+    tac_gia: Visually Explained
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Hình ảnh hoá gọn gradient descent, có minh hoạ ảnh hưởng của độ dài bước.
+  - url: https://www.youtube.com/watch?v=QzulmoOg2JE
+    tieu_de: Learning Rate Decay (C2W2L09)
+    tac_gia: Andrew Ng (DeepLearningAI)
+    loai: video
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Vì sao và cách giảm learning rate dần theo thời gian. Xem sau khi đã hiểu mini-batch gradient descent.
+---
+
+import GradientDescent1D from '../../src/viz/GradientDescent1D.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Nhắc lại: η nằm ở đâu?
+
+Ở bài [Gradient Descent](/khai-niem/gradient-descent), mỗi bước cập nhật là:
+
+$$
+w \leftarrow w - \eta \cdot L'(w)
+$$
+
+Đạo hàm $L'(w)$ cho biết **hướng** đi. Còn $\eta$ (learning rate, tốc độ học) cho biết **đi xa bao nhiêu** theo hướng đó. Nó là một **siêu tham số** (hyperparameter): mô hình không tự học ra $\eta$, bạn phải chọn trước khi huấn luyện.
+
+Chọn $\eta$ là một trong những quyết định ảnh hưởng lớn nhất tới việc huấn luyện có thành công hay không.
+
+## Một công thức nói lên tất cả
+
+Lấy lại hàm quen thuộc $L(w) = w^2$, nên $L'(w) = 2w$. Thay vào công thức cập nhật:
+
+$$
+w \leftarrow w - \eta \cdot 2w = (1 - 2\eta)\, w
+$$
+
+Mỗi bước, $w$ chỉ bị **nhân với cùng một hệ số** $(1 - 2\eta)$. Mọi chuyện phụ thuộc vào hệ số này:
+
+| $\eta$ | Hệ số $1 - 2\eta$ | Điều xảy ra |
+|---|---|---|
+| 0.1 | 0.8 | $w$ nhỏ dần đều, cùng dấu: hội tụ êm |
+| 0.5 | 0 | Tới đáy $w = 0$ chỉ sau **1 bước** |
+| 0.9 | −0.8 | $w$ đổi dấu mỗi bước nhưng nhỏ dần: dao động rồi hội tụ |
+| 1.0 | −1 | Nhảy qua lại mãi, không gần đáy hơn |
+| 1.1 | −1.2 | $\lvert w \rvert$ lớn dần: **phân kỳ** |
+
+Quy luật: hội tụ khi $\lvert 1 - 2\eta \rvert < 1$, tức là $0 < \eta < 1$. Vượt ngưỡng đó là hỏng.
+
+<CauHoi cau="learning-rate/q2" />
+
+## Tự thử: đoán trước, rồi chạy
+
+Ba thí nghiệm, tất cả trên $L(w) = w^2$. Dùng bảng ở trên để đoán nếu cần.
+
+<GradientDescent1D
+  client:visible
+  ham="parabol"
+  lr={0.5}
+  w0={2.5}
+  duDoan={{
+    de: "η = 0.5, xuất phát w = 2.5. Sau bao nhiêu bước thì w tới đáy (w = 0)?",
+    lua_chon: ["Đúng 1 bước", "Khoảng 10 bước", "Không bao giờ tới đúng 0, chỉ tiến gần dần"],
+    dap_an: 0,
+    giai_thich: "Hệ số 1 − 2 × 0.5 = 0, nên w mới = 0 × 2.5 = 0 ngay bước đầu. Các bước sau đạo hàm bằng 0 nên w đứng yên. Đây là learning rate \"hoàn hảo\" cho riêng hàm w²; hàm khác sẽ có giá trị khác."
+  }}
+/>
+
+<GradientDescent1D
+  client:visible
+  ham="parabol"
+  lr={0.9}
+  w0={2.5}
+  duDoan={{
+    de: "η = 0.9, lớn hơn mức hoàn hảo 0.5 khá nhiều. Sau 20 bước điều gì xảy ra?",
+    lua_chon: ["Phân kỳ, w văng ra xa", "Nhảy qua lại hai bên đáy nhưng ngày càng sát đáy", "Nhảy qua lại mãi giữa 2.5 và −2.5"],
+    dap_an: 1,
+    giai_thich: "Hệ số 1 − 2 × 0.9 = −0.8: mỗi bước w đổi dấu (nhảy sang bên kia đáy) nhưng |w| chỉ còn 80%. Sau 20 bước w = 2.5 × 0.8²⁰ ≈ 0.029. Dao động không có nghĩa là hỏng, miễn |hệ số| < 1."
+  }}
+/>
+
+<GradientDescent1D
+  client:visible
+  ham="parabol"
+  lr={1.1}
+  w0={-3}
+  duDoan={{
+    de: "η = 1.1, chỉ lớn hơn ngưỡng 1.0 một chút, xuất phát w = −3. Điều gì xảy ra?",
+    lua_chon: ["Vẫn hội tụ, chỉ chậm hơn", "Dao động mãi quanh ±3", "Phân kỳ: w nhảy qua lại và văng ra ngày càng xa"],
+    dap_an: 2,
+    giai_thich: "Hệ số 1 − 2 × 1.1 = −1.2: mỗi bước |w| lớn thêm 20%. Sau 19 bước |w| ≈ 95.8, bước 20 thì ≈ 115, vượt khỏi mọi phạm vi hợp lý. Vượt ngưỡng một chút thôi cũng đủ hỏng hoàn toàn."
+  }}
+/>
+
+## Thung lũng dốc cần bước ngắn
+
+Ngưỡng $\eta < 1$ ở trên chỉ đúng cho $L = w^2$. Thử hàm dốc hơn $L(w) = a w^2$ (với $a > 0$):
+
+$$
+L'(w) = 2aw \quad\Rightarrow\quad w \leftarrow (1 - 2a\eta)\, w
+$$
+
+Hội tụ khi $\lvert 1 - 2a\eta \rvert < 1$, tức là $\eta < 1/a$. Ví dụ $a = 10$ thì phải chọn $\eta < 0.1$.
+
+**Thung lũng càng dốc (càng cong), learning rate tối đa càng nhỏ.** Mô hình thật có hàng triệu tham số, có hướng thoải có hướng rất dốc, và learning rate phải đủ nhỏ cho **hướng dốc nhất**. Đó là lý do không có một giá trị $\eta$ dùng chung cho mọi bài toán.
+
+<CauHoi cau="learning-rate/q6" />
+
+## Chọn learning rate trong thực tế
+
+Không tính được ngưỡng bằng tay cho mô hình thật, nên ta **thử và nhìn đường cong loss** (loss theo số bước):
+
+| Đường cong loss | Chẩn đoán |
+|---|---|
+| Giảm đều nhưng rất chậm | $\eta$ quá nhỏ, tăng lên |
+| Giảm nhanh rồi phẳng dần | $\eta$ vừa |
+| Nhảy lên xuống thất thường, không giảm | $\eta$ hơi lớn, giảm xuống |
+| Tăng vọt, ra NaN | $\eta$ quá lớn, giảm mạnh |
+
+Cách thử hiệu quả là theo **thang log**: $0.0001, 0.001, 0.01, 0.1, 1$. Mỗi lần nhân 10 để nhanh chóng khoanh vùng, rồi mới tinh chỉnh quanh giá trị tốt nhất.
+
+<CauHoi cau="learning-rate/q8" />
+
+Hai ý tưởng mở rộng bạn sẽ gặp sau:
+
+- **Giảm learning rate dần** (learning rate schedule/decay): đầu huấn luyện dùng bước dài để đi nhanh, về sau bước ngắn để "đậu" sát đáy thay vì dao động quanh nó.
+- **Optimizer thích nghi** như Adam: tự điều chỉnh độ dài bước riêng cho từng tham số.
+
+## Tóm tắt
+
+- Learning rate $\eta$ quyết định độ dài bước: $w \leftarrow w - \eta \cdot \nabla L$.
+- Quá nhỏ thì chậm; vừa thì nhanh; hơi lớn thì dao động rồi hội tụ; quá lớn thì phân kỳ.
+- Với $L = aw^2$, hội tụ khi $0 < \eta < 1/a$: hàm càng dốc, $\eta$ càng phải nhỏ.
+- Trong thực tế: thử theo thang log, nhìn đường cong loss, có thể giảm $\eta$ dần.
+- Tiếp theo (sắp có): SGD & mini-batch, Optimizer.

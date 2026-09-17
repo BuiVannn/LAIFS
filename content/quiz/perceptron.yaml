@@ -1,0 +1,105 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: Đầu ra của một perceptron (dùng hàm bậc thang) là gì?
+    lua_chon:
+      - Một xác suất bất kỳ trong khoảng (0, 1)
+      - Chỉ 0 hoặc 1, tuỳ z = w·x + b có lớn hơn hoặc bằng 0 hay không
+      - Chính giá trị z = w·x + b
+      - Một vector cùng kích thước với đầu vào
+    dap_an: 1
+    giai_thich: "Perceptron tính z = w·x + b rồi cắt cứng: z ≥ 0 thì ra 1, ngược lại ra 0. Ra xác suất trong (0, 1) là việc của hồi quy logistic (dùng sigmoid)."
+
+  - id: q2
+    loai: so
+    do_kho: 1
+    de: "Perceptron có w = (2, −1), b = 0.5. Với đầu vào x = (1, 3), giá trị z = w·x + b bằng bao nhiêu?"
+    dap_an: -0.5
+    sai_so: 0.001
+    giai_thich: "z = 2×1 + (−1)×3 + 0.5 = 2 − 3 + 0.5 = −0.5. Vì z < 0 nên perceptron đoán ŷ = 0."
+
+  - id: q3
+    loai: so
+    do_kho: 2
+    de: "Tiếp câu trước: w = (2, −1), b = 0.5, x = (1, 3), nhãn đúng y = 1, learning rate η = 0.5. Sau một lần cập nhật theo luật perceptron, w₂ mới bằng bao nhiêu?"
+    dap_an: 0.5
+    sai_so: 0.001
+    giai_thich: "z = −0.5 nên ŷ = 0, sai: y − ŷ = 1. w₂ ← w₂ + η(y − ŷ)x₂ = −1 + 0.5 × 1 × 3 = 0.5. (Tương tự w₁ = 2.5, b = 1.)"
+
+  - id: q4
+    loai: mot
+    do_kho: 1
+    de: "Một perceptron nhận 3 đầu vào. Đường biên quyết định w₁x₁ + w₂x₂ + w₃x₃ + b = 0 có dạng gì trong không gian 3 chiều?"
+    lua_chon:
+      - Một đường cong
+      - Một mặt phẳng
+      - Một mặt cầu
+      - Tuỳ dữ liệu, có thể cong hoặc phẳng
+    dap_an: 1
+    giai_thich: "Phương trình bậc nhất theo x₁, x₂, x₃ là một mặt phẳng. Đường biên của perceptron luôn 'thẳng' (siêu phẳng), không phụ thuộc dữ liệu."
+
+  - id: q5
+    loai: nhieu
+    do_kho: 2
+    de: "Với đầu vào nhị phân (x₁, x₂ ∈ {0, 1}), một perceptron đơn lẻ có thể biểu diễn chính xác những cổng logic nào? (chọn tất cả ý đúng)"
+    lua_chon:
+      - AND
+      - OR
+      - NAND
+      - XOR
+    dap_an: [0, 1, 2]
+    giai_thich: "AND, OR, NAND đều tách được bằng một đường thẳng (ví dụ OR: x₁ + x₂ − 0.5 ≥ 0). XOR có hai điểm nhãn 1 nằm chéo nhau, không đường thẳng nào tách được."
+
+  - id: q6
+    loai: mot
+    do_kho: 2
+    de: "Chạy thuật toán học perceptron trên dữ liệu XOR. Điều gì xảy ra?"
+    lua_chon:
+      - Hội tụ sau đủ nhiều epoch
+      - Hội tụ nếu chọn learning rate đủ nhỏ
+      - Không bao giờ phân loại đúng hết, trọng số cứ bị sửa mãi
+      - Báo lỗi vì dữ liệu có nhãn trùng nhau
+    dap_an: 2
+    giai_thich: "Luật perceptron chỉ dừng khi có một epoch không đoán sai điểm nào, tức là cần một đường thẳng tách đúng hết. XOR không có đường thẳng như vậy, nên dù learning rate hay số epoch thế nào, luôn còn điểm sai và trọng số bị sửa mãi."
+
+  - id: q7
+    loai: so
+    do_kho: 1
+    de: "Một perceptron nhận vector đầu vào 5 chiều. Nó có tổng cộng bao nhiêu tham số học được (tính cả bias)?"
+    dap_an: 6
+    sai_so: 0
+    giai_thich: "5 trọng số (mỗi đầu vào một cái) cộng 1 bias = 6 tham số."
+
+  - id: q8
+    loai: mot
+    do_kho: 1
+    de: "Trong luật học perceptron, khi một điểm đã được đoán ĐÚNG thì trọng số thay đổi thế nào?"
+    lua_chon:
+      - Không đổi
+      - Tăng nhẹ để củng cố
+      - Giảm nhẹ để tránh overfitting
+      - Được đặt lại về 0
+    dap_an: 0
+    giai_thich: "Cập nhật tỉ lệ với (y − ŷ). Đoán đúng thì y − ŷ = 0, nên w và b giữ nguyên. Perceptron chỉ học từ lỗi."
+
+  - id: q9
+    loai: so
+    do_kho: 2
+    de: "Đường biên quyết định 2x₁ + 4x₂ − 8 = 0 cắt trục x₂ (tức x₁ = 0) tại x₂ bằng bao nhiêu?"
+    dap_an: 2
+    sai_so: 0.001
+    giai_thich: "Thay x₁ = 0: 4x₂ − 8 = 0, nên x₂ = 2."
+
+  - id: q10
+    loai: mot
+    do_kho: 3
+    de: "Perceptron có w = (1, 1), b = −1.5. Nếu nhân cả w và b với 10 thành w = (10, 10), b = −15 thì đường biên quyết định thay đổi thế nào?"
+    lua_chon:
+      - Không đổi, và mọi dự đoán 0/1 cũng giữ nguyên
+      - Dịch ra xa gốc toạ độ gấp 10 lần
+      - Xoay đi một góc
+      - Trở nên dốc hơn 10 lần
+    dap_an: 0
+    giai_thich: "10x₁ + 10x₂ − 15 = 0 tương đương x₁ + x₂ − 1.5 = 0: cùng một đường thẳng. Dấu của z cũng không đổi khi nhân với số dương, nên dự đoán giữ nguyên. Chỉ độ lớn |z| thay đổi."

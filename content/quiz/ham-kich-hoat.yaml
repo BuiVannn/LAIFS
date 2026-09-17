@@ -1,0 +1,100 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: so
+    do_kho: 1
+    de: "σ(0) (sigmoid tại 0) bằng bao nhiêu?"
+    dap_an: 0.5
+    sai_so: 0.001
+    giai_thich: "σ(0) = 1 / (1 + e⁰) = 1 / (1 + 1) = 0.5."
+
+  - id: q2
+    loai: so
+    do_kho: 1
+    de: "Đạo hàm của sigmoid tại 0, tức σ′(0), bằng bao nhiêu?"
+    dap_an: 0.25
+    sai_so: 0.001
+    giai_thich: "σ′(x) = σ(x)(1 − σ(x)). Tại 0: 0.5 × (1 − 0.5) = 0.25. Đây cũng là giá trị lớn nhất của σ′."
+
+  - id: q3
+    loai: mot
+    do_kho: 1
+    de: Hàm tanh cho ra giá trị trong khoảng nào?
+    lua_chon:
+      - "(0, 1)"
+      - "(−1, 1)"
+      - "[0, +∞)"
+      - "Mọi số thực"
+    dap_an: 1
+    giai_thich: "tanh ép mọi số thực về (−1, 1) và đối xứng quanh 0. Sigmoid mới ra (0, 1); ReLU ra [0, +∞)."
+
+  - id: q4
+    loai: so
+    do_kho: 1
+    de: "Đạo hàm của ReLU tại x = −3 bằng bao nhiêu?"
+    dap_an: 0
+    sai_so: 0
+    giai_thich: "Với x < 0, ReLU(x) = 0 là hằng số, nên đạo hàm bằng 0."
+
+  - id: q5
+    loai: nhieu
+    do_kho: 2
+    de: "Tại x = 10, hàm kích hoạt nào có đạo hàm GẦN BẰNG 0 (bão hoà)? (chọn tất cả ý đúng)"
+    lua_chon:
+      - Sigmoid
+      - Tanh
+      - ReLU
+    dap_an: [0, 1]
+    giai_thich: "σ′(10) ≈ 0.00005 và tanh′(10) ≈ 0.000000008: cả hai đã phẳng lì. ReLU′(10) = 1 vì phía dương ReLU là đường thẳng y = x, không bão hoà."
+
+  - id: q6
+    loai: mot
+    do_kho: 2
+    de: "Một mạng 3 lớp nhưng KHÔNG dùng hàm kích hoạt nào (mỗi lớp chỉ là Wx + b). Mạng này mạnh tương đương với gì?"
+    lua_chon:
+      - Một mô hình tuyến tính một lớp
+      - Một mạng 3 lớp có ReLU
+      - Một mô hình tuyến tính nhưng có 3 lần số tham số hữu ích
+      - Một cây quyết định
+    dap_an: 0
+    giai_thich: "Ghép các phép biến đổi tuyến tính vẫn ra một phép biến đổi tuyến tính: W₃(W₂(W₁x + b₁) + b₂) + b₃ = W′x + b′. Có nhiều tham số hơn nhưng không vẽ được biên cong nào."
+
+  - id: q7
+    loai: so
+    do_kho: 1
+    de: "Đạo hàm của tanh tại 0, tức tanh′(0), bằng bao nhiêu?"
+    dap_an: 1
+    sai_so: 0.001
+    giai_thich: "tanh′(x) = 1 − tanh²(x). Tại 0: tanh(0) = 0 nên tanh′(0) = 1."
+
+  - id: q8
+    loai: mot
+    do_kho: 2
+    de: "'Neuron ReLU chết' (dying ReLU) nghĩa là gì?"
+    lua_chon:
+      - Neuron có trọng số bằng NaN
+      - Neuron luôn nhận z < 0 với mọi dữ liệu, nên luôn ra 0 và đạo hàm luôn bằng 0, không học tiếp được
+      - Neuron luôn ra giá trị rất lớn
+      - Neuron bị xoá khỏi mạng sau khi huấn luyện
+    dap_an: 1
+    giai_thich: "Khi z < 0 ở mọi mẫu, ReLU ra 0 và đạo hàm bằng 0, nên gradient đi qua neuron đó luôn là 0 và trọng số của nó không bao giờ được cập nhật. Leaky ReLU giải quyết bằng cách cho phía âm một độ dốc nhỏ."
+
+  - id: q9
+    loai: so
+    do_kho: 3
+    de: "Biết σ(x) = 0.8 tại một điểm x nào đó. Không cần tìm x, hãy tính σ′(x)."
+    dap_an: 0.16
+    sai_so: 0.001
+    giai_thich: "σ′(x) = σ(x)(1 − σ(x)) = 0.8 × 0.2 = 0.16. Công thức này rất tiện: đã tính σ ở bước xuôi thì có ngay đạo hàm."
+
+  - id: q10
+    loai: mot
+    do_kho: 2
+    de: "Một lớp ẩn cho ra ma trận Z có shape (32, 10) (32 mẫu, 10 neuron). Áp dụng ReLU từng phần tử lên Z thì kết quả có shape gì?"
+    lua_chon:
+      - "(32, 10)"
+      - "(32,)"
+      - "(10,)"
+      - "(32, 1)"
+    dap_an: 0
+    giai_thich: "Hàm kích hoạt áp dụng riêng lên từng phần tử (element-wise), không gộp hay đổi chiều nào, nên shape giữ nguyên (32, 10)."

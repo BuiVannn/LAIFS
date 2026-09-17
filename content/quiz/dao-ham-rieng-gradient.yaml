@@ -1,0 +1,101 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: "f(x, y) = x²y. Đạo hàm riêng ∂f/∂x bằng gì?"
+    lua_chon:
+      - "2x"
+      - "2xy"
+      - "x²"
+      - "0, vì còn biến y"
+    dap_an: 1
+    giai_thich: "Khi lấy đạo hàm theo x, coi y là hằng số (một hệ số), giống như đạo hàm của 5x² là 10x. Vậy ∂(x²y)/∂x = 2x·y. Biến khác là hằng số, không phải bằng 0."
+
+  - id: q2
+    loai: so
+    do_kho: 1
+    de: "f(x, y) = x² + 3y². Tính ∂f/∂y tại điểm (1, 2)."
+    dap_an: 12
+    sai_so: 0.001
+    giai_thich: "Coi x² là hằng số: ∂f/∂y = 6y. Tại y = 2: 6 × 2 = 12."
+
+  - id: q3
+    loai: mot
+    do_kho: 1
+    de: "Hàm f nhận một vector 5 số và trả về một số. Gradient ∇f có dạng gì?"
+    lua_chon:
+      - "Một số"
+      - "Vector 5 số"
+      - "Ma trận 5×5"
+      - "Vector 1 số"
+    dap_an: 1
+    giai_thich: "Mỗi biến đầu vào có một đạo hàm riêng, nên gradient có 5 phần tử, cùng shape với đầu vào."
+
+  - id: q4
+    loai: mot
+    do_kho: 2
+    de: "Loss L (một con số) phụ thuộc ma trận trọng số W có shape (3, 4). Đoán shape của ∂L/∂W."
+    lua_chon:
+      - "(1,), vì loss là một số"
+      - "(4, 3)"
+      - "(3, 4)"
+      - "(12, 12)"
+    dap_an: 2
+    giai_thich: "W có 12 phần tử, mỗi phần tử có một đạo hàm riêng. Người ta xếp chúng đúng vị trí tương ứng trong W, nên gradient có shape (3, 4). Nhờ vậy có thể cập nhật thẳng W ← W − η·∂L/∂W."
+
+  - id: q5
+    loai: nhieu
+    do_kho: 2
+    de: "Với hàm mượt f(x, y), những khẳng định nào đúng về gradient? (chọn tất cả ý đúng)"
+    lua_chon:
+      - "∇f chỉ hướng f tăng nhanh nhất"
+      - "∇f luôn chỉ thẳng về điểm cực tiểu"
+      - "Tại điểm cực tiểu, ∇f = (0, 0)"
+      - "∇f vuông góc với đường đồng mức đi qua điểm đó"
+    dap_an: [0, 2, 3]
+    giai_thich: "Gradient chỉ hướng dốc lên nhanh nhất và vuông góc với đường đồng mức; tại cực tiểu mọi đạo hàm riêng bằng 0. Nhưng nó không 'biết' cực tiểu ở đâu: với f = x² + 3y² tại (2, 1), ∇f = (4, 6) lệch hẳn khỏi hướng về tâm."
+
+  - id: q6
+    loai: so
+    do_kho: 2
+    de: "g(x, y) = x²y + y. Tính ∂g/∂x tại điểm (1, 2)."
+    dap_an: 4
+    sai_so: 0.001
+    giai_thich: "∂g/∂x = 2xy (hạng y không chứa x nên đạo hàm bằng 0). Tại (1, 2): 2 × 1 × 2 = 4."
+
+  - id: q7
+    loai: so
+    do_kho: 3
+    de: "f(x, y) = x² + 3y². Tại (1, 2) có f = 13, ∇f = (2, 12). Dùng xấp xỉ f(x + Δ) ≈ f(x) + ∇f · Δ, ước lượng f(1.1, 1.9)."
+    dap_an: 12
+    sai_so: 0.001
+    giai_thich: "Δ = (0.1, −0.1). ∇f · Δ = 2 × 0.1 + 12 × (−0.1) = 0.2 − 1.2 = −1. Ước lượng: 13 − 1 = 12. Giá trị thật là 1.21 + 10.83 = 12.04."
+
+  - id: q8
+    loai: mot
+    do_kho: 2
+    de: "Tính gradient số bằng sai phân trung tâm cho hàm có n tham số. Cần gọi hàm f khoảng bao nhiêu lần?"
+    lua_chon:
+      - "2 lần"
+      - "n lần"
+      - "2n lần"
+      - "n² lần"
+    dap_an: 2
+    giai_thich: "Mỗi tham số cần hai lần tính: f(… x_i + h …) và f(… x_i − h …). n tham số thì 2n lần. Với mạng hàng triệu tham số, cách này quá chậm để huấn luyện, nên chỉ dùng để kiểm tra."
+
+  - id: q9
+    loai: so
+    do_kho: 2
+    de: "f(x, y) = 3x + 4y. Độ dài của gradient |∇f| bằng bao nhiêu?"
+    dap_an: 5
+    sai_so: 0.001
+    giai_thich: "∇f = (3, 4) ở mọi điểm. Độ dài = √(3² + 4²) = √25 = 5."
+
+  - id: q10
+    loai: so
+    do_kho: 2
+    de: "f(x, y) = x² + 3y², đang ở (1, 2), learning rate η = 0.1. Sau MỘT bước gradient descent, y bằng bao nhiêu?"
+    dap_an: 0.8
+    sai_so: 0.001
+    giai_thich: "∇f(1, 2) = (2, 12). Bước cập nhật: (1, 2) − 0.1 × (2, 12) = (0.8, 0.8). Vậy y = 2 − 1.2 = 0.8."

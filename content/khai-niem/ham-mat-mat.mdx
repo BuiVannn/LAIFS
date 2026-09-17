@@ -1,0 +1,158 @@
+---
+ten_vi: Hàm mất mát (MSE)
+ten_en: Loss Function
+tang: 2
+thu_tu: 11
+tien_quyet: [hoi-quy-tuyen-tinh]
+trang_thai: nhap
+dinh_nghia: >-
+  Hàm biến "mô hình đoán sai bao nhiêu" thành một con số duy nhất. Loss càng nhỏ, dự đoán càng sát thực tế.
+  Với bài toán dự đoán số, loss phổ biến nhất là MSE: trung bình bình phương sai số, MSE = (1/n)·Σ(yᵢ − ŷᵢ)².
+truc_giac: >-
+  Giống bảng điểm phạt: mỗi lần đoán lệch bị phạt một ít, lệch càng xa phạt càng nặng. Với MSE, lệch gấp đôi
+  thì bị phạt gấp bốn. Huấn luyện mô hình chính là đi tìm bộ tham số có tổng điểm phạt thấp nhất.
+hieu_nham:
+  - "Không thể cộng thẳng các sai số: sai +2 và −2 triệt tiêu nhau thành 0 dù mô hình đoán sai cả hai lần. Vì vậy phải bình phương hoặc lấy trị tuyệt đối."
+  - "MSE không cùng đơn vị với y (đoán giá bằng tỷ đồng thì MSE có đơn vị tỷ²). Muốn đọc ra \"lệch trung bình khoảng bao nhiêu\" thì dùng RMSE = √MSE hoặc MAE."
+  - "MSE không \"công bằng\" với mọi điểm: một điểm lệch rất xa có thể chiếm gần hết MSE, nên MSE nhạy với ngoại lai hơn MAE nhiều."
+  - "Khi huấn luyện, dữ liệu cố định còn tham số thay đổi: loss được xem là hàm của w, b, không phải hàm của x."
+y_chinh:
+  - Hàm mất mát gom mọi sai số thành một con số đo mức sai của mô hình
+  - "Sai số âm và dương triệt tiêu nhau, nên phải bình phương (MSE) hoặc lấy trị tuyệt đối (MAE)"
+  - "MSE = (1/n)·Σ(yᵢ − ŷᵢ)²; RMSE = √MSE có cùng đơn vị với y"
+  - "MSE phạt nặng sai số lớn (lệch gấp đôi phạt gấp bốn) nên nhạy với ngoại lai hơn MAE"
+  - "Khi huấn luyện, loss là hàm của tham số; với hồi quy tuyến tính nó có dạng cái bát, nên gradient descent đi xuống đáy được"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=PaFPbb66DxQ
+    tieu_de: The Main Ideas of Fitting a Line to Data (The Main Ideas of Least Squares and Linear Regression.)
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Vẽ từng bước cách đo tổng bình phương sai số khi xoay đường thẳng, và vì sao đáy của nó là đường tốt nhất. Nên xem đầu tiên.
+  - url: https://www.youtube.com/watch?v=Skc8nqJirJg
+    tieu_de: Loss in a Neural Network explained
+    tac_gia: deeplizard
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Ngắn, giải thích vai trò của loss trong quá trình huấn luyện mạng neuron, lấy MSE làm ví dụ.
+  - url: https://www.youtube.com/watch?v=QBbC3Cjsnjg
+    tieu_de: Loss Functions - EXPLAINED!
+    tac_gia: CodeEmporium
+    loai: video
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Điểm qua nhiều loại hàm mất mát cho hồi quy và phân loại. Xem khi đã quen MSE và muốn biết còn những lựa chọn nào.
+---
+
+import HoiQuyTuyenTinh from '../../src/viz/HoiQuyTuyenTinh.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Vì sao cần một con số?
+
+Ở bài [Hồi quy tuyến tính](/khai-niem/hoi-quy-tuyen-tinh), ta muốn "đường thẳng khớp dữ liệu nhất". Nhưng máy tính không hiểu "khớp nhất". Nó cần một **con số** để so sánh: đường A có số nhỏ hơn đường B thì A tốt hơn.
+
+Con số đó do **hàm mất mát** (loss function) tính ra. Nó nhận dự đoán $\hat{y}$ và giá trị thật $y$, trả về một số không âm: càng nhỏ càng tốt, bằng 0 nghĩa là đoán đúng hoàn toàn.
+
+## Thử cách ngây thơ: cộng các sai số
+
+Sai số (residual) của mỗi điểm là $e_i = y_i - \hat{y}_i$. Sao không cộng hết lại?
+
+Giả sử mô hình đoán hai căn nhà, một căn lệch $+2$ tỷ, căn kia lệch $-2$ tỷ. Tổng sai số là $0$, trông như hoàn hảo, trong khi thực tế đoán sai cả hai. **Sai số dương và âm triệt tiêu nhau.**
+
+Hai cách sửa phổ biến:
+
+- Lấy **trị tuyệt đối**: Mean Absolute Error, $\text{MAE} = \frac{1}{n}\sum |y_i - \hat{y}_i|$
+- Lấy **bình phương**: Mean Squared Error, $\text{MSE} = \frac{1}{n}\sum (y_i - \hat{y}_i)^2$
+
+<CauHoi cau="ham-mat-mat/q1" />
+
+## Tính tay
+
+Bốn căn nhà, giá thật $y$ và giá mô hình đoán $\hat{y}$ (tỷ đồng):
+
+| Căn | $y$ | $\hat{y}$ | $e = y - \hat{y}$ | $\lvert e \rvert$ | $e^2$ |
+|---|---|---|---|---|---|
+| 1 | 3 | 2.5 | 0.5 | 0.5 | 0.25 |
+| 2 | 5 | 5.5 | −0.5 | 0.5 | 0.25 |
+| 3 | 4 | 4 | 0 | 0 | 0 |
+| 4 | 8 | 6 | 2 | 2 | 4 |
+| **Trung bình** | | | | **0.75** | **1.125** |
+
+Vậy MAE $= 0.75$, MSE $= 1.125$.
+
+MSE có đơn vị là tỷ², khó hình dung. Lấy căn bậc hai được **RMSE** (Root Mean Squared Error) $= \sqrt{1.125} \approx 1.06$ tỷ, cùng đơn vị với giá nhà.
+
+Để ý căn số 4: nó chiếm $2 / 3 \approx 67\%$ tổng trị tuyệt đối, nhưng chiếm tới $4 / 4.5 \approx 89\%$ tổng bình phương. **Bình phương làm sai số lớn càng lớn hơn.**
+
+<CauHoi cau="ham-mat-mat/q2" />
+
+## MSE và điểm ngoại lai
+
+Giả sử căn số 4 bị nhập nhầm giá thành 16 tỷ, sai số của nó thành $10$:
+
+| | Ban đầu | Có ngoại lai | Tăng gấp |
+|---|---|---|---|
+| MAE | 0.75 | 2.75 | ≈ 3.7 lần |
+| MSE | 1.125 | 25.125 | ≈ 22.3 lần |
+
+Chỉ một điểm lệch mà MSE tăng hơn 22 lần. Vì mô hình được huấn luyện để làm MSE nhỏ nhất, nó sẽ "cố chiều" điểm ngoại lai đó, kéo lệch cả đường thẳng (bạn đã thấy trong viz của bài Hồi quy tuyến tính).
+
+Vậy chọn cái nào?
+
+- **MSE**: phạt nặng lỗi lớn, đạo hàm mượt nên dễ tối ưu. Là lựa chọn mặc định cho hồi quy.
+- **MAE**: ít bị ngoại lai chi phối hơn, hợp khi dữ liệu có nhiều điểm nhiễu mạnh.
+
+Với bài toán phân loại (chọn nhãn), người ta dùng loại loss khác như cross-entropy.
+
+## Loss là hàm của tham số
+
+Đây là điểm dễ nhầm nhất. Khi huấn luyện, **dữ liệu $x, y$ cố định**, thứ thay đổi là **tham số** $w, b$. Nên ta viết loss là $L(w, b)$:
+
+$$
+L(w, b) = \frac{1}{n}\sum_{i=1}^{n} (w x_i + b - y_i)^2
+$$
+
+Ví dụ nhỏ: dữ liệu $x = [1, 2, 3]$, $y = [2, 4, 6]$, mô hình $\hat{y} = wx$ (bỏ $b$ cho gọn). Thử vài giá trị $w$:
+
+| $w$ | Dự đoán $wx$ | $L(w)$ |
+|---|---|---|
+| 1 | [1, 2, 3] | $(1 + 4 + 9)/3 \approx 4.67$ |
+| 2 | [2, 4, 6] | 0 |
+| 3 | [3, 6, 9] | $(1 + 4 + 9)/3 \approx 4.67$ |
+
+Vẽ $L$ theo $w$ ra một **parabol hình cái bát**, đáy tại $w = 2$. Với hồi quy tuyến tính + MSE, loss luôn có dạng cái bát như vậy (một đáy duy nhất), nên [Gradient Descent](/khai-niem/gradient-descent) chắc chắn đi xuống được đáy nếu learning rate hợp lý.
+
+Đạo hàm của MSE theo $w$ (dùng quy tắc chuỗi):
+
+$$
+\frac{\partial L}{\partial w} = \frac{2}{n}\sum_{i=1}^{n} (w x_i + b - y_i)\, x_i
+$$
+
+Tại $w = 1$ trong ví dụ trên: sai số $wx - y = [-1, -2, -3]$, nhân với $x$ được $[-1, -4, -9]$, trung bình là $-14/3$, nhân 2 được $\approx -9.33$. Đạo hàm âm nghĩa là tăng $w$ thì loss giảm, đúng là phải đi về $w = 2$.
+
+<CauHoi cau="ham-mat-mat/q9" />
+
+## Tự thử: đoán trước
+
+Đường đang vẽ lệch lên đúng 1 đơn vị so với đường khớp tốt nhất ($b = 2$ thay vì $b = 1$). Bấm **Chạy** để đưa về đường tốt nhất.
+
+<HoiQuyTuyenTinh
+  client:visible
+  w0={1}
+  b0={2}
+  duDoan={{
+    de: "Mọi sai số đang bị lệch thêm đúng 1 đơn vị. Khi đưa đường về vị trí tốt nhất, MSE sẽ giảm thế nào?",
+    lua_chon: ["Giảm khoảng một nửa", "Giảm đúng 1 đơn vị", "Giảm về 0"],
+    dap_an: 1,
+    giai_thich: "MSE đi từ 1.127 về 0.127: giảm đúng 1. Ở đường tốt nhất, các sai số cộng lại bằng 0, nên dịch mọi sai số thêm 1 chỉ cộng thêm đúng 1² = 1 vào MSE. Không về 0 được vì 6 điểm không thẳng hàng."
+  }}
+/>
+
+## Tóm tắt
+
+- Hàm mất mát đo mô hình sai bao nhiêu bằng một con số; huấn luyện là làm nó nhỏ nhất.
+- Không cộng thẳng sai số vì âm dương triệt tiêu; dùng bình phương (MSE) hoặc trị tuyệt đối (MAE).
+- MSE phạt nặng lỗi lớn nên nhạy với ngoại lai; RMSE $= \sqrt{\text{MSE}}$ có cùng đơn vị với $y$.
+- Khi huấn luyện, loss là hàm của tham số. Với hồi quy tuyến tính nó là cái bát, sẵn sàng cho [Gradient Descent](/khai-niem/gradient-descent).

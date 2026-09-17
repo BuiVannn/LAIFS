@@ -1,0 +1,286 @@
+---
+ten_vi: "Lan truyền ngược (backprop)"
+ten_en: Backpropagation
+tang: 3
+thu_tu: 28
+tien_quyet: ["lan-truyen-xuoi", "chain-rule", "gradient-descent"]
+trang_thai: nhap
+dinh_nghia: >-
+  Thuật toán tính gradient của hàm mất mát theo MỌI tham số của mạng neuron chỉ bằng một lượt
+  đi ngược từ loss về đầu vào: tại mỗi nút, lấy gradient nhận được từ phía sau nhân với đạo hàm
+  cục bộ của nút đó (quy tắc chuỗi), rồi chuyển tiếp về các nút phía trước.
+truc_giac: >-
+  Mạng đoán sai, cần biết "lỗi này là do ai". Bắt đầu từ loss, trách nhiệm được chia ngược lại
+  cho từng nút: nút nào ảnh hưởng mạnh tới kết quả thì nhận phần lớn. Mỗi nút chỉ cần biết
+  hai thứ: mình bị trách bao nhiêu (gradient từ phía sau) và mình ảnh hưởng tới đầu ra của
+  mình ra sao (đạo hàm cục bộ). Nhân hai thứ đó rồi chuyển tiếp.
+hieu_nham:
+  - "Backprop không phải thuật toán học hay cập nhật trọng số. Nó chỉ TÍNH gradient; cập nhật w ← w − η·∂L/∂w là việc của gradient descent."
+  - "Backprop không 'xấp xỉ' gradient như nhích thử từng tham số. Nó cho gradient chính xác (theo quy tắc chuỗi), và nhanh hơn rất nhiều."
+  - "Gradient của một tham số có shape đúng bằng shape của tham số đó: W shape (4, 3) thì ∂L/∂W cũng shape (4, 3)."
+  - "Không thể chạy lượt ngược mà bỏ qua lượt xuôi: công thức gradient cần các giá trị x, z, h vừa tính ở lượt xuôi."
+y_chinh:
+  - Backprop tính ∂L/∂(mọi tham số) trong một lượt đi ngược từ loss, rồi gradient descent mới dùng kết quả để cập nhật
+  - "Tại mỗi nút: gradient đi vào (từ phía sau) × đạo hàm cục bộ = gradient chuyển về phía trước (quy tắc chuỗi)"
+  - "Ba quy tắc nhỏ: nút + chuyển nguyên gradient; nút × nhân với đầu vào còn lại; nút hàm (σ) nhân với đạo hàm của hàm, σ′ = h(1 − h)"
+  - "Lớp z = Wx + b: ∂L/∂W = δ·xᵀ, ∂L/∂b = δ, ∂L/∂x = Wᵀ·δ, với δ = ∂L/∂z; gradient có cùng shape với tham số"
+  - Cần các giá trị trung gian lưu từ lượt xuôi; kiểm tra code bằng gradient số (nhích từng tham số một chút)
+  - Nếu một giá trị được dùng ở nhiều chỗ thì cộng gradient từ các chỗ đó lại
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=Ilg3gGewQ5U
+    tieu_de: "Backpropagation, intuitively | Deep Learning Chapter 3"
+    tac_gia: 3Blue1Brown
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Trực giác "mỗi trọng số bị trách bao nhiêu" bằng hình ảnh, gần như không có công thức. Nên xem đầu tiên.
+  - url: https://www.youtube.com/watch?v=tIeHLnjs5U8
+    tieu_de: "Backpropagation calculus | Deep Learning Chapter 4"
+    tac_gia: 3Blue1Brown
+    loai: video
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Chuỗi đạo hàm từng bước trên mạng mỗi lớp một neuron, khớp với phần tính tay trong bài.
+  - url: https://www.youtube.com/watch?v=IN2XmBhILt4
+    tieu_de: "Neural Networks Pt. 2: Backpropagation Main Ideas"
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Tính tay chậm rãi từng con số, kèm bước gradient descent. Hợp nếu thích xem ví dụ số cụ thể.
+  - url: https://www.youtube.com/watch?v=VMj-3S1tku0
+    tieu_de: "The spelled-out intro to neural networks and backpropagation: building micrograd"
+    tac_gia: Andrej Karpathy
+    loai: video
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Tự viết backprop trên đồ thị tính toán bằng Python thuần. Dài (~2.5 giờ), xem khi đã nắm bài này và muốn tự code.
+---
+
+import DoThiTinhToan from '../../src/viz/DoThiTinhToan.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Bài toán: chỉnh trọng số nào, theo chiều nào?
+
+Ở bài [Lan truyền xuôi](/khai-niem/lan-truyen-xuoi), mạng mẫu (2 đầu vào → 2 neuron ẩn sigmoid → 1 đầu ra) đoán $\hat{y} = 0.2689$ trong khi đáp án $y = 1$, loss $L \approx 0.5344$.
+
+Mạng có **9 tham số**: 4 số trong $W_1$, 2 số trong $\mathbf{b}_1$, 2 số trong $W_2$, 1 số $b_2$. Để chạy [Gradient Descent](/khai-niem/gradient-descent) ta cần đạo hàm riêng của $L$ theo **từng** tham số một:
+
+$$
+\frac{\partial L}{\partial W_1},\; \frac{\partial L}{\partial \mathbf{b}_1},\; \frac{\partial L}{\partial W_2},\; \frac{\partial L}{\partial b_2}
+$$
+
+**Lan truyền ngược** (backpropagation, gọi tắt backprop) là cách tính tất cả chúng một lượt.
+
+## Cách ngây thơ: nhích thử từng tham số
+
+Cách dễ nghĩ nhất: nhích một tham số lên một chút $\varepsilon$, chạy lại lượt xuôi, xem loss đổi bao nhiêu:
+
+$$
+\frac{\partial L}{\partial w} \approx \frac{L(w + \varepsilon) - L(w - \varepsilon)}{2\varepsilon}
+$$
+
+Cách này gọi là **gradient số** (numerical gradient). Nó đúng, nhưng mỗi tham số tốn 2 lượt xuôi. Mạng 9 tham số thì 18 lượt, không sao. Mạng 100 triệu tham số thì 200 triệu lượt xuôi **cho một bước cập nhật**. Không thể dùng để huấn luyện.
+
+Backprop cho kết quả **chính xác** với chi phí chỉ cỡ khoảng 2 đến 3 lượt xuôi, dù mạng có bao nhiêu tham số. Gradient số vẫn có ích: dùng để **kiểm tra** code backprop có đúng không (bài code bên dưới làm đúng việc này).
+
+## Ý tưởng: gradient chảy ngược qua từng nút
+
+Nhớ lại **quy tắc chuỗi** (chain rule): nếu $L$ phụ thuộc $a$, và $a$ phụ thuộc $z$, thì
+
+$$
+\frac{\partial L}{\partial z} = \frac{\partial L}{\partial a} \cdot \frac{\partial a}{\partial z}
+$$
+
+Đọc theo đồ thị tính toán, công thức này nói: **gradient tại một nút = gradient từ phía sau chuyển tới × đạo hàm cục bộ của nút đó**. Mỗi nút không cần biết cả mạng trông thế nào. Nó chỉ cần:
+
+- **Gradient đi vào**: $L$ nhạy thế nào với **đầu ra** của mình (nhận từ nút phía sau).
+- **Đạo hàm cục bộ**: đầu ra của mình nhạy thế nào với **đầu vào** của mình (tự tính được, dùng giá trị đã lưu từ lượt xuôi).
+
+Nhân hai thứ đó lại, chuyển về nút phía trước, và cứ thế tới tận đầu vào. Vì đi ngược từ loss, gradient của các lớp phía sau được **dùng lại** cho các lớp phía trước, không tính lại. Đó là lý do backprop nhanh.
+
+Ba loại nút hay gặp, ba quy tắc nhỏ:
+
+| Nút | Xuôi | Ngược (nhận gradient $g$ từ phía sau) |
+|---|---|---|
+| Cộng | $z = m + b$ | $\partial L/\partial m = g$, $\;\partial L/\partial b = g$ (chuyển nguyên) |
+| Nhân | $m = w \cdot x$ | $\partial L/\partial w = g \cdot x$, $\;\partial L/\partial x = g \cdot w$ (nhân với đầu vào **còn lại**) |
+| Sigmoid | $a = \sigma(z)$ | $\partial L/\partial z = g \cdot a(1 - a)$ |
+
+## Tự thử trên một neuron
+
+Đồ thị dưới là **một** neuron sigmoid với loss $L = (\sigma(w x + b) - y)^2$. Bấm "Bước tiếp": 4 bước đầu chạy xuôi (số xanh), 4 bước sau chạy ngược (số đỏ, gradient).
+
+<DoThiTinhToan
+  client:visible
+  w={0.5}
+  x={2}
+  b={-1}
+  y={1}
+  duDoan={{
+    de: "w = 0.5, x = 2, b = −1, đích y = 1. Lượt xuôi cho a = 0.5, tức là đoán THẤP hơn đích. ∂L/∂w sẽ dương hay âm?",
+    lua_chon: ["Dương", "Âm", "Bằng 0"],
+    dap_an: 1,
+    giai_thich: "∂L/∂a = 2(0.5 − 1) = −1, qua σ nhân 0.25 được −0.25, qua nút × nhân x = 2 được ∂L/∂w = −0.5. Âm nghĩa là TĂNG w thì L giảm, nên gradient descent (w ← w − η·(−0.5)) sẽ tăng w, đẩy a lên gần 1. Đúng như mong muốn."
+  }}
+/>
+
+<DoThiTinhToan
+  client:visible
+  w={0.5}
+  x={0}
+  b={-1}
+  y={1}
+  duDoan={{
+    de: "Giữ w = 0.5, b = −1, y = 1 nhưng đầu vào x = 0. ∂L/∂w bằng bao nhiêu?",
+    lua_chon: ["Âm, giống lần trước", "Dương", "Đúng bằng 0"],
+    dap_an: 2,
+    giai_thich: "Qua nút ×, ∂L/∂w = ∂L/∂m × x = (−0.2875) × 0 = 0. Khi x = 0 thì w không ảnh hưởng gì tới kết quả (w·0 luôn bằng 0), nên chẳng có lý do gì để chỉnh w. Để ý b vẫn nhận gradient −0.2875."
+  }}
+/>
+
+<DoThiTinhToan
+  client:visible
+  w={3}
+  x={2}
+  b={0}
+  y={0}
+  duDoan={{
+    de: "w = 3, x = 2, b = 0, đích y = 0. Lượt xuôi cho a ≈ 0.9975: sai gần như hoàn toàn (L ≈ 0.995). Độ lớn của ∂L/∂w sẽ thế nào?",
+    lua_chon: ["Lớn (trên 1), vì sai nhiều", "Rất nhỏ (dưới 0.1)", "Đúng bằng 0"],
+    dap_an: 1,
+    giai_thich: "∂L/∂a ≈ 1.995 khá lớn, nhưng z = 6 làm sigmoid 'bão hoà': σ′(z) = a(1 − a) ≈ 0.0025. Nhân qua nút σ, gradient bị bóp còn ≈ 0.0049, rồi ∂L/∂w ≈ 0.0098. Sai to mà học rất chậm: đây là mầm mống của hiện tượng gradient biến mất (vanishing gradient)."
+  }}
+/>
+
+Bảng tự do, chỉnh gì cũng được:
+
+<DoThiTinhToan client:visible />
+
+<CauHoi cau="lan-truyen-nguoc/q3" />
+
+## Tính tay trên mạng mẫu
+
+Nhắc lại lượt xuôi (giá trị lưu lại để dùng):
+
+$$
+\mathbf{x} = \begin{pmatrix} 1 \\ 2 \end{pmatrix},\;
+\mathbf{z} = \begin{pmatrix} 0 \\ 1 \end{pmatrix},\;
+\mathbf{h} = \begin{pmatrix} 0.5 \\ 0.7311 \end{pmatrix},\;
+W_2 = \begin{pmatrix} 1 & -1 \end{pmatrix},\;
+\hat{y} = 0.2689,\; y = 1
+$$
+
+Máy tính giữ nhiều chữ số hơn; bảng dưới làm tròn 4 chữ số, nên nếu bạn bấm máy bằng số đã làm tròn thì chữ số cuối có thể lệch 1 đơn vị.
+
+**Bước 1. Gradient tại đầu ra.** $L = (\hat{y} - y)^2$ nên
+
+$$
+\frac{\partial L}{\partial \hat{y}} = 2(\hat{y} - y) = 2 \times (0.2689 - 1) \approx -1.4621
+$$
+
+Âm: tăng $\hat{y}$ thì loss giảm. Hợp lý, vì mạng đang đoán thấp.
+
+**Bước 2. Tham số lớp ra.** $\hat{y} = w_{2,1} h_1 + w_{2,2} h_2 + b_2$. Mỗi trọng số là một nút nhân với $h$ tương ứng, bias là nút cộng:
+
+$$
+\frac{\partial L}{\partial w_{2,1}} = -1.4621 \times h_1 = -1.4621 \times 0.5 \approx -0.7311
+$$
+$$
+\frac{\partial L}{\partial w_{2,2}} = -1.4621 \times h_2 = -1.4621 \times 0.7311 \approx -1.0689
+$$
+$$
+\frac{\partial L}{\partial b_2} = -1.4621
+$$
+
+**Bước 3. Chuyển gradient về lớp ẩn.** Vẫn quy tắc nút nhân, nhưng lần này lấy theo $h$ nên nhân với **trọng số**:
+
+$$
+\frac{\partial L}{\partial h_1} = -1.4621 \times w_{2,1} = -1.4621 \times 1 = -1.4621
+$$
+$$
+\frac{\partial L}{\partial h_2} = -1.4621 \times w_{2,2} = -1.4621 \times (-1) = 1.4621
+$$
+
+$\partial L / \partial h_2$ dương: vì $h_2$ đi vào đầu ra với trọng số âm, tăng $h_2$ sẽ kéo $\hat{y}$ xuống, làm loss tăng.
+
+**Bước 4. Qua sigmoid.** Đạo hàm cục bộ $\sigma'(z) = h(1 - h)$, dùng $h$ đã lưu:
+
+$$
+h_1(1 - h_1) = 0.5 \times 0.5 = 0.25 \qquad h_2(1 - h_2) = 0.7311 \times 0.2689 \approx 0.1966
+$$
+
+Đặt $\delta_i = \partial L / \partial z_i$:
+
+$$
+\delta_1 = -1.4621 \times 0.25 \approx -0.3655 \qquad \delta_2 = 1.4621 \times 0.1966 \approx 0.2875
+$$
+
+**Bước 5. Tham số lớp ẩn.** $z_i = w_{i,1} x_1 + w_{i,2} x_2 + b_i$, nên $\partial L / \partial w_{i,j} = \delta_i \cdot x_j$ và $\partial L / \partial b_i = \delta_i$:
+
+$$
+\frac{\partial L}{\partial W_1} = \begin{pmatrix} \delta_1 x_1 & \delta_1 x_2 \\ \delta_2 x_1 & \delta_2 x_2 \end{pmatrix}
+= \begin{pmatrix} -0.3655 & -0.7311 \\ 0.2875 & 0.5749 \end{pmatrix}
+\qquad
+\frac{\partial L}{\partial \mathbf{b}_1} = \begin{pmatrix} -0.3655 \\ 0.2875 \end{pmatrix}
+$$
+
+Xong: đủ 9 gradient cho 9 tham số, và để ý $\partial L / \partial W_1$ có **cùng shape** $(2, 2)$ với $W_1$.
+
+<CauHoi cau="lan-truyen-nguoc/q6" />
+
+## Kiểm tra lại bằng gradient số
+
+Thử với $w_{1,1} = 0.2$, nhích $\varepsilon = 0.001$ rồi chạy lại lượt xuôi:
+
+$$
+L(w_{1,1} = 0.201) \approx 0.534081 \qquad L(w_{1,1} = 0.199) \approx 0.534812
+$$
+$$
+\frac{0.534081 - 0.534812}{0.002} \approx -0.3655
+$$
+
+Khớp với backprop. Khi tự code backprop, **luôn** kiểm tra kiểu này trên mạng nhỏ: sai một dấu hay quên một phép chuyển vị là lộ ngay.
+
+## Một bước gradient descent
+
+Có gradient rồi, cập nhật mọi tham số cùng lúc với $\eta = 0.1$, ví dụ:
+
+$$
+b_2 \leftarrow 0.5 - 0.1 \times (-1.4621) \approx 0.6462 \qquad
+w_{2,2} \leftarrow -1 - 0.1 \times (-1.0689) \approx -0.8931
+$$
+
+Làm tương tự cho cả 9 tham số rồi chạy lại lượt xuôi: $\hat{y}$ tăng từ $0.2689$ lên khoảng $0.6199$, loss giảm từ $0.5344$ xuống khoảng $0.1445$. Huấn luyện mạng neuron chính là lặp lại vòng này hàng nghìn lần: **xuôi → ngược → cập nhật**.
+
+## Dạng ma trận cho cả batch
+
+Tính từng số như trên là để hiểu. Trong code, mọi thứ viết bằng ma trận cho cả batch $X$ shape $(n, d)$, mỗi hàng một mẫu. Lượt xuôi: $Z_1 = X W_1^\top + \mathbf{b}_1$, $H = \sigma(Z_1)$, $\hat{Y} = H W_2^\top + \mathbf{b}_2$, loss lấy trung bình trên batch: $L = \frac{1}{n}\sum (\hat{Y} - Y)^2$.
+
+Lượt ngược:
+
+| Bước | Công thức | Shape |
+|---|---|---|
+| Gradient đầu ra | $\Delta_2 = \frac{2}{n}(\hat{Y} - Y)$ | $(n, k_{ra})$ |
+| Lớp ra | $\frac{\partial L}{\partial W_2} = \Delta_2^\top H$, $\;\frac{\partial L}{\partial \mathbf{b}_2} = \sum_{\text{hàng}} \Delta_2$ | giống $W_2$, $\mathbf{b}_2$ |
+| Về lớp ẩn | $\frac{\partial L}{\partial H} = \Delta_2 W_2$ | $(n, k)$, giống $H$ |
+| Qua sigmoid | $\Delta_1 = \frac{\partial L}{\partial H} \odot H \odot (1 - H)$ | $(n, k)$ |
+| Lớp ẩn | $\frac{\partial L}{\partial W_1} = \Delta_1^\top X$, $\;\frac{\partial L}{\partial \mathbf{b}_1} = \sum_{\text{hàng}} \Delta_1$ | giống $W_1$, $\mathbf{b}_1$ |
+
+($\odot$ là nhân từng phần tử.) Không cần thuộc lòng: nếu quên thứ tự nhân hay chỗ chuyển vị, hãy **ghép shape**. $\partial L / \partial W_1$ phải có shape $(k, d)$ như $W_1$; trong tay có $\Delta_1$ shape $(n, k)$ và $X$ shape $(n, d)$; cách duy nhất ra $(k, d)$ là $\Delta_1^\top X$. Bias được cộng vào mọi mẫu, nên gradient của nó là tổng theo các mẫu.
+
+<CauHoi cau="lan-truyen-nguoc/q5" />
+
+## Hai điều cần để ý
+
+**Một giá trị dùng ở nhiều chỗ thì cộng gradient.** Trong mạng mẫu, $x_1$ đi vào cả hai neuron ẩn. Nếu cần $\partial L / \partial x_1$, ta cộng phần gradient đến từ neuron 1 và từ neuron 2. Đây chính là quy tắc chuỗi nhiều biến, và là lý do công thức ma trận $\partial L/\partial H = \Delta_2 W_2$ tự động "gom" gradient từ mọi neuron phía sau.
+
+**Sigmoid bão hoà làm gradient nhỏ dần.** $\sigma'(z) = h(1-h)$ lớn nhất chỉ là $0.25$ (khi $z = 0$) và gần $0$ khi $|z|$ lớn. Mỗi lớp sigmoid nhân gradient với một số $\le 0.25$, nên mạng nhiều lớp dùng sigmoid khiến các lớp đầu nhận gradient rất bé và học rất chậm. Đây là một lý do các mạng hiện đại hay dùng ReLU cho lớp ẩn.
+
+## Tóm tắt
+
+- Backprop tính gradient của loss theo mọi tham số trong **một lượt đi ngược**; gradient descent dùng kết quả đó để cập nhật.
+- Tại mỗi nút: gradient từ phía sau × đạo hàm cục bộ. Nút cộng chuyển nguyên, nút nhân nhân với đầu vào còn lại, sigmoid nhân $h(1-h)$.
+- Lớp $\mathbf{z} = W\mathbf{x} + \mathbf{b}$: $\partial L/\partial W = \delta\,\mathbf{x}^\top$, $\partial L/\partial \mathbf{b} = \delta$, gradient chuyển về trước $= W^\top \delta$.
+- Gradient có cùng shape với tham số; dùng shape để kiểm tra công thức, dùng gradient số để kiểm tra code.
+- Mạng mẫu: $\partial L/\partial b_2 \approx -1.4621$, $\partial L/\partial w_{1,1} \approx -0.3655$; một bước với $\eta = 0.1$ đưa loss từ $0.5344$ xuống $0.1445$.

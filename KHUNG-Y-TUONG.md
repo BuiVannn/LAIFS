@@ -211,3 +211,34 @@ Làm **dọc 1 chủ đề trước** thay vì dựng hết các module rỗng: 
 30. `optimizer` Momentum, Adam → 14
 31. `dropout` Dropout → 18, 26
 32. `batch-norm` Batch normalization → 26
+
+---
+
+## 9. Kế hoạch sau nghiên cứu (2026-09-17)
+
+Chi tiết và nguồn: [research/01-cach-hoc.md](research/01-cach-hoc.md) · [research/02-repo-tham-khao.md](research/02-repo-tham-khao.md) · [research/03-kien-truc.md](research/03-kien-truc.md)
+
+### 9.1 Kết luận chính
+- **Cách học:** bằng chứng mạnh nhất là tự kiểm tra (retrieval), ôn ngắt quãng, tự giải thích, và đoán trước rồi mới quan sát. Xem viz thụ động và đọc lại **không** hiệu quả. Web hiện có quiz ở cuối bài nhưng chưa có ôn tập, nên đây là chỗ hổng lớn nhất.
+- **Không làm:** bảng xếp hạng cạnh tranh (nhóm nhỏ dễ nản; điểm chấm ở trình duyệt nên không đáng tin), chuỗi ngày học (streak) cứng, khoá bài theo điểm, gamification dày đặc.
+- **Kiến trúc:** chưa cần backend. Nội dung luôn nằm trong Git; dữ liệu người dùng vào Postgres (Supabase) **chỉ khi** cần đồng bộ nhiều thiết bị. Quyền biên tập/duyệt giao cho GitHub (PR + CODEOWNERS), không tự xây. Blog để chung repo.
+- **Đường nối duy nhất giữa nội dung và dữ liệu người dùng là id** (tên file khái niệm, `id` câu hỏi) ⇒ không đổi tên tuỳ tiện.
+
+### 9.2 Lộ trình
+
+| Giai đoạn | Nội dung | Kích hoạt |
+|---|---|---|
+| **A. Học hiệu quả** (không backend) ✅ xong 2026-09-17 | 1) `id` cố định cho từng câu quiz · 2) quiz hỏi "chắc/đoán", lưu kết quả từng câu · 3) câu hỏi nhúng giữa bài MDX · 4) ô "giải thích lại bằng lời của bạn" · 5) viz "đoán trước rồi chạy" · 6) trang **Ôn hôm nay** (`ts-fsrs`, trộn nhiều khái niệm) + xuất/nhập tiến độ JSON · 7) 4 mức thành thạo tô màu lộ trình, gợi ý ôn tiền quyết khi vấp | Ngay |
+| **B. Thiết kế lại UI/UX** | Bố cục có sẵn chỗ cho các khu: **Học nền tảng · Blog · Nghiên cứu · Engineering**; editor `@uiw/react-codemirror`; viz dựng trên `mafs`; lộ trình dạng đồ thị bằng `xyflow`; tìm kiếm Pagefind | Song song với A |
+| **C. Nội dung** 🚧 đợt 1 xong 2026-09-18: 12 khái niệm chuỗi tới backprop (bản nháp, chờ duyệt) | Soạn chuỗi khái niệm dẫn tới backprop · chuyển `numpy-100` thành bài code · từ điển thuật ngữ dựa trên d2l-vi / ebookMLCB (ghi CC BY-SA) · nhúng TensorFlow Playground Việt hoá · dự án mồi đầu mỗi tầng · chuỗi "mini-micrograd" | Liên tục |
+| **G1. Nhiều người viết** | Collections `baiViet`, `tacGia`, `huongDan` (`khu: nghien-cuu \| engineering`) chung lõi trường · Pages CMS cho người không biết Git · Giscus bình luận · deploy Cloudflare + bản xem trước có nháp (`HIEN_NHAP=1`) | Có bài blog/hướng dẫn đầu tiên |
+| **G2. Tài khoản** | Supabase Free: bảng `tien_do` có RLS, localStorage làm dự phòng | Có người mất tiến độ giữa các thiết bị, hoặc ôn tập được dùng đều |
+| **G3. Mở công khai** | Adapter Cloudflare cho vài route server (chấm bài phía server, trang admin), i18n nếu có người đọc tiếng Anh | Mở cho người ngoài nhóm |
+
+### 9.3 Danh sách "độc lạ" (backlog)
+Tensor-Puzzles bằng NumPy · tokenizer playground tiếng Việt (gpt-tokenizer + minbpe) · embedding thật trong trình duyệt (transformers.js) · di chuột vào thuật ngữ hiện thẻ khái niệm · kiểm tra gradient bằng sai phân hữu hạn trong `runner.py` · câu hỏi "shape là gì?".
+
+### 9.4 Ràng buộc license cần nhớ
+- **Không chép:** Deep-ML (Educational Use Only), roadmap.sh (chỉ dùng cá nhân), fastbook (phần lời), udlbook (CC BY-NC-ND), bộ câu hỏi không có license → chỉ đặt link.
+- **Dùng được, phải giữ license:** d2l, MLU-Explain, ebookMLCB (CC BY-SA 4.0) → gắn `license` theo từng bài dẫn xuất.
+- **Dùng thoải mái (MIT/Apache):** numpy-100, micrograd, ts-fsrs, mafs, xyflow, TensorFlow Playground, TorchLeet, transformers.js.

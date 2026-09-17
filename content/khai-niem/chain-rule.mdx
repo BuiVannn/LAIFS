@@ -1,0 +1,151 @@
+---
+ten_vi: "Quy tắc chuỗi"
+ten_en: Chain rule
+tang: 1
+thu_tu: 5
+tien_quyet: ["dao-ham", "dao-ham-rieng-gradient"]
+trang_thai: nhap
+dinh_nghia: >-
+  Quy tắc tính đạo hàm của hàm hợp (hàm lồng trong hàm): nếu y phụ thuộc u và u phụ thuộc x
+  thì dy/dx = dy/du · du/dx. Nói cách khác, nhân các đạo hàm "cục bộ" dọc theo chuỗi.
+truc_giac: >-
+  Ba bánh răng nối nhau. Bánh giữa quay nhanh gấp 2 lần bánh đầu, bánh cuối quay nhanh gấp 3 lần
+  bánh giữa. Vậy bánh cuối quay nhanh gấp 2 × 3 = 6 lần bánh đầu. Mỗi tỉ số là một đạo hàm cục bộ,
+  và ảnh hưởng tổng cộng là tích của chúng.
+hieu_nham:
+  - "Quên nhân đạo hàm của hàm bên trong: đạo hàm của (x² + 1)³ là 3(x² + 1)²·2x, không phải chỉ 3(x² + 1)²."
+  - "Đạo hàm cục bộ phải tính TẠI giá trị hiện tại của biến trung gian: dy/du lấy tại u = u(x), không phải tại x."
+  - "Khi một biến ảnh hưởng tới đầu ra qua NHIỀU đường, phải CỘNG đóng góp của các đường, không chỉ lấy một đường."
+  - "Quy tắc chuỗi không chỉ là mẹo giải tích: lan truyền ngược trong mạng neuron chính là áp dụng nó lặp lại từ loss ngược về từng tham số."
+y_chinh:
+  - "Hàm lồng nhau: đạo hàm tổng = tích các đạo hàm cục bộ dọc chuỗi, dy/dx = dy/du · du/dx"
+  - "Đạo hàm cục bộ được tính tại giá trị hiện tại của biến trung gian (cần tính xuôi trước)"
+  - "Chuỗi dài: nhân lần lượt từ đầu ra ngược về đầu vào"
+  - "Một biến ảnh hưởng qua nhiều đường thì cộng đóng góp của từng đường"
+  - "Lan truyền ngược trong mạng neuron là quy tắc chuỗi áp dụng có hệ thống"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=wl1myxrtQHQ
+    tieu_de: The Chain Rule, Clearly Explained!!!
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Giải thích bằng ví dụ đời thường, rồi nối thẳng sang cách dùng trong ML. Nên xem đầu tiên.
+  - url: https://www.youtube.com/watch?v=YG15m2VwSjA
+    tieu_de: Visualizing the chain rule and product rule (Essence of calculus, chapter 4)
+    tac_gia: 3Blue1Brown
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Hình ảnh hoá vì sao các đạo hàm lại nhân với nhau.
+  - url: https://www.youtube.com/watch?v=tIeHLnjs5U8
+    tieu_de: Backpropagation calculus
+    tac_gia: 3Blue1Brown
+    loai: video
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Quy tắc chuỗi áp dụng trong mạng neuron thật. Xem khi đã quen với quy tắc chuỗi một biến.
+---
+
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Mạng neuron là hàm lồng nhiều lớp
+
+Một mạng neuron biến đầu vào qua nhiều bước nối tiếp: nhân trọng số, qua hàm kích hoạt, nhân trọng số tiếp, rồi tính loss. Viết gọn, loss là một **hàm hợp** (composite function) kiểu $L = f_3(f_2(f_1(w)))$.
+
+Để chạy [gradient descent](/khai-niem/gradient-descent), ta cần $\frac{dL}{dw}$. Nhưng khai triển cả biểu thức rồi mới lấy đạo hàm thì rối và chậm. Quy tắc chuỗi (chain rule) cho phép tính **từng khúc một** rồi ghép lại.
+
+## Ý tưởng: tỉ lệ nhân với tỉ lệ
+
+Giả sử $y$ phụ thuộc $u$, và $u$ phụ thuộc $x$:
+
+- Nhích $x$ thêm $\Delta$ thì $u$ đổi khoảng $\frac{du}{dx} \cdot \Delta$.
+- $u$ đổi một lượng như vậy thì $y$ đổi khoảng $\frac{dy}{du} \cdot \left(\frac{du}{dx} \cdot \Delta\right)$.
+
+Vậy:
+
+$$
+\frac{dy}{dx} = \frac{dy}{du} \cdot \frac{du}{dx}
+$$
+
+Giống bánh răng: tỉ số truyền của cả hệ bằng tích tỉ số từng cặp.
+
+<CauHoi cau="chain-rule/q1" />
+
+## Tính tay: $y = (3x + 1)^2$
+
+Tách thành hai khúc: bên trong $u = 3x + 1$, bên ngoài $y = u^2$.
+
+| Bước | Tính | Tại $x = 1$ |
+|---|---|---|
+| Tính xuôi: $u = 3x + 1$ | | $u = 4$ |
+| Đạo hàm ngoài: $\frac{dy}{du} = 2u$ | tại $u = 4$ | $8$ |
+| Đạo hàm trong: $\frac{du}{dx} = 3$ | | $3$ |
+| Nhân lại: $\frac{dy}{dx} = 2u \cdot 3 = 6(3x + 1)$ | | $24$ |
+
+Kiểm tra lại bằng cách khai triển: $y = 9x^2 + 6x + 1$, nên $y' = 18x + 6$, tại $x = 1$ bằng $24$. Khớp.
+
+Để ý thứ tự: phải **tính xuôi** ra $u = 4$ trước, vì đạo hàm ngoài $2u$ cần giá trị $u$ hiện tại.
+
+<CauHoi cau="chain-rule/q6" />
+
+## Chuỗi dài hơn: tính xuôi, rồi nhân ngược
+
+Với nhiều khúc, làm hai lượt. Ví dụ tại $x = 2$:
+
+$$
+u = x^2, \qquad v = 3u + 1, \qquad L = v^2
+$$
+
+**Lượt xuôi** (forward): tính giá trị từng khúc.
+
+| Biến | Công thức | Giá trị |
+|---|---|---|
+| $x$ | | 2 |
+| $u$ | $x^2$ | 4 |
+| $v$ | $3u + 1$ | 13 |
+| $L$ | $v^2$ | 169 |
+
+**Lượt ngược** (backward): đi từ $L$ về $x$, mỗi bước nhân thêm một đạo hàm cục bộ.
+
+| Bước | Đạo hàm cục bộ | Tích luỹ $\frac{dL}{d(\cdot)}$ |
+|---|---|---|
+| $L$ theo $L$ | | $\frac{dL}{dL} = 1$ |
+| $L$ theo $v$ | $\frac{dL}{dv} = 2v = 26$ | $1 \times 26 = 26$ |
+| $v$ theo $u$ | $\frac{dv}{du} = 3$ | $26 \times 3 = 78$ |
+| $u$ theo $x$ | $\frac{du}{dx} = 2x = 4$ | $78 \times 4 = 312$ |
+
+Vậy $\frac{dL}{dx} = 312$. Kiểm tra: $L = (3x^2 + 1)^2$, khai triển đạo hàm ra $2(3x^2 + 1) \cdot 6x$, tại $x = 2$ là $2 \times 13 \times 12 = 312$.
+
+Cái hay của lượt ngược: các con số trung gian (26, 78) là $\frac{dL}{dv}$ và $\frac{dL}{du}$, **tính một lần dùng lại được**. Đây đúng là tinh thần của lan truyền ngược (backpropagation): trong mạng neuron, mỗi lớp nhận "tích luỹ" từ lớp sau, nhân với đạo hàm cục bộ của mình rồi chuyền tiếp.
+
+<CauHoi cau="chain-rule/q4" />
+
+## Khi một biến đi qua nhiều đường
+
+Nếu $z$ phụ thuộc cả $x$ và $y$, mà cả hai lại phụ thuộc $t$, thì $t$ ảnh hưởng tới $z$ qua **hai đường**. Cộng đóng góp của từng đường (dùng [đạo hàm riêng](/khai-niem/dao-ham-rieng-gradient)):
+
+$$
+\frac{dz}{dt} = \frac{\partial z}{\partial x} \cdot \frac{dx}{dt} + \frac{\partial z}{\partial y} \cdot \frac{dy}{dt}
+$$
+
+Ví dụ $z = x \cdot y$ với $x = t^2$, $y = 3t$, tại $t = 1$ (nên $x = 1$, $y = 3$):
+
+| Đường | Đạo hàm riêng | Đạo hàm theo $t$ | Đóng góp |
+|---|---|---|---|
+| qua $x$ | $\frac{\partial z}{\partial x} = y = 3$ | $\frac{dx}{dt} = 2t = 2$ | $6$ |
+| qua $y$ | $\frac{\partial z}{\partial y} = x = 1$ | $\frac{dy}{dt} = 3$ | $3$ |
+| **Tổng** | | | **9** |
+
+Kiểm tra: $z = 3t^3$, $\frac{dz}{dt} = 9t^2 = 9$ tại $t = 1$. Trong mạng neuron, chuyện này xảy ra khi một giá trị được dùng ở nhiều chỗ: gradient từ mọi chỗ được cộng dồn.
+
+## Một hệ quả cần nhớ
+
+Vì gradient là **tích** của nhiều đạo hàm cục bộ, nếu nhiều thừa số nhỏ hơn 1 (ví dụ 0.25 lặp lại 10 lần), tích trở nên cực nhỏ và các lớp đầu gần như không học được. Đó là gốc của hiện tượng gradient biến mất (vanishing gradient), sẽ gặp lại khi học về hàm kích hoạt và mạng sâu.
+
+## Tóm tắt
+
+- Hàm lồng nhau: $\frac{dy}{dx} = \frac{dy}{du} \cdot \frac{du}{dx}$, nhân các đạo hàm cục bộ.
+- Tính xuôi trước để có giá trị trung gian, rồi nhân ngược từ đầu ra về đầu vào.
+- Một biến ảnh hưởng qua nhiều đường thì cộng đóng góp.
+- Lan truyền ngược trong mạng neuron là quy tắc chuỗi làm có hệ thống.

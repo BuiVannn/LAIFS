@@ -1,0 +1,97 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: so
+    do_kho: 1
+    de: "Khi x tăng 1 đơn vị (một lượng nhỏ), u tăng gấp 2 lượng đó; khi u tăng một lượng nhỏ, y tăng gấp 3 lượng đó. Tức du/dx = 2 và dy/du = 3. Tính dy/dx."
+    dap_an: 6
+    sai_so: 0.001
+    giai_thich: "Quy tắc chuỗi: dy/dx = dy/du · du/dx = 3 × 2 = 6. Giống ba bánh răng: tỉ số truyền cả hệ bằng tích các tỉ số."
+
+  - id: q2
+    loai: so
+    do_kho: 1
+    de: "y = (3x + 1)². Tính dy/dx tại x = 1."
+    dap_an: 24
+    sai_so: 0.001
+    giai_thich: "Đặt u = 3x + 1. dy/du = 2u, du/dx = 3, nên dy/dx = 6(3x + 1). Tại x = 1: u = 4, dy/dx = 6 × 4 = 24."
+
+  - id: q3
+    loai: mot
+    do_kho: 2
+    de: "Đạo hàm của y = e^(2x) là gì?"
+    lua_chon:
+      - "e^(2x)"
+      - "2e^(2x)"
+      - "2x·e^(2x − 1)"
+      - "e²"
+    dap_an: 1
+    giai_thich: "Hàm ngoài e^u có đạo hàm e^u; hàm trong u = 2x có đạo hàm 2. Nhân lại: 2e^(2x). Đáp án 'e^(2x)' là lỗi quên nhân đạo hàm hàm trong."
+
+  - id: q4
+    loai: so
+    do_kho: 2
+    de: "Cho x = 2, u = x², v = 3u + 1, L = v². Dùng quy tắc chuỗi (tính xuôi rồi nhân ngược), tính dL/dx."
+    dap_an: 312
+    sai_so: 0.001
+    giai_thich: "Xuôi: u = 4, v = 13, L = 169. Ngược: dL/dv = 2v = 26; dv/du = 3 → dL/du = 78; du/dx = 2x = 4 → dL/dx = 312."
+
+  - id: q5
+    loai: mot
+    do_kho: 1
+    de: "Vì sao quy tắc chuỗi quan trọng trong huấn luyện mạng neuron?"
+    lua_chon:
+      - "Vì nó giúp chọn learning rate tốt"
+      - "Vì loss là hàm lồng qua nhiều lớp, và lan truyền ngược dùng quy tắc chuỗi để tính gradient theo từng tham số"
+      - "Vì nó giúp mạng tránh overfitting"
+      - "Vì nó thay thế được gradient descent"
+    dap_an: 1
+    giai_thich: "Loss = hàm của đầu ra, đầu ra = hàm của lớp trước, ... Lan truyền ngược nhân các đạo hàm cục bộ từ loss ngược về từng trọng số. Sau đó gradient descent mới dùng các gradient này để cập nhật."
+
+  - id: q6
+    loai: nhieu
+    do_kho: 2
+    de: "Biểu thức nào bằng đạo hàm của f(x) = (x² + 1)³? (chọn tất cả ý đúng)"
+    lua_chon:
+      - "3(x² + 1)²"
+      - "6x(x² + 1)²"
+      - "3(2x)²"
+      - "2x · 3(x² + 1)²"
+    dap_an: [1, 3]
+    giai_thich: "Hàm ngoài u³ có đạo hàm 3u², hàm trong u = x² + 1 có đạo hàm 2x. Nhân lại: 3(x² + 1)² · 2x = 6x(x² + 1)². Hai đáp án đúng chỉ khác cách viết. '3(x² + 1)²' quên nhân 2x; '3(2x)²' lấy nhầm đạo hàm trong thay cho giá trị trong."
+
+  - id: q7
+    loai: so
+    do_kho: 2
+    de: "z = x·y với x = t², y = 3t. Tính dz/dt tại t = 1 (nhớ cộng đóng góp qua cả hai đường x và y)."
+    dap_an: 9
+    sai_so: 0.001
+    giai_thich: "Tại t = 1: x = 1, y = 3. Qua x: ∂z/∂x · dx/dt = y · 2t = 3 × 2 = 6. Qua y: ∂z/∂y · dy/dt = x · 3 = 3. Tổng = 9. Kiểm tra: z = 3t³, dz/dt = 9t² = 9."
+
+  - id: q8
+    loai: so
+    do_kho: 3
+    de: "Hàm sigmoid σ(z) = 1 / (1 + e^(−z)) có đạo hàm σ′(z) = σ(z)·(1 − σ(z)). Cho y = σ(2x). Tính dy/dx tại x = 0."
+    dap_an: 0.5
+    sai_so: 0.001
+    giai_thich: "Đặt z = 2x, tại x = 0 thì z = 0 và σ(0) = 0.5. dy/dz = 0.5 × (1 − 0.5) = 0.25. dz/dx = 2. Nhân lại: 0.25 × 2 = 0.5."
+
+  - id: q9
+    loai: mot
+    do_kho: 2
+    de: "Một chuỗi 10 khúc, mỗi đạo hàm cục bộ đều bằng 0.25. Đoán độ lớn của đạo hàm từ đầu ra về đầu vào."
+    lua_chon:
+      - "2.5 (cộng 10 lần 0.25)"
+      - "0.25 (vì các khúc giống nhau)"
+      - "Khoảng một phần triệu (0.25 mũ 10)"
+      - "Bằng 0 tuyệt đối"
+    dap_an: 2
+    giai_thich: "Quy tắc chuỗi NHÂN các đạo hàm cục bộ: 0.25¹⁰ ≈ 9.5 × 10⁻⁷, cỡ một phần triệu. Rất nhỏ nhưng chưa bằng 0. Đây là gốc của hiện tượng gradient biến mất trong mạng sâu."
+
+  - id: q10
+    loai: so
+    do_kho: 2
+    de: "y = (2x − 1)³. Tính dy/dx tại x = 1."
+    dap_an: 6
+    sai_so: 0.001
+    giai_thich: "Đặt u = 2x − 1. dy/du = 3u², du/dx = 2, nên dy/dx = 6(2x − 1)². Tại x = 1: u = 1, dy/dx = 6 × 1 = 6."

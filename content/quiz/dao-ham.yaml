@@ -1,0 +1,105 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: "Biết f′(2) = 3. Câu nào mô tả đúng nhất ý nghĩa của con số này?"
+    lua_chon:
+      - "f(2) = 3"
+      - "Gần x = 2, nhích x lên một lượng nhỏ Δ thì f tăng khoảng 3Δ"
+      - "Từ x = 0 tới x = 2, f tăng trung bình 3 đơn vị"
+      - "f đạt giá trị lớn nhất tại x = 2"
+    dap_an: 1
+    giai_thich: "Đạo hàm là tốc độ thay đổi tức thời tại một điểm: f(2 + Δ) ≈ f(2) + 3Δ khi Δ nhỏ. Nó không nói gì về giá trị f(2), và không phải độ dốc trung bình trên cả một đoạn."
+
+  - id: q2
+    loai: so
+    do_kho: 1
+    de: "f(x) = x². Tính độ dốc cát tuyến nối hai điểm x = 3 và x = 3.1, tức [f(3.1) − f(3)] / 0.1."
+    dap_an: 6.1
+    sai_so: 0.001
+    giai_thich: "f(3.1) = 9.61, f(3) = 9. Độ dốc = (9.61 − 9) / 0.1 = 6.1. Con số này đã gần đạo hàm thật f′(3) = 6; h càng nhỏ càng gần."
+
+  - id: q3
+    loai: mot
+    do_kho: 1
+    de: "Tại điểm x = a, đạo hàm f′(a) = −2. Điều gì đúng?"
+    lua_chon:
+      - "f(a) là số âm"
+      - "Gần a, khi x tăng thì f giảm"
+      - "Gần a, khi x tăng thì f tăng"
+      - "a là điểm cực tiểu của f"
+    dap_an: 1
+    giai_thich: "Đạo hàm âm nghĩa là đồ thị đang dốc xuống khi đi sang phải. Dấu của đạo hàm không liên quan tới dấu của f(a); còn cực tiểu thì cần f′(a) = 0."
+
+  - id: q4
+    loai: so
+    do_kho: 2
+    de: "f(x) = 3x² + 2x − 5. Tính f′(2)."
+    dap_an: 14
+    sai_so: 0.001
+    giai_thich: "Dùng quy tắc x^n → n·x^(n−1), hằng số → 0 và cộng từng hạng: f′(x) = 6x + 2. Tại x = 2: 6·2 + 2 = 14."
+
+  - id: q5
+    loai: nhieu
+    do_kho: 2
+    de: "Biết f′(x₀) = 0. Những khẳng định nào CHẮC CHẮN đúng? (chọn tất cả ý đúng)"
+    lua_chon:
+      - "Tiếp tuyến tại x₀ nằm ngang"
+      - "x₀ là điểm cực tiểu"
+      - "Nhích x₀ một lượng rất nhỏ thì f gần như không đổi (so với lượng nhích)"
+      - "x₀ là điểm cực đại"
+    dap_an: [0, 2]
+    giai_thich: "f′(x₀) = 0 nghĩa là tiếp tuyến nằm ngang, và f(x₀ + Δ) ≈ f(x₀) + 0·Δ. Nhưng điểm đó có thể là đáy (x² tại 0), đỉnh (−x² tại 0) hoặc không phải cả hai (x³ tại 0), nên không khẳng định chắc được cực tiểu hay cực đại."
+
+  - id: q6
+    loai: so
+    do_kho: 2
+    de: "f(x) = x³, nên f(2) = 8 và f′(2) = 12. Dùng xấp xỉ tuyến tính f(x + Δ) ≈ f(x) + f′(x)·Δ, ước lượng f(2.01)."
+    dap_an: 8.12
+    sai_so: 0.001
+    giai_thich: "f(2.01) ≈ 8 + 12 × 0.01 = 8.12. Giá trị thật là 2.01³ = 8.120601, rất sát vì Δ nhỏ."
+
+  - id: q7
+    loai: mot
+    do_kho: 2
+    de: "Muốn máy tính xấp xỉ f′(x) bằng một h nhỏ cố định, cách nào thường chính xác hơn?"
+    lua_chon:
+      - "Sai phân tiến: [f(x + h) − f(x)] / h"
+      - "Sai phân trung tâm: [f(x + h) − f(x − h)] / (2h)"
+      - "Hai cách luôn cho kết quả giống hệt nhau"
+      - "Lấy h thật lớn cho ổn định, ví dụ h = 10"
+    dap_an: 1
+    giai_thich: "Sai phân trung tâm dùng hai điểm đối xứng quanh x nên sai lệch hai phía triệt tiêu bớt. Ví dụ x³ tại x = 2 với h = 0.1: sai phân tiến ra 12.61, trung tâm ra 12.01, đạo hàm thật là 12. h lớn thì xấp xỉ rất tệ."
+
+  - id: q8
+    loai: so
+    do_kho: 3
+    de: "Tính đạo hàm số của f(x) = x³ tại x = 2 bằng sai phân trung tâm với h = 0.1, tức [f(2.1) − f(1.9)] / 0.2."
+    dap_an: 12.01
+    sai_so: 0.001
+    giai_thich: "f(2.1) = 9.261, f(1.9) = 6.859. Hiệu = 2.402, chia 0.2 được 12.01. Sai số so với đạo hàm thật 12 chỉ là 0.01 (đúng bằng h²)."
+
+  - id: q9
+    loai: mot
+    do_kho: 2
+    de: "Hàm mất mát L(w) = (w − 3)², đang ở w = 5. Để loss giảm, nên nhích w theo hướng nào?"
+    lua_chon:
+      - "Tăng w, vì L′(5) > 0"
+      - "Giảm w, vì L′(5) > 0"
+      - "Tăng w, vì L′(5) < 0"
+      - "Giữ nguyên, vì L′(5) = 0"
+    dap_an: 1
+    giai_thich: "L′(w) = 2(w − 3), nên L′(5) = 4 > 0: tăng w thì loss tăng. Muốn loss giảm phải đi ngược dấu đạo hàm, tức giảm w. Đây chính là ý tưởng của gradient descent."
+
+  - id: q10
+    loai: mot
+    do_kho: 1
+    de: "f(x) = 5x − 1. Đạo hàm f′(x) bằng bao nhiêu?"
+    lua_chon:
+      - "5x"
+      - "5, ở mọi x"
+      - "−1"
+      - "Phụ thuộc vào x"
+    dap_an: 1
+    giai_thich: "Đồ thị là đường thẳng có độ dốc 5, nên độ dốc tại điểm nào cũng là 5. Theo quy tắc: (5x)′ = 5, (−1)′ = 0."

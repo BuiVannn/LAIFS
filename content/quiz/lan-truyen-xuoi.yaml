@@ -1,0 +1,97 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: Lan truyền xuôi (forward pass) trong mạng neuron là gì?
+    lua_chon:
+      - Tính lần lượt từ đầu vào qua từng lớp tới đầu ra (và loss)
+      - Tính gradient của loss theo từng trọng số
+      - Cập nhật trọng số để loss giảm
+      - Chia dữ liệu thành các batch nhỏ
+    dap_an: 0
+    giai_thich: "Lượt xuôi chỉ tính ra dự đoán (và loss khi huấn luyện). Tính gradient là việc của lan truyền ngược, cập nhật trọng số là việc của gradient descent."
+
+  - id: q2
+    loai: so
+    do_kho: 1
+    de: "Một neuron có trọng số w = (0.5, 1), bias b = 0.5, nhận đầu vào x = (2, −1). Giá trị z = w·x + b (trước hàm kích hoạt) bằng bao nhiêu?"
+    dap_an: 0.5
+    sai_so: 0.001
+    giai_thich: "z = 0.5 × 2 + 1 × (−1) + 0.5 = 1 − 1 + 0.5 = 0.5."
+
+  - id: q3
+    loai: so
+    do_kho: 2
+    de: "Dùng mạng mẫu trong bài, lớp ẩn cho h = (0.5, 0.7311). Nếu đổi lớp ra thành trọng số W₂ = (2, 1) và bias b₂ = 0 (lớp ra không có hàm kích hoạt), dự đoán ŷ bằng bao nhiêu?"
+    dap_an: 1.7311
+    sai_so: 0.001
+    giai_thich: "Lớp ẩn không đổi vì W₁, b₁, x không đổi. ŷ = 2 × 0.5 + 1 × 0.7311 + 0 = 1.7311."
+
+  - id: q4
+    loai: mot
+    do_kho: 2
+    de: "Một lớp nhận 3 đầu vào và có 4 neuron, viết z = Wx + b. Ma trận W có shape bao nhiêu?"
+    lua_chon:
+      - (3, 4)
+      - (4, 3)
+      - (4, 4)
+      - (1, 12)
+    dap_an: 1
+    giai_thich: "W có shape (số đầu ra, số đầu vào) = (4, 3). Mỗi hàng là trọng số của một neuron, gồm 3 số ứng với 3 đầu vào. Kiểm tra: (4, 3) × (3,) cho vector (4,)."
+
+  - id: q5
+    loai: mot
+    do_kho: 2
+    de: "Batch X có shape (32, 3): 32 mẫu, mỗi mẫu 3 đặc trưng. Lớp ẩn có W₁ shape (4, 3), b₁ shape (4,). Z₁ = X @ W₁.T + b₁ có shape bao nhiêu?"
+    lua_chon:
+      - (32, 3)
+      - (4, 32)
+      - (32, 4)
+      - (3, 4)
+    dap_an: 2
+    giai_thich: "X @ W₁.T là (32, 3) × (3, 4) = (32, 4). Cộng b₁ shape (4,) vào mọi hàng không đổi shape. Mỗi hàng là 4 giá trị z của một mẫu."
+
+  - id: q6
+    loai: nhieu
+    do_kho: 2
+    de: "Khi huấn luyện, lượt xuôi thường lưu lại (cache) những giá trị nào để lượt ngược dùng? (chọn tất cả ý đúng)"
+    lua_chon:
+      - Đầu vào x của mỗi lớp
+      - Giá trị z trước hàm kích hoạt
+      - Đầu ra h sau hàm kích hoạt
+      - Gradient của loss theo trọng số
+    dap_an: [0, 1, 2]
+    giai_thich: "Lượt ngược cần x (để tính gradient của W), z hoặc h (để tính đạo hàm hàm kích hoạt, ví dụ σ′ = h(1 − h)). Gradient chưa có ở lượt xuôi: nó chính là thứ lượt ngược tính ra."
+
+  - id: q7
+    loai: so
+    do_kho: 2
+    de: "Một mạng có 3 đầu vào, một lớp ẩn 4 neuron, lớp ra 2 neuron (mỗi lớp có bias). Tổng cộng có bao nhiêu tham số (trọng số + bias)?"
+    dap_an: 26
+    sai_so: 0
+    giai_thich: "Lớp ẩn: W₁ (4, 3) có 12 số + b₁ có 4 số = 16. Lớp ra: W₂ (2, 4) có 8 số + b₂ có 2 số = 10. Tổng 26."
+
+  - id: q8
+    loai: mot
+    do_kho: 3
+    de: "Nếu bỏ hết hàm kích hoạt (mỗi lớp chỉ còn z = Wx + b), mạng 3 lớp sẽ thế nào?"
+    lua_chon:
+      - Mạnh hơn vì tính nhanh hơn
+      - Tương đương một lớp tuyến tính duy nhất
+      - Không tính được vì shape không khớp
+      - Chỉ còn dự đoán được giá trị trong khoảng (0, 1)
+    dap_an: 1
+    giai_thich: "W₃(W₂(W₁x + b₁) + b₂) + b₃ khai triển ra vẫn có dạng Wx + b với W = W₃W₂W₁. Hàm kích hoạt phi tuyến là thứ giúp xếp nhiều lớp có ý nghĩa."
+
+  - id: q9
+    loai: mot
+    do_kho: 1
+    de: Chạy lượt xuôi một lần trên một batch dữ liệu thì trọng số của mạng thay đổi thế nào?
+    lua_chon:
+      - Không đổi
+      - Thay đổi một chút theo hướng giảm loss
+      - Được khởi tạo lại ngẫu nhiên
+      - Chỉ bias thay đổi
+    dap_an: 0
+    giai_thich: "Lượt xuôi chỉ đọc trọng số để tính. Trọng số chỉ đổi khi chạy lượt ngược rồi bước cập nhật gradient descent."

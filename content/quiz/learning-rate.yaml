@@ -1,0 +1,105 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: "Trong bước cập nhật w ← w − η·L′(w), learning rate η quyết định điều gì?"
+    lua_chon:
+      - Hướng đi của bước cập nhật
+      - Độ dài của bước cập nhật
+      - Số bước tối đa được chạy
+      - Giá trị loss nhỏ nhất có thể đạt được
+    dap_an: 1
+    giai_thich: "Hướng do dấu của đạo hàm quyết định. η nhân vào đạo hàm để quyết định đi xa bao nhiêu. η không thay đổi đáy của hàm mất mát."
+
+  - id: q2
+    loai: so
+    do_kho: 1
+    de: "L(w) = w², η = 0.5, đang ở w = 4. Sau MỘT bước gradient descent, w bằng bao nhiêu?"
+    dap_an: 0
+    sai_so: 0.001
+    giai_thich: "L′(4) = 8. w mới = 4 − 0.5 × 8 = 0. Với L = w², η = 0.5 cho hệ số 1 − 2η = 0 nên tới đáy chỉ sau 1 bước, từ bất kỳ điểm nào."
+
+  - id: q3
+    loai: so
+    do_kho: 2
+    de: "L(w) = w², η = 0.75, xuất phát w = 2. Sau HAI bước, w bằng bao nhiêu?"
+    dap_an: 0.5
+    sai_so: 0.001
+    giai_thich: "Mỗi bước w ← (1 − 2 × 0.75)·w = −0.5·w. Bước 1: w = −1. Bước 2: w = 0.5. w đổi dấu mỗi bước (dao động) nhưng vẫn hội tụ."
+
+  - id: q4
+    loai: mot
+    do_kho: 2
+    de: "L(w) = w², chọn η = 0.9. Quá trình gradient descent diễn ra thế nào?"
+    lua_chon:
+      - Hội tụ êm, w giảm dần và giữ nguyên dấu
+      - "Dao động qua lại hai bên đáy nhưng |w| nhỏ dần, cuối cùng hội tụ"
+      - Nhảy qua lại mãi, không gần đáy hơn
+      - Phân kỳ
+    dap_an: 1
+    giai_thich: "Hệ số 1 − 2 × 0.9 = −0.8. Dấu âm làm w đổi dấu mỗi bước; |−0.8| < 1 nên |w| nhỏ dần về 0."
+
+  - id: q5
+    loai: mot
+    do_kho: 2
+    de: "Với L(w) = w², gradient descent hội tụ về đáy (từ mọi điểm xuất phát) khi η nằm trong khoảng nào?"
+    lua_chon:
+      - "0 < η ≤ 0.5"
+      - "0 < η < 1"
+      - "0 < η < 2"
+      - Mọi η > 0
+    dap_an: 1
+    giai_thich: "w ← (1 − 2η)·w, hội tụ khi |1 − 2η| < 1, tức 0 < η < 1. Với 0.5 < η < 1 vẫn hội tụ nhưng dao động. η = 1 nhảy mãi giữa w và −w, η > 1 phân kỳ."
+
+  - id: q6
+    loai: so
+    do_kho: 3
+    de: "Hàm dốc hơn: L(w) = 5w². Gradient descent hội tụ khi 0 < η < ngưỡng. Ngưỡng đó bằng bao nhiêu?"
+    dap_an: 0.2
+    sai_so: 0.001
+    giai_thich: "L′(w) = 10w, nên w ← (1 − 10η)·w. Hội tụ khi |1 − 10η| < 1, tức 0 < η < 0.2. So với L = w² (ngưỡng 1), hàm dốc gấp 5 thì ngưỡng nhỏ đi 5 lần."
+
+  - id: q7
+    loai: nhieu
+    do_kho: 2
+    de: Những dấu hiệu nào cho thấy learning rate có thể đang QUÁ NHỎ? (chọn tất cả ý đúng)
+    lua_chon:
+      - Loss giảm đều nhưng cực kỳ chậm
+      - Sau rất nhiều epoch loss vẫn còn cao và vẫn đang giảm từ từ
+      - Loss tăng vọt rồi thành NaN
+      - Loss nhảy lên xuống thất thường
+    dap_an: [0, 1]
+    giai_thich: "Bước quá ngắn thì vẫn đi đúng hướng (loss giảm đều) nhưng mất rất nhiều bước. Loss tăng vọt, ra NaN hay nhảy thất thường là dấu hiệu learning rate quá LỚN."
+
+  - id: q8
+    loai: mot
+    do_kho: 1
+    de: Khi chưa biết learning rate nào hợp, cách thử nào hiệu quả nhất?
+    lua_chon:
+      - "Thử lần lượt 0.01, 0.02, 0.03, …, 1.00"
+      - "Thử theo thang log: 0.0001, 0.001, 0.01, 0.1, 1 rồi tinh chỉnh quanh giá trị tốt"
+      - Luôn dùng η = 1 cho nhanh
+      - Chọn ngẫu nhiên một giá trị và giữ nguyên
+    dap_an: 1
+    giai_thich: "Learning rate tốt có thể nằm ở bất kỳ cỡ nào từ 0.00001 tới 1. Thử mỗi lần nhân 10 giúp khoanh vùng cỡ đúng chỉ sau vài lần chạy, sau đó mới tinh chỉnh."
+
+  - id: q9
+    loai: mot
+    do_kho: 2
+    de: "Vì sao người ta hay GIẢM learning rate dần trong quá trình huấn luyện (learning rate schedule)?"
+    lua_chon:
+      - Để giảm dung lượng bộ nhớ
+      - "Để lúc đầu đi nhanh bằng bước dài, về sau bước ngắn để đậu sát đáy thay vì dao động quanh nó"
+      - Vì gradient luôn tăng dần theo thời gian
+      - Để mô hình có nhiều tham số hơn
+    dap_an: 1
+    giai_thich: "Xa đáy thì bước dài giúp tiến nhanh. Gần đáy, bước dài dễ nhảy qua lại quanh đáy; giảm η giúp ổn định và tới sát đáy hơn."
+
+  - id: q10
+    loai: so
+    do_kho: 2
+    de: "L(w) = w², η = 0.1, xuất phát w = 1. Sau BA bước, w bằng bao nhiêu?"
+    dap_an: 0.512
+    sai_so: 0.001
+    giai_thich: "Hệ số 1 − 2 × 0.1 = 0.8. Sau 3 bước: w = 1 × 0.8³ = 0.512."

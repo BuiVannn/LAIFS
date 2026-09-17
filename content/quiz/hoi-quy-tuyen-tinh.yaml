@@ -1,0 +1,105 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: "Trong mô hình ŷ = wx + b, trọng số w cho biết điều gì?"
+    lua_chon:
+      - Giá trị dự đoán khi x = 0
+      - "Khi x tăng 1 đơn vị thì ŷ tăng w đơn vị"
+      - Sai số trung bình của mô hình
+      - Số điểm dữ liệu dùng để huấn luyện
+    dap_an: 1
+    giai_thich: "w là độ dốc của đường thẳng: x tăng 1 thì ŷ thay đổi đúng w. Giá trị ŷ khi x = 0 là b (hệ số chặn)."
+
+  - id: q2
+    loai: so
+    do_kho: 1
+    de: "Mô hình dự đoán giá nhà: giá (tỷ đồng) = 0.05 × diện tích (m²) + 0.5. Căn nhà 80 m² được dự đoán giá bao nhiêu tỷ?"
+    dap_an: 4.5
+    sai_so: 0.001
+    giai_thich: "ŷ = 0.05 × 80 + 0.5 = 4 + 0.5 = 4.5 tỷ."
+
+  - id: q3
+    loai: so
+    do_kho: 1
+    de: "Mô hình ŷ = 2x + 1. Một điểm dữ liệu có x = 1.5 và giá trị thật y = 5. Sai số e = y − ŷ của điểm này bằng bao nhiêu?"
+    dap_an: 1
+    sai_so: 0.001
+    giai_thich: "ŷ = 2 × 1.5 + 1 = 4. Sai số e = y − ŷ = 5 − 4 = 1 (mô hình đoán thấp hơn thực tế 1 đơn vị)."
+
+  - id: q4
+    loai: mot
+    do_kho: 2
+    de: "Dữ liệu X có shape (100, 3): 100 căn nhà, mỗi căn 3 đặc trưng. w có shape (3,), b là một số. Kết quả X @ w + b có shape gì?"
+    lua_chon:
+      - "(3,)"
+      - "(100,)"
+      - "(100, 3)"
+      - "(3, 100)"
+    dap_an: 1
+    giai_thich: "Nhân ma trận (100, 3) với vector (3,) cho vector (100,): mỗi căn nhà một dự đoán. Cộng b (một số) vào từng phần tử không đổi shape."
+
+  - id: q5
+    loai: so
+    do_kho: 1
+    de: "Mô hình hồi quy tuyến tính dùng 3 đặc trưng (diện tích, số phòng, tuổi nhà) và có hệ số chặn b. Mô hình có tổng cộng bao nhiêu tham số cần học?"
+    dap_an: 4
+    sai_so: 0.001
+    giai_thich: "Mỗi đặc trưng một trọng số (w₁, w₂, w₃) cộng thêm b: 3 + 1 = 4 tham số."
+
+  - id: q6
+    loai: so
+    do_kho: 3
+    de: "Dữ liệu x = [1, 2, 3], y = [2, 3, 7]. Dùng nghiệm đóng w = Σ(xᵢ − x̄)(yᵢ − ȳ) / Σ(xᵢ − x̄)² và b = ȳ − w·x̄. Hệ số chặn b bằng bao nhiêu?"
+    dap_an: -1
+    sai_so: 0.001
+    giai_thich: "x̄ = 2, ȳ = 12/3 = 4. Độ lệch x: [−1, 0, 1], độ lệch y: [−2, −1, 3]. Tử số = 2 + 0 + 3 = 5, mẫu số = 1 + 0 + 1 = 2, nên w = 2.5. b = 4 − 2.5 × 2 = −1."
+
+  - id: q7
+    loai: nhieu
+    do_kho: 3
+    de: "Những mô hình nào vẫn được xem là hồi quy TUYẾN TÍNH (tuyến tính theo tham số w, b)? (chọn tất cả ý đúng)"
+    lua_chon:
+      - "ŷ = wx + b"
+      - "ŷ = w₁x + w₂x² + b"
+      - "ŷ = e^(wx)"
+      - "ŷ = w₁·log(x) + b"
+    dap_an: [0, 1, 3]
+    giai_thich: "Chỉ cần ŷ là tổng có trọng số của các đặc trưng (x, x², log x đều tính trước được từ dữ liệu). Trong e^(wx), tham số w nằm bên trong hàm mũ nên mô hình không tuyến tính theo w."
+
+  - id: q8
+    loai: mot
+    do_kho: 2
+    de: "Đường khớp tốt nhất đang đẹp. Thêm MỘT điểm ngoại lai nằm rất thấp và ở xa tít bên phải trục x. Điều gì thường xảy ra?"
+    lua_chon:
+      - Đường thẳng gần như không đổi vì chỉ có một điểm
+      - Đường bị kéo nghiêng về phía điểm ngoại lai, độ dốc giảm
+      - Đường dịch song song xuống, độ dốc giữ nguyên
+      - Mô hình không khớp được nữa và báo lỗi
+    dap_an: 1
+    giai_thich: "MSE bình phương sai số nên một điểm rất lệch có tiếng nói rất lớn. Nằm xa về một phía theo x, nó như cánh tay đòn kéo đầu đường thẳng về phía nó, làm độ dốc giảm. Nếu điểm nằm ở giữa theo x thì đường chủ yếu dịch song song."
+
+  - id: q9
+    loai: mot
+    do_kho: 2
+    de: "Đường hồi quy tìm bằng nghiệm đóng (có hệ số chặn b) luôn đi qua điểm nào?"
+    lua_chon:
+      - Gốc toạ độ (0, 0)
+      - Điểm dữ liệu đầu tiên
+      - "Điểm trung bình (x̄, ȳ)"
+      - Điểm có y lớn nhất
+    dap_an: 2
+    giai_thich: "Từ công thức b = ȳ − w·x̄ suy ra w·x̄ + b = ȳ: tại x = x̄ đường cho đúng ȳ. Đường không nhất thiết đi qua điểm dữ liệu nào."
+
+  - id: q10
+    loai: mot
+    do_kho: 1
+    de: Bài toán nào phù hợp với hồi quy tuyến tính?
+    lua_chon:
+      - Đoán email có phải thư rác hay không
+      - Đoán nhiệt độ ngày mai (độ C) từ dữ liệu thời tiết
+      - Nhận dạng chữ số viết tay từ 0 đến 9
+      - Chia khách hàng thành các nhóm khi chưa có nhãn
+    dap_an: 1
+    giai_thich: "Hồi quy dự đoán một số liên tục như nhiệt độ. Thư rác và chữ số viết tay là phân loại (chọn nhãn); chia nhóm không có nhãn là phân cụm."

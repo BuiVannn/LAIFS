@@ -1,0 +1,156 @@
+---
+ten_vi: "Mạng nhiều lớp (MLP)"
+ten_en: "Multilayer Perceptron"
+tang: 3
+thu_tu: 26
+tien_quyet: ["perceptron", "ham-kich-hoat"]
+trang_thai: nhap
+dinh_nghia: >-
+  Mạng nhiều lớp (MLP) là chuỗi các lớp neuron nối liền nhau: lớp vào, một hoặc nhiều lớp ẩn, và lớp ra.
+  Mỗi neuron ở một lớp nhận đầu ra của mọi neuron lớp trước (kết nối đầy đủ), tính tổng có trọng số cộng bias
+  rồi đưa qua hàm kích hoạt phi tuyến. Nhờ vậy MLP vẽ được đường biên cong, gấp khúc mà một perceptron không làm được.
+truc_giac: >-
+  Một perceptron chỉ kẻ được một đường thẳng. Lớp ẩn giống một nhóm người, mỗi người kẻ một đường thẳng riêng
+  và báo "tôi ở phía nào". Lớp sau không nhìn dữ liệu gốc mà nhìn các câu trả lời đó rồi kết hợp lại.
+  Nhiều đường thẳng ghép lại thành hình gấp khúc, đủ nhiều thì xấp xỉ được gần như mọi hình dạng.
+hieu_nham:
+  - "Chồng nhiều lớp mà không có hàm kích hoạt phi tuyến thì vô ích: toàn bộ mạng vẫn chỉ là một hàm tuyến tính."
+  - "Số tham số không chỉ là số trọng số: mỗi neuron (trừ lớp vào) còn có một bias, nên lớp từ n vào m có n·m + m tham số."
+  - "Lớp vào không có neuron tính toán và không có tham số; nó chỉ là dữ liệu. Mạng 2-3-1 có 2 lớp tham số, không phải 3."
+  - "Tên gọi 'multilayer perceptron' là lịch sử: MLP hiện đại dùng hàm kích hoạt mượt như ReLU, sigmoid chứ không dùng hàm bậc thang của perceptron."
+y_chinh:
+  - "MLP = lớp vào → một hoặc nhiều lớp ẩn → lớp ra, mỗi lớp nối đầy đủ với lớp trước"
+  - "Mỗi lớp: z = W·a_trước + b rồi a = f(z); W có shape (số neuron lớp này, số neuron lớp trước)"
+  - "Số tham số một lớp từ n vào m: n·m trọng số + m bias"
+  - "Lớp ẩn với hàm kích hoạt phi tuyến giúp vẽ biên cong/gấp khúc, giải được XOR"
+  - "Tính đầu ra từ đầu vào là lan truyền xuôi; học trọng số dùng lan truyền ngược và gradient descent"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=aircAruvnKk
+    tieu_de: "But what is a neural network? | Deep learning chapter 1"
+    tac_gia: 3Blue1Brown
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Hình ảnh hoá lớp, neuron, trọng số, bias trên bài nhận dạng chữ số viết tay, có đếm số tham số. Nên xem đầu tiên.
+  - url: https://www.youtube.com/watch?v=CqOfi41LfDw
+    tieu_de: The Essential Main Ideas of Neural Networks
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Tính tay một mạng nhỏ có lớp ẩn, cho thấy các hàm kích hoạt bị co giãn, cộng lại thành đường cong khớp dữ liệu.
+  - url: https://www.youtube.com/watch?v=NkOv_k7r6no
+    tieu_de: Why Non-linear Activation Functions (C1W3L07)
+    tac_gia: DeepLearningAI (Andrew Ng)
+    loai: video
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Chứng minh ngắn vì sao bỏ hàm kích hoạt thì mạng nhiều lớp sụp về một hàm tuyến tính.
+---
+
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Vấn đề: một đường thẳng là không đủ
+
+Ở bài [Perceptron](/khai-niem/perceptron), ta thấy dữ liệu XOR không thể tách bằng một đường thẳng. Nhưng XOR có thể viết lại bằng các cổng mà perceptron **làm được**:
+
+$$
+\text{XOR}(x_1, x_2) = \text{AND}\big(\text{OR}(x_1, x_2),\ \text{NAND}(x_1, x_2)\big)
+$$
+
+Nghĩa là: dùng hai perceptron tính OR và NAND trước, rồi một perceptron thứ ba lấy AND của hai kết quả. Đó chính là một mạng **hai lớp**.
+
+## Giải XOR bằng tay
+
+Dùng hàm bậc thang $\text{step}(z) = 1$ nếu $z \ge 0$, ngược lại 0:
+
+- Neuron ẩn 1 (OR): $h_1 = \text{step}(x_1 + x_2 - 0.5)$
+- Neuron ẩn 2 (NAND): $h_2 = \text{step}(-x_1 - x_2 + 1.5)$
+- Neuron ra (AND): $\hat{y} = \text{step}(h_1 + h_2 - 1.5)$
+
+| $x_1$ | $x_2$ | $h_1$ | $h_2$ | $\hat{y}$ | XOR |
+|---|---|---|---|---|---|
+| 0 | 0 | 0 | 1 | 0 | 0 |
+| 0 | 1 | 1 | 1 | 1 | 1 |
+| 1 | 0 | 1 | 1 | 1 | 1 |
+| 1 | 1 | 1 | 0 | 0 | 0 |
+
+Đúng cả 4. Điều quan trọng: lớp ẩn đã **biến đổi không gian**. Trong toạ độ $(h_1, h_2)$, bốn điểm chỉ còn ba vị trí $(0,1)$, $(1,1)$, $(1,0)$, và giờ **một đường thẳng** $h_1 + h_2 = 1.5$ tách được. Mỗi neuron ẩn kẻ một đường thẳng trong không gian gốc; lớp ra kết hợp các đường đó thành một vùng hình dải chéo.
+
+<CauHoi cau="mlp/q8" />
+
+## Cấu trúc của MLP
+
+Một **mạng nhiều lớp** (multilayer perceptron, MLP) gồm:
+
+- **Lớp vào** (input layer): chính là vector dữ liệu, không tính toán gì.
+- **Lớp ẩn** (hidden layers): một hoặc nhiều lớp; "ẩn" vì ta không quan sát trực tiếp giá trị của chúng trong dữ liệu.
+- **Lớp ra** (output layer): cho kết quả dự đoán.
+
+Mỗi neuron nối với **mọi** neuron ở lớp trước, nên còn gọi là lớp kết nối đầy đủ (fully connected / dense). Người ta hay ghi kiến trúc bằng số neuron mỗi lớp: mạng XOR ở trên là **2-2-1**.
+
+Thực tế ta thay hàm bậc thang bằng [hàm kích hoạt](/khai-niem/ham-kich-hoat) mượt (thường ReLU ở lớp ẩn) để có đạo hàm và học được bằng gradient descent. Và như đã thấy ở bài hàm kích hoạt: **thiếu hàm kích hoạt phi tuyến thì cả mạng chỉ còn là một hàm tuyến tính**, lớp ẩn trở nên vô dụng.
+
+## Viết dưới dạng ma trận
+
+Thay vì viết từng neuron, gom cả lớp lại. Lớp $l$ có $n_{l}$ neuron, nhận đầu vào từ lớp trước có $n_{l-1}$ neuron:
+
+$$
+\mathbf{z}^{(l)} = W^{(l)} \mathbf{a}^{(l-1)} + \mathbf{b}^{(l)}, \qquad \mathbf{a}^{(l)} = f\big(\mathbf{z}^{(l)}\big)
+$$
+
+- $W^{(l)}$ có shape $(n_l, n_{l-1})$: **mỗi hàng** là bộ trọng số của một neuron.
+- $\mathbf{b}^{(l)}$ có shape $(n_l,)$: mỗi neuron một bias.
+- $\mathbf{a}^{(0)} = \mathbf{x}$ là dữ liệu vào.
+
+Việc tính lần lượt từ lớp vào tới lớp ra gọi là **lan truyền xuôi** (forward pass); cách tính gradient cho mọi $W, \mathbf{b}$ để học gọi là **lan truyền ngược** (backpropagation). Hai bài đó đi vào chi tiết; ở đây chỉ cần nắm cấu trúc và shape.
+
+## Đếm tham số và theo dõi shape
+
+Lớp từ $n$ neuron sang $m$ neuron có $n \cdot m$ trọng số và $m$ bias, tổng $n \cdot m + m$.
+
+**Ví dụ mạng 2-3-1:**
+
+| Lớp | $W$ | $\mathbf{b}$ | Số tham số |
+|---|---|---|---|
+| vào → ẩn | (3, 2) | (3,) | 2·3 + 3 = 9 |
+| ẩn → ra | (1, 3) | (1,) | 3·1 + 1 = 4 |
+| **Tổng** | | | **13** |
+
+Khi đưa cả một **batch** gồm $N$ mẫu vào cùng lúc (mỗi mẫu một hàng), shape đi qua mạng là:
+
+$$
+(N, 2) \;\rightarrow\; (N, 3) \;\rightarrow\; (N, 1)
+$$
+
+Số mẫu $N$ giữ nguyên, chỉ chiều thứ hai đổi theo số neuron của lớp. Số tham số **không** phụ thuộc $N$.
+
+**Ví dụ lớn hơn:** ảnh chữ số 28×28 = 784 pixel, lớp ẩn 128 neuron, 10 lớp đầu ra (chữ số 0 đến 9), tức mạng 784-128-10:
+
+$$
+(784 \cdot 128 + 128) + (128 \cdot 10 + 10) = 100\,480 + 1\,290 = 101\,770 \text{ tham số}
+$$
+
+Phần lớn tham số nằm ở lớp đầu, nơi đầu vào nhiều chiều.
+
+<CauHoi cau="mlp/q1" />
+
+## Tự thử
+
+Mở [TensorFlow Playground](https://playground.tensorflow.org) (trang của Google, chạy ngay trên trình duyệt) và thử:
+
+1. Chọn dữ liệu XOR (ô thứ hai ở cột DATA), xoá hết lớp ẩn, bấm chạy. **Đoán trước:** loss có về gần 0 không?
+2. Thêm 1 lớp ẩn 4 neuron, hàm kích hoạt ReLU, chạy lại. Quan sát biên quyết định chuyển từ đường thẳng sang gấp khúc.
+3. Đổi Activation sang Linear (giữ lớp ẩn). Chuyện gì xảy ra với đường biên? Đối chiếu với lý do "thiếu phi tuyến thì sụp về tuyến tính".
+
+## Vì sao MLP mạnh?
+
+Mỗi neuron ReLU ở lớp ẩn tạo một "nếp gấp" dọc theo một đường thẳng. Lớp sau cộng các nếp gấp lại thành hình phức tạp hơn. Định lý xấp xỉ phổ quát (universal approximation theorem) nói rằng chỉ **một** lớp ẩn đủ rộng cũng xấp xỉ được mọi hàm liên tục trên miền giới hạn với sai số tuỳ ý. Tuy nhiên "đủ rộng" có thể là rất rộng; trong thực tế, mạng **sâu** (nhiều lớp, mỗi lớp vừa phải) thường học hiệu quả hơn.
+
+## Tóm tắt
+
+- MLP = lớp vào → lớp ẩn → lớp ra, kết nối đầy đủ, có hàm kích hoạt phi tuyến giữa các lớp.
+- Lớp ẩn biến đổi không gian để lớp sau tách được bằng đường thẳng; nhờ đó giải được XOR.
+- Lớp $n \to m$: $W$ shape $(m, n)$, $\mathbf{b}$ shape $(m,)$, có $nm + m$ tham số.
+- Batch $N$ mẫu: shape $(N, n_0) \to (N, n_1) \to \dots$, $N$ giữ nguyên.
+- Tiếp theo (sắp có): Lan truyền xuôi, Lan truyền ngược.
