@@ -2,7 +2,8 @@
 tieu_de: Xavier, He và đo phương sai qua 20 lớp
 khai_niem: khoi-tao-trong-so
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Hai hàm.

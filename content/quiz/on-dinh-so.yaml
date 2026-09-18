@@ -1,4 +1,5 @@
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 cau_hoi:
   - id: q1
     loai: mot
@@ -104,14 +105,14 @@ cau_hoi:
   - id: q10
     loai: mot
     do_kho: 3
-    de: "Trong float32, tính phương sai của x = (10⁸+1, 10⁸+2, 10⁸+3, 10⁸+4) bằng công thức E[x²] − (E[x])² cho kết quả −8.0. Vì sao?"
+    de: "Trong float32, tính phương sai của x = (10⁴+1, 10⁴+2, 10⁴+3, 10⁴+4) bằng công thức E[x²] − (E[x])² cho kết quả −8.0. Vì sao?"
     lua_chon:
       - Vì công thức đó sai về mặt đại số
       - "Triệt tiêu tai hại: E[x²] và (E[x])² là hai số khổng lồ gần bằng nhau, trừ đi nhau thì mọi chữ số đúng biến mất, chỉ còn sai số làm tròn"
       - Vì NumPy có lỗi
       - Vì dữ liệu có giá trị âm
     dap_an: 1
-    giai_thich: "Hai vế đều cỡ 10¹⁶, mà float32 chỉ tin được ~7 chữ số có nghĩa, nên hiệu 1.25 nằm dưới ngưỡng phân giải: kết quả hoàn toàn là rác, thậm chí âm dù phương sai không thể âm. Công thức hai lượt E[(x − x̄)²] cho đúng 1.25 ở cả float32 lẫn float64."
+    giai_thich: "Hai vế đều cỡ 10⁸, mà float32 chỉ tin được ~7 chữ số có nghĩa — ở vùng 10⁸ khoảng cách giữa hai số float32 liền nhau đã là 8. Hiệu thật 1.25 nằm dưới ngưỡng phân giải đó nên kết quả hoàn toàn là rác, thậm chí âm dù phương sai không thể âm. Công thức hai lượt E[(x − x̄)²] cho đúng 1.25 ở cả float32 lẫn float64."
 
   - id: q11
     loai: mot

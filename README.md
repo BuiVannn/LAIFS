@@ -26,7 +26,7 @@ Trang tĩnh, không cần server. Khuyến nghị **Cloudflare Pages** nối th�
 4. Muốn giới hạn người xem: **Zero Trust → Access → Applications**, thêm ứng dụng self-hosted trỏ vào domain đó, policy cho phép theo danh sách email. Miễn phí tới 50 người.
 
 Lưu ý:
-- `npm run build` chỉ xuất nội dung `trang_thai: da_duyet` (hiện 79 trang). Nội dung mới soạn còn `nhap` sẽ không lên bản chính thức cho tới khi được duyệt.
+- `npm run build` chỉ xuất nội dung `trang_thai: da_duyet` (hiện 133 trang; bản có cả nháp là 145). Nội dung mới soạn còn `nhap` sẽ không lên bản chính thức cho tới khi được duyệt.
 - Bản build có nháp tự thêm `<meta name="robots" content="noindex">`, nên không bị Google lập chỉ mục.
 - Tiến độ học lưu trên trình duyệt từng người, deploy không làm mất, nhưng mỗi thiết bị là một bản riêng cho tới khi có tài khoản (xem mục 9 KHUNG-Y-TUONG.md).
 

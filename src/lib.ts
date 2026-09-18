@@ -6,6 +6,7 @@ export const hienNhap =
 export const hienThi = (d: { data: { trang_thai: string } }) => hienNhap || d.data.trang_thai === 'da_duyet';
 
 export const TEN_TANG: Record<number, string> = {
+  0: 'Công cụ & môi trường',
   1: 'Toán nền',
   2: 'ML cổ điển',
   3: 'Deep Learning',

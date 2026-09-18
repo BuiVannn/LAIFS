@@ -1,0 +1,142 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: "Một traceback dài 20 dòng, trong đó 18 dòng là file bên trong `site-packages/numpy/`. Nên đọc theo thứ tự nào?"
+    lua_chon:
+      - Đọc từ dòng đầu xuống, vì đó là nơi chương trình bắt đầu
+      - "Đọc dòng CUỐI cùng trước (loại lỗi + mô tả), rồi lần ngược lên tìm khung cuối cùng thuộc file của mình"
+      - Bỏ qua traceback, chạy lại xem có hết không
+      - Đọc khung đầu tiên thuộc numpy, vì lỗi nằm trong thư viện
+    dap_an: 1
+    giai_thich: "Traceback in theo thứ tự chương trình ĐÃ ĐI, nên khung mới nhất nằm dưới cùng — chính dòng `Traceback (most recent call last)` nói điều đó. Dòng cuối trả lời 'chuyện gì', khung dưới cùng trả lời 'ở đâu', còn khung cuối cùng thuộc code của bạn trả lời 'ai gây ra'. Lỗi trong thư viện hầu như luôn là do bạn đưa vào đó dữ liệu sai shape."
+
+  - id: q2
+    loai: mot
+    do_kho: 1
+    de: "`ValueError: operands could not be broadcast together with shapes (3,4) (3,5)`. Việc đầu tiên nên làm là gì?"
+    lua_chon:
+      - "Thêm `.T` vào một trong hai mảng rồi chạy lại"
+      - "Đổi sang `np.dot` thay vì toán tử `+`"
+      - "Viết ra shape ĐÚNG phải là gì cho từng mảng, rồi in `.shape` ngay trước dòng lỗi để biết biến nào mang shape nào"
+      - "Bọc dòng đó trong `try/except` cho chương trình chạy tiếp"
+    dap_an: 2
+    giai_thich: "Thông báo đã cho sẵn hai shape xung đột, nhưng chưa nói biến nào là biến nào. Sửa bừa bằng `.T` hay `.reshape` cho tới khi hết đỏ là cách tạo ra lỗi thầm lặng: code chạy được nhưng phép toán không còn đúng ý định nữa. Bước bắt buộc là xác định shape đúng TRƯỚC khi sửa."
+
+  - id: q3
+    loai: mot
+    do_kho: 2
+    de: "`TypeError: unsupported operand type(s) for +: 'NoneType' and 'int'`. Nguyên nhân phổ biến nhất?"
+    lua_chon:
+      - Biến chưa được khai báo
+      - "Một hàm tính xong nhưng quên `return`, nên Python tự trả về `None`"
+      - Sai phiên bản Python
+      - Mảng NumPy rỗng
+    dap_an: 1
+    giai_thich: "Hàm không có `return` trả về `None`. Quy tắc để nhớ: thấy chữ `NoneType` ở bất kỳ đâu trong thông báo thì đi tìm hàm quên `return`. Cùng họ: `TypeError: 'NoneType' object is not subscriptable` và `AttributeError: 'NoneType' object has no attribute 'shape'`."
+
+  - id: q4
+    loai: mot
+    do_kho: 2
+    de: "`a` là mảng NumPy. Dòng `print(a.shape(0))` cho `TypeError: 'tuple' object is not callable`. Vì sao?"
+    lua_chon:
+      - "`shape` chưa được tính nên chưa gọi được"
+      - "`shape` là THUỘC TÍNH kiểu tuple, không phải hàm — phải viết `a.shape[0]`"
+      - Mảng chưa có dữ liệu
+      - "Phải viết `np.shape(a, 0)`"
+    dap_an: 1
+    giai_thich: "`a.shape` trả về một tuple, ví dụ `(8, 3)`. Viết `a.shape(0)` là đang gọi tuple đó như một hàm. Lấy phần tử của tuple phải dùng ngoặc vuông: `a.shape[0]`. Thông báo `'X' object is not callable` luôn có nghĩa: bạn đặt dấu ngoặc tròn sau một thứ không phải hàm."
+
+  - id: q5
+    loai: mot
+    do_kho: 2
+    de: "Trong NumPy, `np.array([1.0, 2.0]) / np.array([0.0, 0.0])` cho kết quả gì?"
+    lua_chon:
+      - "Ném `ZeroDivisionError` và dừng chương trình"
+      - "In một `RuntimeWarning: divide by zero` rồi trả về `array([inf, inf])`, chương trình chạy tiếp"
+      - "Trả về `array([0., 0.])`"
+      - "Trả về `array([nan, nan])` và ném cảnh báo"
+    dap_an: 1
+    giai_thich: "`ZeroDivisionError` chỉ xảy ra với số Python thuần. NumPy chỉ cảnh báo rồi trả `inf` (hoặc `nan` nếu tử số cũng là 0), và chương trình chạy tiếp — nên `inf`/`nan` lan khắp mô hình trước khi bạn kịp thấy. Khi đang săn lỗi, bật `np.seterr(all='raise')` để NumPy ném `FloatingPointError` thật sự."
+
+  - id: q6
+    loai: so
+    do_kho: 2
+    de: "`a` có shape (4, 1) và `b` có shape (4,). Biểu thức `a - b` cho ra mảng có tổng cộng bao nhiêu phần tử?"
+    dap_an: 16
+    sai_so: 0.5
+    giai_thich: "Broadcasting so shape từ phải sang trái và thêm chiều 1 vào bên TRÁI cho mảng ít chiều hơn: `b` (4,) thành (1, 4). Ghép (4,1) với (1,4) cho (4,4) = 16 phần tử. Bạn đưa vào hai thứ có 4 phần tử và nhận về 16 — không lỗi, không cảnh báo. Đây là lỗi tốn thời gian nhất khi làm ML bằng NumPy."
+
+  - id: q7
+    loai: mot
+    do_kho: 3
+    de: "Nhãn `y` có shape (4,), dự đoán `yp` có shape (4,1), sai số thật của mô hình rất nhỏ. Nhưng `((y - yp) ** 2).mean()` in ra một số lớn gấp gần trăm lần giá trị đúng. Chuyện gì xảy ra?"
+    lua_chon:
+      - Mô hình chưa hội tụ nên loss lớn
+      - "`y - yp` broadcasting thành ma trận (4,4): chỉ 4 ô trên đường chéo là sai số thật, 12 ô còn lại so nhãn của mẫu này với dự đoán của mẫu khác"
+      - "`.mean()` tính sai vì mảng có shape lạ"
+      - Learning rate quá lớn
+    dap_an: 1
+    giai_thich: "(4,1) trừ (4,) cho (4,4). Đường chéo là bốn sai số thật; 12 ô còn lại hoàn toàn vô nghĩa nhưng vẫn được đưa vào trung bình, nên loss phình lên. Không có lỗi nào được ném ra. Sửa bằng cách thống nhất shape: `yp.ravel()` hoặc `y[:, None]`, và đặt `assert y.shape == yp.shape` làm rào chắn."
+
+  - id: q8
+    loai: mot
+    do_kho: 3
+    de: "Vì sao không nên thử một hàm NumPy mới viết trên dữ liệu có shape (3, 3)?"
+    lua_chon:
+      - Vì 3×3 quá nhỏ để thấy được kết quả
+      - "Vì ma trận vuông khiến mọi nhầm lẫn về trục đều hợp lệ về shape: `X - X.mean(axis=1)` chạy trót lọt nhưng trừ sai chiều, còn với (5,3) thì nó ném ValueError ngay"
+      - Vì NumPy tối ưu riêng cho ma trận vuông nên kết quả khác
+      - "Vì `.mean()` không dùng được trên ma trận vuông"
+    dap_an: 1
+    giai_thich: "Với (3,3), `X.mean(axis=1)` cho shape (3,) và phép trừ broadcasting theo CỘT thay vì theo hàng — sai hoàn toàn mà không có cảnh báo nào. Với (5,3), cùng lỗi đó cho (5,) không ghép được với (5,3), nên NumPy ném ValueError và bạn biết ngay. Quy tắc: luôn thử trên shape không vuông."
+
+  - id: q9
+    loai: mot
+    do_kho: 2
+    de: "Trong vòng lặp huấn luyện có dòng `if loss > 100: print('phan ky')`. Loss đã thành `nan` từ lâu nhưng dòng này không bao giờ chạy. Vì sao?"
+    lua_chon:
+      - "Vì `nan` được coi là 0 nên nhỏ hơn 100"
+      - "Vì mọi phép so sánh với `nan` (`>`, `<`, `==`) đều cho `False`; chỉ `!=` cho `True`"
+      - "Vì `print` bị tắt khi có `nan`"
+      - "Vì `nan` chỉ tồn tại trong mảng NumPy chứ không phải trong số vô hướng"
+    dap_an: 1
+    giai_thich: "NaN không lớn hơn, không nhỏ hơn, không bằng bất cứ thứ gì — kể cả chính nó. Nên cả `if loss > 100` lẫn `if loss < nho_nhat` đều trượt qua, và bạn giữ lại checkpoint cũ mà tưởng mọi thứ ổn. Cách bắt duy nhất đáng tin: `np.isnan(x)` hoặc `np.isfinite(x).all()`."
+
+  - id: q10
+    loai: mot
+    do_kho: 3
+    de: "Dòng `assert (y.shape == yp.shape, 'shape lech')` không bao giờ nổ dù hai shape thật sự khác nhau. Vì sao?"
+    lua_chon:
+      - "Vì `assert` không so sánh được tuple"
+      - "Vì dấu ngoặc bao cả hai biến biểu thức thành một TUPLE hai phần tử, mà tuple không rỗng luôn được coi là đúng"
+      - "Vì Python đang chạy với cờ `-O`"
+      - "Vì `y.shape` trả về `None`"
+    dap_an: 1
+    giai_thich: "`assert (a, b)` khẳng định rằng cái tuple `(a, b)` là đúng — mà mọi tuple không rỗng đều đúng, nên câu lệnh vô hại tuyệt đối. Python có cảnh báo `SyntaxWarning: assertion is always true, perhaps remove parentheses?` nhưng nó dễ bị lướt qua. Viết đúng: `assert y.shape == yp.shape, 'shape lech'` — không ngoặc bao ngoài."
+
+  - id: q11
+    loai: mot
+    do_kho: 3
+    de: "Khởi tạo `w = np.zeros(3, dtype=int)` rồi cập nhật `w = w - 0.01 * grad` trong vòng lặp. Loss phẳng lì, không có lỗi nào. Vì sao?"
+    lua_chon:
+      - "Learning rate 0.01 quá nhỏ"
+      - "Gradient bằng 0 ngay từ đầu"
+      - "Mỗi lần gán lại vào mảng kiểu số nguyên, phần thập phân của bước cập nhật bị cắt trong im lặng, nên `w` không bao giờ rời khỏi 0"
+      - "`np.zeros` không nhận tham số `dtype`"
+    dap_an: 2
+    giai_thich: "Mảng kiểu nguyên cắt bỏ phần thập phân khi gán, không cảnh báo: gán 0.9 vào phần tử int64 cho ra 0. Trong huấn luyện, mọi bước cập nhật nhỏ đều bị làm tròn về 0 nên tham số đứng im, loss phẳng, và bạn đi tìm bug trong thuật toán. Luôn tạo mảng số thực rõ ràng: `np.zeros(3)` hay `np.asarray(x, dtype=float)`."
+
+  - id: q12
+    loai: nhieu
+    do_kho: 3
+    de: "Code chạy tới hết, không lỗi, nhưng accuracy in ra 0.5 trong khi tính tay được 0.75. Những bước nào dưới đây thuộc quy trình chẩn đoán đúng?"
+    lua_chon:
+      - "In shape và dtype của mọi mảng trung gian, tìm shape (n, n) không mong muốn"
+      - "Thu nhỏ dữ liệu xuống vài mẫu và in cả mảng ra để nhìn tận mắt"
+      - "Bọc đoạn code trong `try/except Exception: pass` để chương trình chạy êm"
+      - "Thêm `assert y_that.shape == y_doan.shape` làm rào chắn"
+      - "Tăng số epoch lên cho mô hình học tốt hơn"
+    dap_an: [0, 1, 3]
+    giai_thich: "Lỗi thầm lặng chỉ lộ ra khi bạn chủ động nhìn vào những thứ bình thường không in ra: shape, dtype, và giá trị trung gian trên dữ liệu đủ nhỏ để đọc. `except: pass` làm điều ngược lại — nó biến lỗi ồn ào thành lỗi im lặng. Tăng epoch là chữa triệu chứng của một chẩn đoán chưa có. `assert` biến lần sau thành lỗi nổ ngay tại chỗ."

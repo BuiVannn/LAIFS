@@ -2,7 +2,8 @@
 tieu_de: "Chuẩn hoá z-score đúng quy trình"
 khai_niem: ky-vong-phuong-sai
 do_kho: 1
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Chuẩn hoá từng **cột** (mỗi cột là một đặc trưng) về kỳ vọng 0, độ lệch chuẩn 1:

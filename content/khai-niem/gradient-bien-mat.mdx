@@ -4,7 +4,8 @@ ten_en: "Vanishing and Exploding Gradients"
 tang: 3
 thu_tu: 35
 tien_quyet: ["lan-truyen-nguoc", "ham-kich-hoat", "khoi-tao-trong-so"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Trong mạng sâu, gradient đi ngược qua mỗi lớp bị NHÂN với một hệ số. Nếu các hệ số đó
   thường nhỏ hơn 1, tích của chúng teo về 0 theo cấp số nhân và các lớp gần đầu vào gần như
@@ -304,7 +305,7 @@ Nếu trọng số khởi tạo quá nhỏ thì tín hiệu tắt ngay ở **lư
 | Xavier / Glorot | $\mathrm{Var}(w) = \dfrac{2}{d_{in} + d_{out}}$ | tanh, sigmoid |
 | He | $\mathrm{Var}(w) = \dfrac{2}{d_{in}}$ | ReLU (hệ số 2 bù cho một nửa giá trị bị cắt về 0) |
 
-Khởi tạo tất cả bằng 0 thì mọi neuron trong một lớp luôn giống hệt nhau và không bao giờ tách ra được — đó là lý do phải ngẫu nhiên. Bài riêng về khởi tạo trọng số sẽ nói kỹ hơn.
+Khởi tạo tất cả bằng 0 thì mọi neuron trong một lớp luôn giống hệt nhau và không bao giờ tách ra được — đó là lý do phải ngẫu nhiên. Bài [Khởi tạo trọng số](/khai-niem/khoi-tao-trong-so) dẫn cả hai công thức trên từ một dòng $\operatorname{Var}(z) = n_{in}\operatorname{Var}(w)\operatorname{Var}(x)$.
 
 ### 3. Chuẩn hoá: BatchNorm / LayerNorm
 
@@ -440,4 +441,4 @@ Ví dụ: $g = (3, 4)$ có $\lVert g \rVert = 5$; với $c = 1$ thì hệ số c
 2. So trọng số lớp đầu với bản lưu lúc khởi tạo — không đổi nghĩa là nó không hề học.
 3. Thử overfit 8 mẫu — không xuống được loss gần 0 nghĩa là lỗi tối ưu hoá, không phải lỗi dữ liệu.
 
-**Đọc tiếp:** [Batch normalization](/khai-niem/batch-norm); khởi tạo trọng số, optimizer và LSTM/GRU — sắp có.
+**Đọc tiếp:** [Khởi tạo trọng số](/khai-niem/khoi-tao-trong-so) và [Batch normalization](/khai-niem/batch-norm); LSTM/GRU — sắp có.

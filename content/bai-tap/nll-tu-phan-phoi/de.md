@@ -2,7 +2,8 @@
 tieu_de: Từ phân phối ra hàm mất mát (NLL Bernoulli và Gauss)
 khai_niem: hop-ly-cuc-dai
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Bài này chứng minh bằng code điều mà bài học nói bằng lời: **MSE và cross-entropy không ai chọn bừa, chúng rơi ra từ hợp lý cực đại**.

@@ -2,7 +2,8 @@
 tieu_de: Cài RMSProp từ đầu
 khai_niem: optimizer
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Cài **RMSProp**. Viết hàm `chay_rmsprop(grad, w0, lr, beta, T, eps=1e-8)`, cùng dạng với bài momentum:

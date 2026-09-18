@@ -4,7 +4,8 @@ ten_en: "Weight Initialization (Xavier/Glorot, He)"
 tang: 3
 thu_tu: 31
 tien_quyet: ["lan-truyen-nguoc"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Cách chọn giá trị ban đầu cho trọng số trước khi huấn luyện. Mục tiêu là giữ phương sai của
   tín hiệu gần như không đổi khi đi xuôi qua từng lớp và khi gradient đi ngược trở lại, để mạng
@@ -165,7 +166,7 @@ $$
 = \mathbb{E}[w_i^2]\,\mathbb{E}[x_i^2] - 0 = \sigma_w^2 \sigma_x^2
 $$
 
-Phương sai của tổng $n_{\text{in}}$ số hạng độc lập là tổng các phương sai (xem bài Kỳ vọng, phương sai):
+Phương sai của tổng $n_{\text{in}}$ số hạng độc lập là tổng các phương sai (xem bài [Kỳ vọng và phương sai](/khai-niem/ky-vong-phuong-sai)):
 
 $$
 \boxed{\;\operatorname{Var}(z) = n_{\text{in}}\, \sigma_w^2\, \sigma_x^2\;}
@@ -348,4 +349,4 @@ Mạng càng sâu, các nhánh residual càng phải khởi tạo nhỏ. Ở gi�
 - Lớp $256\to256$: Xavier $= 1/16 = 0.0625$; He $= 1/\sqrt{128} = 0.0884$.
 - **Transformer**: $\mathcal{N}(0, 0.02)$, LayerNorm $\gamma=1, \beta=0$, lớp chiếu residual chia thêm $\sqrt{2L}$.
 - **Cách kiểm 30 giây**: một lượt xuôi, in `z.var()` từng lớp. Bốn bậc mười chênh nhau là hỏng.
-- Liên quan: [Lan truyền ngược](/khai-niem/lan-truyen-nguoc), [Hàm kích hoạt](/khai-niem/ham-kich-hoat), và bài Kỳ vọng, phương sai cho phần phương sai của tổng.
+- Liên quan: [Lan truyền ngược](/khai-niem/lan-truyen-nguoc), [Hàm kích hoạt](/khai-niem/ham-kich-hoat), [Kỳ vọng và phương sai](/khai-niem/ky-vong-phuong-sai) cho phần phương sai của tổng, và [Gradient biến mất và bùng nổ](/khai-niem/gradient-bien-mat) cho hậu quả ở lượt ngược.

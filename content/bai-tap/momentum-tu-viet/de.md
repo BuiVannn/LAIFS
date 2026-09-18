@@ -2,7 +2,8 @@
 tieu_de: Cài momentum từ đầu
 khai_niem: optimizer
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Cài gradient descent có **momentum**. Viết hàm `chay_momentum(grad, w0, lr, beta, T)`:

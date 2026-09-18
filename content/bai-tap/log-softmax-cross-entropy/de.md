@@ -2,7 +2,8 @@
 tieu_de: log_softmax và cross-entropy từ logit thô
 khai_niem: on-dinh-so
 do_kho: 3
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Đây là bài giải thích vì sao `torch.nn.CrossEntropyLoss` nhận **logit chưa chuẩn hoá** chứ không nhận xác suất: bạn sẽ tự cài lại đúng đường đi an toàn đó.

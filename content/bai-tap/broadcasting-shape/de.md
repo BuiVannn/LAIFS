@@ -2,7 +2,8 @@
 tieu_de: "Tự cài đặt quy tắc broadcasting"
 khai_niem: vector-ma-tran
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Cách chắc chắn nhất để không bao giờ đoán nhầm shape nữa: tự viết lại quy tắc broadcasting.

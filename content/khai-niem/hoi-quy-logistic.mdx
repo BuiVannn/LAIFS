@@ -4,7 +4,8 @@ ten_en: "Logistic Regression"
 tang: 2
 thu_tu: 15
 tien_quyet: ["hoi-quy-tuyen-tinh", "xac-suat-co-ban"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Mô hình phân loại: tính một điểm thô tuyến tính z = w·x + b rồi ép z về khoảng (0, 1)
   bằng hàm sigmoid để được xác suất ŷ = σ(z) của lớp dương. Huấn luyện bằng gradient descent
@@ -220,11 +221,11 @@ Cập nhật: $w \leftarrow 0 - 1 \times (-0.5) = 0.5$, còn $b$ giữ nguyên 0
 | $x$ | $z = 0.5x$ | $\hat{y} = \sigma(z)$ | $y$ | $\hat{y} - y$ | $(\hat{y}-y)x$ |
 |---|---|---|---|---|---|
 | 1 | 0.5 | 0.6225 | 0 | 0.6225 | 0.6225 |
-| 2 | 1.0 | 0.7311 | 0 | 0.7311 | 1.4622 |
+| 2 | 1.0 | 0.7311 | 0 | 0.7311 | 1.4621 |
 | 3 | 1.5 | 0.8176 | 1 | −0.1824 | −0.5473 |
 | 4 | 2.0 | 0.8808 | 1 | −0.1192 | −0.4768 |
 
-$\partial L/\partial w = (0.6225 + 1.4622 - 0.5473 - 0.4768)/4 = 0.2651$ và $\partial L/\partial b = (0.6225 + 0.7311 - 0.1824 - 0.1192)/4 = 0.2630$.
+$\partial L/\partial w = (0.6225 + 1.4621 - 0.5473 - 0.4768)/4 = 0.2651$ và $\partial L/\partial b = (0.6225 + 0.7311 - 0.1824 - 0.1192)/4 = 0.2630$.
 
 Cập nhật: $w = 0.5 - 0.2651 = 0.2349$, $b = 0 - 0.2630 = -0.2630$. Loss giảm từ 0.6931 xuống 0.6539 rồi 0.5972.
 
@@ -300,7 +301,7 @@ Khi các lớp **không loại trừ nhau** (một bức ảnh vừa có "biển
 |---|---|---|
 | Dùng MSE thay cross-entropy | Loss giảm cực chậm rồi đứng im ở mức cao; các mẫu sai nặng mãi không được sửa; đổi khởi tạo cho kết quả cuối khác hẳn nhau | Đổi sang BCE; kiểm tra lại bằng cách in $\partial L/\partial z$ trên một mẫu sai nặng, phải gần ±1 |
 | Quên sigmoid ở lớp ra, đưa thẳng $z$ vào BCE | Loss ra `nan` ngay batch đầu, hoặc ra số âm | Dùng phiên bản nhận logit (`BCEWithLogitsLoss`, xem [Ổn định số](/khai-niem/on-dinh-so)), đừng tự ghép `sigmoid` rồi `log` |
-| Áp sigmoid **hai lần** (lớp ra đã sigmoid, lại truyền vào hàm loss "with logits") | Loss giảm nhưng đứng lại quanh 0.6–0.7; mọi xác suất dồn vào khoảng hẹp 0.38–0.73 | Chọn một trong hai: hoặc lớp ra trả logit thô, hoặc dùng loss nhận xác suất |
+| Áp sigmoid **hai lần** (lớp ra đã sigmoid, lại truyền vào hàm loss "with logits") | Loss giảm rồi chững lại, không bao giờ xuống dưới khoảng 0.50; mọi xác suất dồn vào khoảng hẹp 0.50–0.73 (vì $\sigma(\sigma(z))$ chỉ chạy từ $\sigma(0) = 0.5$ tới $\sigma(1) = 0.7311$) | Chọn một trong hai: hoặc lớp ra trả logit thô, hoặc dùng loss nhận xác suất |
 | Không chuẩn hoá đặc trưng | Một đặc trưng đơn vị "nghìn đồng" làm $z$ nhảy lên hàng trăm; sigmoid bão hoà, gradient $\approx 0$, loss đứng im từ epoch 1 | Chuẩn hoá về trung bình 0 độ lệch chuẩn 1 trước khi huấn luyện |
 | Đọc $w$ như "xác suất tăng thêm $w$" | Kết luận sai kiểu "thêm 1 giờ ôn thì tăng 0.8 xác suất đỗ" | $w$ là số cộng vào **log-odds**; odds nhân $e^{w}$, còn xác suất tăng bao nhiêu thì tuỳ đang đứng ở đâu |
 | Đánh giá bằng accuracy trên dữ liệu lệch lớp | Accuracy 99% trông rất đẹp, nhưng mô hình đoán "không" cho mọi mẫu và bắt được 0 ca dương | Xem precision/recall, chọn ngưỡng theo chi phí thật (bài [Đánh giá mô hình](/khai-niem/danh-gia-mo-hinh)) |

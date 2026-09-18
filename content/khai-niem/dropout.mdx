@@ -4,7 +4,8 @@ ten_en: Dropout
 tang: 3
 thu_tu: 33
 tien_quyet: ["overfitting", "mlp"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Dropout là kỹ thuật điều chuẩn cho mạng neuron: ở MỖI lượt huấn luyện, mỗi neuron bị tắt
   (đặt về 0) một cách ngẫu nhiên và độc lập với xác suất 1 − p. Lúc đánh giá thì không tắt gì
@@ -35,7 +36,7 @@ tai_lieu:
     loai: bai_viet
     muc_do: sau
     ngon_ngu: en
-    ghi_chu: Bài báo gốc, PDF mở. Mục 1–2 cho ý tập hợp mạng con, Mục 7.5 bàn phép xấp xỉ trung bình lúc test, Phụ lục A.2 cho các tỉ lệ thực dụng. Lưu ý p ở đây là xác suất GIỮ.
+    ghi_chu: Bài báo gốc, PDF mở. Mục 1–2 cho ý tập hợp mạng con, Mục 7.5 (Monte-Carlo Model Averaging vs. Weight Scaling) bàn phép xấp xỉ trung bình lúc test, Phụ lục A.1 cho mẹo nhân số neuron lên 1/p và A.4 cho các tỉ lệ thực dụng. Lưu ý p ở đây là xác suất GIỮ.
   - url: https://www.youtube.com/watch?v=D8PJAL-MZv8
     tieu_de: Dropout Regularization (C2W1L06)
     tac_gia: DeepLearningAI (Andrew Ng)
@@ -187,9 +188,9 @@ Con số thực dụng (nhắc lại: $p$ ở đây là xác suất **giữ**):
 | Transformer (P_drop bài gốc) | 0.9 | 0.1 |
 | Mô hình đang chưa khớp | 1.0 (tắt hẳn) | 0.0 |
 
-Srivastava và cộng sự khuyên $p = 0.5$ cho lớp ẩn vì đó là chỗ số lượng mạng con lớn nhất, và giữ $p$ cao ở lớp đầu vào vì xoá thẳng dữ liệu gốc thì mất thông tin không lấy lại được.
+Bài báo gốc (Phụ lục A.4) nói rõ: $p$ cho lớp ẩn thường nằm trong khoảng **0.5 đến 0.8**, còn lớp đầu vào thực giá trị điển hình là **0.8** — giữ $p$ cao ở đầu vào vì xoá thẳng dữ liệu gốc thì mất thông tin không lấy lại được. Con số 0.5 hay được lấy làm mặc định vì đó là chỗ số lượng mạng con lớn nhất, nhưng nó là mép dưới của khoảng, không phải giá trị duy nhất đúng.
 
-Một mẹo trong bài báo gốc: khi thêm dropout với $p$, nên **tăng số neuron** của lớp đó lên khoảng $1/p$ lần, vì trung bình chỉ có $p \cdot n$ neuron hoạt động mỗi lượt. Thêm dropout mà giữ nguyên kích thước lớp đôi khi biến quá khớp thành chưa khớp.
+Một mẹo trong bài báo gốc (Phụ lục A.1): khi thêm dropout với $p$, nên **tăng số neuron** của lớp đó lên khoảng $1/p$ lần, vì trung bình chỉ có $p \cdot n$ neuron hoạt động mỗi lượt. Thêm dropout mà giữ nguyên kích thước lớp đôi khi biến quá khớp thành chưa khớp.
 
 ### Dropout ở đâu trong Transformer
 

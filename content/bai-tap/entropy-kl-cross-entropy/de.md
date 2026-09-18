@@ -2,7 +2,8 @@
 tieu_de: Entropy, KL và cross-entropy — kiểm đẳng thức CE = H(p) + KL(p‖q)
 khai_niem: cross-entropy
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Ba đại lượng, một đẳng thức. Cài cả ba bằng numpy rồi để test chứng minh đẳng thức giúp bạn.

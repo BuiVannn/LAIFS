@@ -2,7 +2,8 @@
 tieu_de: Một epoch mini-batch SGD có xáo dữ liệu
 khai_niem: sgd-mini-batch
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Cài **một epoch** mini-batch gradient descent cho mô hình một tham số $\hat y = wx$ với loss MSE.

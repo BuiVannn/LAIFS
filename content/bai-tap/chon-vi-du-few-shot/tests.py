@@ -86,3 +86,11 @@ def test_prompt_nhieu_vi_du_cach_nhau_dong_trong():
 def test_prompt_khop_thuat_ngu_khong_phan_biet_hoa_thuong():
     p = dung_prompt("The ICU is full.", [], {"icu": "khoa hồi sức tích cực"})
     assert p.startswith("Bảng thuật ngữ:\n- icu -> khoa hồi sức tích cực"), f"nhan:\n{p}"
+
+
+def test_cosine_chuan_hoa_do_dai():
+    a = {"x": 3.0, "y": 4.0}
+    assert math.isclose(cosine(a, a), 1.0, abs_tol=1e-12), "cosine cua vector voi chinh no phai bang 1"
+    assert math.isclose(cosine(a, {"x": 30.0, "y": 40.0}), 1.0, abs_tol=1e-12), "cosine khong doi khi vector dai gap 10 lan"
+    assert math.isclose(cosine(a, {"x": 1.0}), 0.6, abs_tol=1e-12), "3/(5*1) = 0.6"
+    assert cosine({}, a) == 0.0

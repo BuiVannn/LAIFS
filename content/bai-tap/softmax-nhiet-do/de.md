@@ -2,7 +2,8 @@
 tieu_de: Softmax có nhiệt độ và hai giới hạn của nó
 khai_niem: softmax
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Núm "temperature" khi dùng LLM sinh văn bản chính là tham số $\tau$ trong công thức này. Bài tập kiểm chứng bằng code hai giới hạn $\tau \to 0$ và $\tau \to \infty$.

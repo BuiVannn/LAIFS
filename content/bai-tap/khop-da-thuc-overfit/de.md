@@ -2,7 +2,8 @@
 tieu_de: Khớp đa thức và nhìn thấy quá khớp
 khai_niem: overfitting
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Cho bốn mảng numpy một chiều: `x_train`, `y_train` (tập huấn luyện) và `x_val`, `y_val` (tập validation).

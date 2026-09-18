@@ -2,7 +2,8 @@
 tieu_de: "Khởi tạo 1/√d và phương sai qua các lớp"
 khai_niem: ky-vong-phuong-sai
 do_kho: 3
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Đo tận mắt hiện tượng đã dẫn trong bài: phương sai của tổng $d$ biến độc lập thì **cộng lại**, nên mỗi lớp tuyến tính nhân độ lệch chuẩn của activation với hệ số $\sqrt{d_{\text{in}}}\,\sigma_w$. Hệ số đó khác 1 bao nhiêu thì sau $L$ lớp lệch đi luỹ thừa $L$ lần.

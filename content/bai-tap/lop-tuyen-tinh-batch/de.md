@@ -2,7 +2,8 @@
 tieu_de: "Lớp tuyến tính chạy cả batch"
 khai_niem: nhan-ma-tran
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Giờ dùng `@` thật sự, và dựng đúng cái mà mọi framework deep learning làm.

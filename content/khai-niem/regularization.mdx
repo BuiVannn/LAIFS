@@ -4,7 +4,8 @@ ten_en: "Regularization (L1, L2, weight decay)"
 tang: 2
 thu_tu: 19
 tien_quyet: ["overfitting"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Điều chuẩn là cộng thêm vào hàm mất mát một khoản phạt theo độ lớn của trọng số, để mô hình
   phải "trả giá" khi muốn dùng trọng số lớn. L2 (weight decay) phạt tổng bình phương và co mọi
@@ -64,21 +65,32 @@ import CauHoi from '../../src/components/CauHoi.astro';
 
 ## Hai cột dữ liệu gần trùng nhau và một nghiệm điên rồ
 
-Bạn dự đoán doanh thu từ hai đặc trưng: "chi phí quảng cáo tuần này" và "chi phí quảng cáo 7 ngày gần nhất". Hai cột gần như trùng nhau, hệ số tương quan 0.999. Bình phương tối thiểu cho ra:
+Bạn dự đoán doanh thu từ hai đặc trưng: "chi phí quảng cáo tuần này" và "chi phí quảng cáo 7 ngày gần nhất". Hai cột gần như trùng nhau, hệ số tương quan **0.9991**. Lấy 20 mẫu, luật thật là $y = 1.5x_1 + 1.5x_2$ cộng chút nhiễu, rồi khớp bằng bình phương tối thiểu:
 
 $$
-w = (3.512,\; -0.632)
+w = (4.492,\; -1.500)
 $$
 
-Đọc ra thì vô lý: quảng cáo nhiều hơn làm doanh thu **giảm**? Thực ra mô hình đang làm một trò triệt tiêu — cộng một lượng khổng lồ từ cột 1 rồi trừ bớt bằng cột 2. Trên tập train nó khớp rất đẹp. Nhưng **bỏ đi đúng một mẫu** rồi khớp lại, cặp số nhảy sang $(-1.272,\ 4.152)$ — đổi cả dấu, mà vẫn khớp không kém. Đó chính là **phương sai cao** ở bài [Quá khớp](/khai-niem/overfitting), nhìn từ phía trọng số.
+Đọc ra thì vô lý: quảng cáo nhiều hơn làm doanh thu **giảm**? Thực ra mô hình đang làm một trò triệt tiêu — cộng một lượng khổng lồ từ cột 1 rồi trừ bớt bằng cột 2. Trên tập train nó khớp rất đẹp. Nhưng **bỏ đi đúng một mẫu** rồi khớp lại, cặp số nhảy sang $(2.798,\ 0.193)$ — $w_2$ đổi hẳn dấu, mà vẫn khớp không kém. Đó chính là **phương sai cao** ở bài [Quá khớp](/khai-niem/overfitting), nhìn từ phía trọng số.
 
-Thêm một khoản phạt nhỏ, $\lambda = 0.1$:
+Thêm một khoản phạt, $\lambda = 1$:
 
 $$
-w = (1.478,\; 1.382)
+w = (1.469,\; 1.404)
 $$
 
-Hai cột giống nhau thì chia đều ảnh hưởng — đúng như trực giác, và ổn định hẳn khi dữ liệu đổi. Đó là **điều chuẩn** (regularization).
+Hai cột giống nhau thì chia đều ảnh hưởng — đúng như trực giác, và gần đúng luật thật $(1.5,\ 1.5)$. Quan trọng hơn: bỏ chính cái mẫu vừa rồi ra rồi khớp lại, ridge cho $(1.454,\ 1.441)$ — gần như không nhúc nhích, trong khi bình phương tối thiểu nhảy cả đơn vị. Đó là **điều chuẩn** (regularization).
+
+Tự dựng lại ví dụ này trong 6 dòng:
+
+```python
+import numpy as np
+rng = np.random.default_rng(354)
+x1 = rng.normal(0, 1, 20); x2 = x1 + rng.normal(0, 0.05, 20)   # hai cot gan trung nhau
+X = np.column_stack([x1, x2]); y = 1.5 * x1 + 1.5 * x2 + rng.normal(0, 0.3, 20)
+print(np.linalg.lstsq(X, y, rcond=None)[0])                     # [ 4.492 -1.500]
+print(np.linalg.solve(X.T @ X + 1.0 * np.eye(2), X.T @ y))      # [ 1.469  1.404]
+```
 
 ## Ý tưởng: đánh thuế trọng số lớn
 
@@ -93,7 +105,7 @@ $$
 
 $\lambda \ge 0$ là núm chỉnh: $\lambda = 0$ quay về bài toán gốc, $\lambda \to \infty$ ép mọi trọng số về 0.
 
-Vì sao phạt trọng số lớn lại chống quá khớp? Trọng số lớn nghĩa là đầu ra **nhạy** với đầu vào: đổi $x_j$ một chút thì dự đoán nhảy $w_j$ lần chừng đó. Mô hình bẻ cong để chạm từng điểm nhiễu buộc phải dùng trọng số lớn — nhớ lại ở bài trước, đa thức bậc 9 có hệ số lên tới 70.6 trong khi bậc 5 chỉ tới 5.19. Phạt độ lớn trọng số là chặn đúng cái cửa đó.
+Vì sao phạt trọng số lớn lại chống quá khớp? Trọng số lớn nghĩa là đầu ra **nhạy** với đầu vào: đổi $x_j$ một chút thì dự đoán nhảy $w_j$ lần chừng đó. Mô hình bẻ cong để chạm từng điểm nhiễu buộc phải dùng trọng số lớn — nhớ lại ở bài trước, đa thức bậc 7 có hệ số lớn nhất tới 33.69 trong khi bậc 4 chỉ tới 3.02. Phạt độ lớn trọng số là chặn đúng cái cửa đó.
 
 ## Dẫn công thức: từ đâu ra $\lVert w\rVert^2$ và $\lVert w\rVert_1$?
 

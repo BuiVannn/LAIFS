@@ -4,7 +4,8 @@ ten_en: "Numerical Stability"
 tang: 2
 thu_tu: 27
 tien_quyet: ["softmax", "ham-kich-hoat"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Tập hợp kỹ thuật viết lại công thức sao cho máy tính ra đúng kết quả dù chỉ có
   dấu phẩy động với dải giá trị hữu hạn: trừ max trước khi lấy exp, dùng log-sum-exp,
@@ -195,14 +196,16 @@ Vì vậy `torch.nn.CrossEntropyLoss` ghi rõ trong tài liệu là nhận **log
 
 ## Ổ hỏng số 4: triệt tiêu tai hại
 
-Khi trừ hai số gần bằng nhau, các chữ số đúng triệt tiêu hết và phần sai số tương đối phình lên. Ví dụ rõ nhất là công thức phương sai $\text{Var}(x) = E[x^2] - (E[x])^2$ với dữ liệu $x = (10^8{+}1,\ 10^8{+}2,\ 10^8{+}3,\ 10^8{+}4)$, phương sai thật là 1.25:
+Khi trừ hai số gần bằng nhau, các chữ số đúng triệt tiêu hết và phần sai số tương đối phình lên. Ví dụ rõ nhất là công thức phương sai $\text{Var}(x) = E[x^2] - (E[x])^2$ với dữ liệu $x = (10^4{+}1,\ 10^4{+}2,\ 10^4{+}3,\ 10^4{+}4)$, phương sai thật là 1.25:
 
 | Cách tính | float64 | float32 |
 |---|---|---|
-| $E[x^2] - (E[x])^2$ | 2.0 | **−8.0** |
+| $E[x^2] - (E[x])^2$ | 1.25 | **−8.0** |
 | Hai lượt: $E\big[(x - \bar{x})^2\big]$ | 1.25 | 1.25 |
 
-Công thức "một lượt" cho ra phương sai **âm** trong float32 — một đại lượng không thể âm. Cả hai công thức đều đúng về mặt đại số; chỉ một trong hai đúng về mặt tính toán.
+Công thức "một lượt" cho ra phương sai **âm** trong float32 — một đại lượng không thể âm. Lý do rất cụ thể: cả $E[x^2]$ lẫn $(E[x])^2$ đều cỡ $10^{8}$, mà ở vùng đó khoảng cách giữa hai số float32 liền nhau đã là 8. Hiệu thật 1.25 còn nhỏ hơn một vạch chia, nên cái còn lại sau phép trừ hoàn toàn là sai số làm tròn.
+
+Đẩy dữ liệu lên $10^8 + (1, 2, 3, 4)$ thì đến float64 cũng gãy: công thức một lượt ra 2.0 thay vì 1.25. Còn float32 lúc đó thậm chí không giữ nổi dữ liệu — bốn số gộp hết thành đúng $10^8$ ngay khi nạp, nên cả hai công thức đều ra 0. Cả hai công thức đều đúng về mặt đại số; chỉ một trong hai đúng về mặt tính toán.
 
 Cùng loại bệnh xuất hiện ở sigmoid. Với $z = 37$, `sigmoid(z)` làm tròn thành đúng `1.0` trong float64, nên `1 - sigmoid(z)` ra `0.0` và `log(1 - sigmoid(z))` ra `-inf`. Cách đúng là rút gọn trước khi tính:
 

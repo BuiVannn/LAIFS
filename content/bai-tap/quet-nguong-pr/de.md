@@ -2,7 +2,8 @@
 tieu_de: Quét ngưỡng, đường precision–recall và ROC-AUC
 khai_niem: danh-gia-mo-hinh
 do_kho: 3
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Mô hình thật xuất ra **điểm**, không xuất ra 0/1. Bài này dựng lại đường precision–recall bằng cách quét ngưỡng, rồi tính ROC-AUC bằng đúng định nghĩa đếm cặp.

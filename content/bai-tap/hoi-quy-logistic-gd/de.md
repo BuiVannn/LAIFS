@@ -2,7 +2,8 @@
 tieu_de: Huấn luyện hồi quy logistic bằng gradient descent
 khai_niem: hoi-quy-logistic
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Cài hồi quy logistic đầy đủ: sigmoid ổn định số, hàm mất mát, vòng lặp huấn luyện, và dự đoán theo ngưỡng.

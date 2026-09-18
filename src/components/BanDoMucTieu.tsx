@@ -3,7 +3,7 @@ import { doc, ghiMucTieu, theoDoi, type TienDo } from '../tien-do';
 import { baiTiepTheo, canChoMucTieu, mucDoKN, MUC_TIEU_MAC_DINH, type KhaiNiemDL } from '../do-thi';
 
 const TEN_MUC: Record<string, string> = { 'chua-hoc': 'Chưa học', 'da-thu': 'Đã thử', hieu: 'Hiểu', vung: 'Vững', 'chua-co': 'Chưa có bài' };
-const TEN_TANG: Record<number, string> = { 1: 'TOÁN NỀN', 2: 'ML CỔ ĐIỂN', 3: 'DEEP LEARNING', 4: 'THỊ GIÁC MÁY TÍNH', 5: 'NGÔN NGỮ & LLM', 6: 'GENERATIVE' };
+const TEN_TANG: Record<number, string> = { 0: 'CÔNG CỤ', 1: 'TOÁN NỀN', 2: 'ML CỔ ĐIỂN', 3: 'DEEP LEARNING', 4: 'THỊ GIÁC MÁY TÍNH', 5: 'NGÔN NGỮ & LLM', 6: 'GENERATIVE' };
 const NUT_W = 196, NUT_H = 44, COT = 276, HANG = 58, LE_TREN = 44, LE_TRAI = 36;
 
 export default function BanDoMucTieu({ ds }: { ds: KhaiNiemDL[] }) {

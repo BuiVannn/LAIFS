@@ -1,0 +1,722 @@
+---
+ten_vi: "Đọc lỗi Python"
+ten_en: "Reading Python Errors"
+tang: 0
+thu_tu: -3
+tien_quyet: ["moi-truong-python"]
+trang_thai: nhap
+dinh_nghia: >-
+  Kỹ năng biến một traceback thành một chẩn đoán: đọc từ dưới lên để biết chuyện gì xảy ra,
+  rồi đọc ngược lên trên để biết nó xảy ra ở đâu và ai gọi tới đó. Kèm theo là bộ quy trình
+  sửa riêng cho từng loại lỗi hay gặp khi làm ML, và — phần khó nhất — cách phát hiện
+  những lỗi KHÔNG sinh ra traceback nào cả.
+truc_giac: >-
+  Traceback không phải một lời trách móc, nó là một biên bản hiện trường viết rất chuẩn mực.
+  Dòng cuối cùng nói "chuyện gì đã xảy ra"; các dòng phía trên kể ngược lại "để tới được chỗ
+  đó, chương trình đã đi qua những đâu". Người mới đọc từ trên xuống nên gặp toàn tên file lạ
+  rồi bỏ cuộc; người quen đọc dòng cuối trước, rồi mới lần ngược lên tìm dòng code CỦA MÌNH
+  gần nhất.
+hieu_nham:
+  - "Traceback dài không có nghĩa là lỗi phức tạp: phần lớn các dòng chỉ là đường đi bên trong thư viện, và thường chỉ một dòng trong đó là code của bạn."
+  - "`ValueError` khi nhân ma trận không có nghĩa là giá trị sai: NumPy dùng `ValueError` cho cả lỗi shape, nên phải đọc nội dung thông báo chứ không chỉ tên lỗi."
+  - "Không có lỗi KHÔNG có nghĩa là code đúng. Broadcasting làm hai mảng lệch shape cộng trừ được với nhau trong im lặng, và kết quả sai vẫn chạy tới hết."
+  - "NaN không làm chương trình dừng: mọi phép so sánh với NaN đều cho `False`, nên cả `if loss > 100` lẫn `if loss < 100` đều không kích hoạt."
+  - "`AttributeError` không phải lúc nào cũng là gõ sai tên: nó cũng là triệu chứng của việc một biến mang giá trị `None` hoặc một file của bạn che mất thư viện."
+y_chinh:
+  - "Đọc traceback từ DƯỚI lên: dòng cuối là loại lỗi + mô tả, các khung phía trên là đường gọi, khung dưới cùng là nơi lỗi nổ ra"
+  - "Trong đống khung đó, tìm khung CUỐI CÙNG thuộc file của bạn — gần như luôn là chỗ cần sửa"
+  - "Python 3.11+ vẽ dấu ~~~^~~ chỉ đúng phép toán gây lỗi trong dòng, và gợi ý 'Did you mean' cho lỗi gõ tên"
+  - "ModuleNotFoundError → lệch môi trường; NameError → gõ sai/chưa gán; TypeError → sai kiểu, hay gặp nhất là quên return nên nhận None"
+  - "ValueError của NumPy đọc thẳng ra hai shape đang xung đột — in `.shape` là xong"
+  - "IndexError/KeyError: in `len()` hoặc `list(d)` ra trước khi đoán"
+  - "Lỗi nguy hiểm nhất là lỗi không báo lỗi: (n,1) trừ (n,) cho ra (n,n) mà không cảnh báo gì"
+  - "Ba thói quen chẩn đoán: in shape và dtype trước mọi phép nhân ma trận, thu nhỏ dữ liệu xuống vài dòng, chạy từng đoạn một"
+  - "`assert` là rào chắn rẻ nhất: một dòng `assert a.shape == b.shape` biến lỗi thầm lặng thành lỗi nổ ngay tại chỗ"
+tai_lieu:
+  - url: https://docs.python.org/3/tutorial/errors.html
+    tieu_de: "Errors and Exceptions"
+    tac_gia: Python documentation
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Chương chính thức về cú pháp lỗi, traceback, try/except và assert. Đọc đầu tiên nếu chưa từng đọc.
+  - url: https://docs.python.org/3/library/exceptions.html
+    tieu_de: "Built-in Exceptions"
+    tac_gia: Python documentation
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: "Danh mục đầy đủ mọi loại lỗi có sẵn và quan hệ cha con giữa chúng. Tra khi cần biết chính xác một lỗi nghĩa là gì."
+  - url: https://numpy.org/doc/stable/user/basics.broadcasting.html
+    tieu_de: Broadcasting
+    tac_gia: NumPy documentation
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Quy tắc broadcasting viết chính thức, kèm bảng ví dụ shape nào ghép được với shape nào. Đọc kỹ mục lỗi thầm lặng của bài này rồi quay lại đây.
+  - url: https://docs.python.org/3/library/pdb.html
+    tieu_de: "pdb — The Python Debugger"
+    tac_gia: Python documentation
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: "Tra cú pháp `breakpoint()` và các lệnh trong pdb (n, s, p, l, q) khi muốn dừng chương trình lại và xem từng biến."
+  - url: https://docs.python.org/3/library/traceback.html
+    tieu_de: "traceback — Print or retrieve a stack traceback"
+    tac_gia: Python documentation
+    loai: bai_viet
+    muc_do: toan_nang
+    ngon_ngu: en
+    ghi_chu: Dùng khi muốn bắt và in traceback theo cách của mình, ví dụ ghi log lỗi trong vòng lặp huấn luyện dài.
+  - url: https://www.youtube.com/watch?v=NIWwJbo-9_8
+    tieu_de: "Python Tutorial: Using Try/Except Blocks for Error Handling"
+    tac_gia: Corey Schafer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Xem khi cần phân biệt "bắt lỗi" với "giấu lỗi". Nhấn mạnh việc bắt đúng loại exception thay vì bắt tất.
+---
+
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Tình huống: mười lăm dòng chữ đỏ
+
+Bạn bấm chạy. Màn hình đổ ra một khối chữ đỏ. Phản xạ đầu tiên của gần như mọi người mới là: lướt qua, không hiểu gì, rồi bắt đầu sửa bừa — đổi chỗ này, thêm `.T` chỗ kia, chạy lại xem có hết đỏ không.
+
+Đó là cách chậm nhất để sửa lỗi, và nó còn tạo ra thói quen tệ hơn: sợ lỗi.
+
+Sự thật thì ngược lại. **Traceback là thứ tử tế nhất mà Python làm cho bạn.** Nó nói đúng loại lỗi, đúng dòng, đúng phép toán, và trong Python 3.11 trở lên nó còn vẽ mũi tên chỉ thẳng vào chỗ hỏng. Cái duy nhất bạn cần học là **đọc nó theo đúng chiều**.
+
+Và có một loại lỗi khác, nguy hiểm gấp nhiều lần, mà nửa sau bài này dành riêng cho nó: **lỗi không báo lỗi**.
+
+## Trực giác: đọc từ dưới lên
+
+Traceback được in theo thứ tự *chương trình đã đi*, tức là từ chỗ bắt đầu tới chỗ nổ. Nhưng bạn muốn biết *chuyện gì đã nổ* trước, nên phải đọc ngược:
+
+```
+Traceback (most recent call last):          ← "khung gần nhất nằm cuối"
+  File "huan_luyen.py", line 16, in <module>   ┐
+    print(du_doan(X, w))                       │  ĐƯỜNG ĐI
+          ~~~~~~~^^^^^^                        │  (đọc sau)
+  File "huan_luyen.py", line 10, in du_doan    │
+    return Xc @ w                              ┘
+           ~~~^~~
+ValueError: matmul: Input operand 1 has a mismatch in its core dimension 0, ...
+└─────────┬────────┘└────────────────┬──────────────────────────────────────┘
+      LOẠI LỖI                   CHUYỆN GÌ XẢY RA        ← ĐỌC DÒNG NÀY TRƯỚC
+```
+
+Thứ tự đọc đúng gồm ba bước, mỗi bước trả lời một câu hỏi:
+
+1. **Dòng cuối cùng** — *chuyện gì?* Tên lỗi cho biết loại vấn đề; phần sau dấu hai chấm mô tả cụ thể. Đọc hết câu, đừng dừng ở tên lỗi.
+2. **Khung dưới cùng** — *nổ ở đâu?* Dòng `File ..., line N` sát ngay trên thông báo chính là nơi lỗi thật sự xảy ra.
+3. **Lần ngược lên tìm khung cuối cùng thuộc file CỦA BẠN** — *ai gây ra?* Nếu khung dưới cùng nằm trong thư viện (`numpy/`, `torch/`, `site-packages/`), thì lỗi thường không phải bug của thư viện mà là bạn đưa vào đó dữ liệu sai. Khung cuối cùng thuộc code của bạn là chỗ cần sửa.
+
+Với traceback ở trên: `ValueError` về `matmul` (chuyện gì), tại `return Xc @ w` dòng 10 (ở đâu), được gọi từ dòng 16 (ai gọi). Ba mươi giây, không cần đoán.
+
+<CauHoi cau="doc-loi-python/q1" />
+
+## Giải phẫu một traceback thật
+
+Đây là file thật, chạy thật:
+
+```python
+import numpy as np
+
+
+def chuan_hoa(X):
+    return (X - X.mean(axis=0)) / X.std(axis=0)
+
+
+def du_doan(X, w):
+    Xc = chuan_hoa(X)
+    return Xc @ w
+
+
+rng = np.random.default_rng(0)
+X = rng.normal(size=(5, 3))
+w = np.zeros(4)
+print(du_doan(X, w))
+```
+
+Kết quả:
+
+```
+Traceback (most recent call last):
+  File "huan_luyen.py", line 16, in <module>
+    print(du_doan(X, w))
+          ~~~~~~~^^^^^^
+  File "huan_luyen.py", line 10, in du_doan
+    return Xc @ w
+           ~~~^~~
+ValueError: matmul: Input operand 1 has a mismatch in its core dimension 0, with gufunc signature (n?,k),(k,m?)->(n?,m?) (size 4 is different from 3)
+```
+
+(Đường dẫn file đã rút gọn cho dễ đọc; Python in ra đường dẫn tuyệt đối.)
+
+Từng phần nói gì:
+
+| Phần | Nghĩa |
+|---|---|
+| `Traceback (most recent call last)` | Nhắc bạn: khung mới nhất nằm **dưới cùng** |
+| `File "huan_luyen.py", line 16, in <module>` | Khung ngoài cùng; `<module>` nghĩa là code ở cấp cao nhất, không nằm trong hàm nào |
+| `~~~~~~~^^^^^^` | Python 3.11+: dấu `^` chỉ đúng phần biểu thức gây lỗi, `~` là phần lành |
+| `in du_doan` | Khung trong: lỗi nổ khi đang ở trong hàm `du_doan` |
+| `ValueError:` | Loại lỗi |
+| `size 4 is different from 3` | Phần đắt giá nhất: hai con số đang xung đột |
+
+Dòng cuối đã nói thẳng: một bên có 4, một bên có 3. `Xc` là `(5, 3)` còn `w` là `(4,)`. Phép `(5,3) @ (4,)` không tồn tại. Sửa là `w = np.zeros(3)`.
+
+Để ý điều quan trọng: **`chuan_hoa` không hề xuất hiện trong traceback**, vì nó chạy xong xuôi. Traceback chỉ kể những khung đang còn dở dang lúc lỗi nổ.
+
+### Hai thứ Python phiên bản mới cho không
+
+**Mũi tên chỉ vị trí** (từ Python 3.11). Trong một dòng dài có ba phép toán, `^` chỉ rõ phép nào hỏng:
+
+```
+    print(du_doan(X, w))
+          ~~~~~~~^^^^^^
+```
+
+**Gợi ý "Did you mean"** (từ Python 3.10). Python đoán tên bạn định gõ:
+
+```
+NameError: name 'X' is not defined. Did you mean: 'x'?
+AttributeError: 'numpy.ndarray' object has no attribute 'sahpe'. Did you mean: 'shape'?
+```
+
+Riêng hai tính năng này đã xoá sổ phần lớn thời gian ngồi nhìn lỗi gõ sai.
+
+## Tám loại lỗi hay gặp, kèm quy trình sửa
+
+Dưới đây là các lỗi gần như chắc chắn bạn sẽ gặp khi làm ML bằng NumPy. Với mỗi loại: thông báo thật, nghĩa thật, và quy trình sửa — không phải mẹo vặt mà là thứ tự kiểm tra.
+
+### 1. `ModuleNotFoundError` — không tìm thấy thư viện
+
+```
+ModuleNotFoundError: No module named 'numpy'
+```
+
+**Nghĩa:** Python không tìm thấy module đó trong `sys.path` của **file python đang chạy**. Nó gần như không bao giờ có nghĩa là "chưa cài".
+
+**Quy trình:**
+
+1. `python -c "import sys; print(sys.executable)"` — bạn đang ở môi trường nào?
+2. `python -m pip --version` — pip đang cài vào môi trường nào?
+3. Hai đường dẫn khác gốc nhau → đó là toàn bộ vấn đề. Xem bài [Môi trường Python](/khai-niem/moi-truong-python).
+4. Cùng môi trường mà vẫn lỗi → kiểm tên import (cài `scikit-learn`, import `sklearn`; cài `opencv-python`, import `cv2`).
+
+### 2. `NameError` — tên chưa tồn tại
+
+```
+NameError: name 'X' is not defined. Did you mean: 'x'?
+```
+
+**Nghĩa:** tại thời điểm chạy dòng đó, cái tên ấy chưa được gán trong phạm vi hiện tại.
+
+**Quy trình:**
+
+1. Đọc gợi ý "Did you mean" — bảy trên mười lần là gõ nhầm hoa thường hoặc thứ tự chữ.
+2. Không phải gõ nhầm → tên được gán **sau** chỗ dùng? Python chạy từ trên xuống, không nhìn trước.
+3. Trong notebook: ô định nghĩa biến đã chạy chưa? Chạy ô lẻ tẻ không theo thứ tự là nguồn chính của `NameError` giả. Cách kiểm chắc chắn: *Restart & Run All*.
+4. Biến được gán **bên trong** một hàm rồi dùng ở ngoài? Biến cục bộ chết khi hàm kết thúc.
+
+### 3. `TypeError` — sai kiểu
+
+Ba biến thể hay gặp nhất, mỗi cái một nguyên nhân khác hẳn:
+
+```
+TypeError: can only concatenate str (not "int") to str
+TypeError: unsupported operand type(s) for +: 'NoneType' and 'int'
+TypeError: 'tuple' object is not callable
+```
+
+**Biến thể a** — cộng chuỗi với số. Thường vì `input()` luôn trả chuỗi, hay vì đọc dữ liệu từ file text mà quên chuyển kiểu. Sửa: `int(...)` / `float(...)`.
+
+**Biến thể b** — có `NoneType` trong thông báo. **Đây là loại đáng nhớ nhất**, vì nó hầu như luôn có cùng một nguyên nhân: một hàm **quên `return`**.
+
+```python
+def nhan_doi(a):
+    b = a * 2      # tinh xong roi... khong tra ve gi
+
+print(nhan_doi(3) + 1)
+```
+
+```
+TypeError: unsupported operand type(s) for +: 'NoneType' and 'int'
+```
+
+Hàm không có `return` thì Python tự trả `None`. Quy tắc: **thấy `NoneType`, đi tìm hàm quên `return`.** Nhóm họ hàng: `TypeError: 'NoneType' object is not subscriptable` (lấy `x[0]` của `None`), `AttributeError: 'NoneType' object has no attribute 'shape'`.
+
+**Biến thể c** — `'tuple' object is not callable` khi viết `a.shape(0)` thay vì `a.shape[0]`. `shape` là thuộc tính (tuple), không phải hàm. Cùng họ với `'list' object is not callable` khi đặt tên biến là `list`.
+
+<CauHoi cau="doc-loi-python/q4" />
+
+### 4. `ValueError` — đúng kiểu nhưng sai giá trị hoặc sai shape
+
+Với NumPy, `ValueError` **chủ yếu là lỗi shape**. Ba thông báo cần thuộc lòng:
+
+```
+ValueError: operands could not be broadcast together with shapes (3,4) (3,5)
+ValueError: cannot reshape array of size 10 into shape (3,4)
+ValueError: matmul: Input operand 1 has a mismatch in its core dimension 0, ... (size 4 is different from 3)
+```
+
+**Nghĩa:** NumPy đã in sẵn hai shape đang xung đột cho bạn. Không cần đoán gì.
+
+**Quy trình:**
+
+1. Chép hai shape trong thông báo ra giấy.
+2. Chạy lại với dòng `print(a.shape, b.shape)` ngay **trước** dòng lỗi, để biết biến nào mang shape nào.
+3. Quyết định shape **đúng phải là gì** — bước này quan trọng hơn việc sửa. Viết ra: "X là `(n, d)`, w phải là `(d,)`, kết quả phải là `(n,)`".
+4. Sửa cho khớp với ý định đó. Bốn công cụ: `.T`, `.reshape(...)`, `.ravel()`, `[:, None]`.
+
+`cannot reshape array of size 10 into shape (3,4)` có một đặc điểm dễ nhớ: reshape chỉ đổi cách nhìn, **không đổi số phần tử**. 10 không chia được thành 3×4 = 12. Mẹo: dùng `-1` cho một chiều để NumPy tự tính (`x.reshape(-1, 2)`).
+
+Còn `ValueError: too many values to unpack (expected 2)` là chuyện khác hẳn: bạn viết `a, b = ...` mà vế phải có 3 phần tử. Hay gặp khi một hàm đổi số giá trị trả về.
+
+### 5. `IndexError` — chỉ số vượt biên
+
+```
+IndexError: index 5 is out of bounds for axis 0 with size 5
+```
+
+**Nghĩa:** đã in sẵn cả chỉ số lẫn kích thước. Chỉ số chạy từ `0` tới `size − 1`, nên với `size = 5` thì `x[5]` là vượt.
+
+**Quy trình:**
+
+1. Đọc `axis` trong thông báo: sai ở chiều nào?
+2. In `x.shape` ngay trước đó.
+3. Nghi ngờ vòng lặp: `range(len(x))` đúng, `range(1, len(x) + 1)` sai.
+4. Nghi ngờ lệch một đơn vị ở biên: `x[i + 1]` trong vòng lặp tới `len(x) - 1` là đúng, tới `len(x)` là sai.
+
+Lưu ý một điểm khác biệt giữa list và NumPy: `x[-1]` hợp lệ (phần tử cuối), còn `x[len(x)]` thì không. Và cắt lát thì **không** bao giờ nổ `IndexError`: `x[10:20]` trên mảng 5 phần tử trả về mảng rỗng. Đó là lý do một số lỗi cắt lát đi thẳng vào nhóm "lỗi thầm lặng" ở dưới.
+
+### 6. `KeyError` — khoá không có trong dict
+
+```
+KeyError: 'test'
+```
+
+**Nghĩa:** dict không có khoá đó. Thông báo chỉ in ra khoá, không in ra những khoá đang có — nên bước đầu tiên luôn là in chúng ra.
+
+**Quy trình:**
+
+1. `print(list(d))` hoặc `print(d.keys())`.
+2. So sánh kỹ: thừa khoảng trắng? khác hoa thường? khoá là chuỗi `"3"` mà bạn tra bằng số `3`?
+3. Nếu thiếu khoá là chuyện bình thường, dùng `d.get(k, mac_dinh)` thay vì `d[k]` — nhưng chỉ khi bạn **thật sự** muốn giá trị mặc định, đừng dùng nó để làm lỗi im đi.
+
+### 7. `AttributeError` — đối tượng không có thuộc tính đó
+
+```
+AttributeError: 'numpy.ndarray' object has no attribute 'sahpe'. Did you mean: 'shape'?
+AttributeError: 'NoneType' object has no attribute 'shape'
+AttributeError: 'list' object has no attribute 'shape'
+```
+
+**Nghĩa:** đọc **cả hai vế** — loại đối tượng là gì, và thuộc tính nào không có. Loại đối tượng thường mới là manh mối.
+
+**Quy trình:**
+
+1. Có "Did you mean" → gõ sai, sửa xong.
+2. Thấy `'NoneType'` → lại là hàm quên `return`, hoặc một hàm trả `None` khi thất bại.
+3. Thấy `'list'` mà bạn tưởng đó là mảng NumPy → bạn quên `np.array(...)`. Rất hay gặp sau `json.load` hoặc sau một vòng lặp `append`.
+4. Thuộc tính chắc chắn tồn tại mà vẫn báo không có → xem [Môi trường Python](/khai-niem/moi-truong-python): có thể một file cùng tên trong thư mục đang che mất thư viện. Kiểm bằng `print(numpy.__file__)`.
+
+### 8. `ZeroDivisionError` và họ hàng
+
+```
+ZeroDivisionError: division by zero
+```
+
+**Nghĩa:** chia cho 0 với **số Python thuần**. Thường vì mảng rỗng: `sum(xs) / len(xs)` khi `xs` rỗng.
+
+Nhưng đây mới là chỗ nguy hiểm: **NumPy không nổ lỗi này.** Nó chỉ cảnh báo rồi đi tiếp:
+
+```python
+np.array([1.0, 2.0]) / np.array([0.0, 0.0])
+# RuntimeWarning: divide by zero encountered in divide
+# array([inf, inf])
+```
+
+```python
+np.array([0.0]) / np.array([0.0])
+# RuntimeWarning: invalid value encountered in divide
+# array([nan])
+```
+
+Nghĩa là trong NumPy, chia cho 0 **không dừng chương trình** — nó sinh `inf` hoặc `nan` rồi để chúng lan khắp mô hình. Bài [Ổn định số](/khai-niem/on-dinh-so) nói kỹ về chuyện này. Ở đây chỉ cần nhớ: `RuntimeWarning` của NumPy không phải thứ để lướt qua, nó là traceback của người nghèo.
+
+Muốn NumPy nổ thật sự thay vì cảnh báo, bật lên:
+
+```python
+np.seterr(all="raise")   # tu day, divide by zero / overflow / nan se raise FloatingPointError
+```
+
+Đây là công tắc rất đáng bật khi đang đi săn NaN.
+
+## Phần khó nhất: lỗi không báo lỗi
+
+Mọi thứ ở trên đều dễ, vì chương trình dừng lại và chỉ vào chỗ hỏng. Loại lỗi sắp nói tới thì không: code chạy tới hết, in ra số đẹp, mô hình "huấn luyện xong", và mọi con số đều sai.
+
+### Broadcasting: khi `(n,1)` gặp `(n,)`
+
+NumPy cho phép hai mảng khác shape tham gia cùng một phép toán, bằng cách **kéo giãn** chúng theo quy tắc:
+
+1. So shape từ **phải sang trái**.
+2. Hai chiều ghép được nếu chúng **bằng nhau**, hoặc **một trong hai bằng 1**.
+3. Mảng ít chiều hơn được **thêm chiều 1 vào bên trái** cho đủ.
+
+Quy tắc 3 chính là cái bẫy. Với `a` shape `(4, 1)` và `b` shape `(4,)`:
+
+```
+a:  (4, 1)
+b:     (4)   →  thêm 1 vào trái  →  (1, 4)
+kết quả:        (4, 4)
+```
+
+Không lỗi. Không cảnh báo. Bạn đưa vào hai thứ có 4 phần tử, nhận về một ma trận **16 phần tử**.
+
+Đây là lỗi tốn thời gian nhất của cả ngành, vì nó vi phạm giả định ngầm mà ai cũng có: *code chạy được thì ít nhất cũng gần đúng*.
+
+### Ví dụ 1: hàm mất mát sai gấp 95 lần
+
+```python
+import numpy as np
+
+y = np.array([1.0, 2.0, 3.0, 4.0])              # nhan that      -> (4,)
+yp = np.array([[1.1], [1.9], [3.2], [3.8]])     # mo hinh du doan -> (4, 1)
+
+r = y - yp
+print("y.shape :", y.shape)
+print("yp.shape:", yp.shape)
+print("r.shape :", r.shape)
+print(r)
+print("mse sai :", (r ** 2).mean())
+print("mse dung:", ((y - yp.ravel()) ** 2).mean())
+```
+
+```
+y.shape : (4,)
+yp.shape: (4, 1)
+r.shape : (4, 4)
+[[-0.1  0.9  1.9  2.9]
+ [-0.9  0.1  1.1  2.1]
+ [-2.2 -1.2 -0.2  0.8]
+ [-2.8 -1.8 -0.8  0.2]]
+mse sai : 2.375
+mse dung: 0.025000000000000043
+```
+
+Mô hình này dự đoán rất tốt — sai số thật chỉ 0.025. Nhưng loss in ra là **2.375**, gấp 95 lần. Bạn sẽ ngồi chỉnh learning rate, đổi kiến trúc, thêm lớp, trong khi cái sai nằm ở một dấu ngoặc vuông.
+
+Nhìn vào ma trận `(4, 4)` sẽ thấy rõ chuyện gì xảy ra: **đường chéo** chính là bốn sai số thật (−0.1, 0.1, −0.2, 0.2). Mười hai ô còn lại là so sánh nhãn của mẫu này với dự đoán của mẫu khác — hoàn toàn vô nghĩa, nhưng vẫn được đưa vào trung bình.
+
+(Dòng `0.025000000000000043` là chuyện khác: sai số dấu phẩy động, xem bài [Ổn định số](/khai-niem/on-dinh-so).)
+
+### Ví dụ 2: độ chính xác sai mà vẫn "hợp lý"
+
+```python
+y_that = np.array([0, 1, 1, 0])              # (4,)
+y_doan = np.array([[0], [1], [0], [0]])      # (4, 1)
+
+print("so sanh:", (y_that == y_doan).shape)
+print("acc sai:", (y_that == y_doan).mean())
+print("acc dung:", (y_that == y_doan.ravel()).mean())
+```
+
+```
+so sanh: (4, 4)
+acc sai: 0.5
+acc dung: 0.75
+```
+
+Lần này còn ác hơn: `0.5` **trông rất hợp lý**. Không có gì bất thường để bạn nghi ngờ. Bạn ghi vào báo cáo, so sánh với mô hình khác, rút ra kết luận — tất cả từ một con số vô nghĩa.
+
+Rút ra một nguyên tắc: **so sánh (`==`, `<`, `>`) cũng broadcasting**. Người ta hay canh chừng phép trừ mà quên phép so sánh.
+
+<CauHoi cau="doc-loi-python/q7" />
+
+### Ví dụ 3: ma trận vuông giấu lỗi trục
+
+Khi số hàng bằng số cột, mọi lỗi về trục đều im lặng:
+
+```python
+X = np.array([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+mu = X.mean(axis=1)                 # trung binh TUNG HANG -> (3,)
+print("mu:", mu, mu.shape)
+print("X - mu (sai):\n", X - mu)
+print("X - mu[:, None] (dung):\n", X - mu[:, None])
+```
+
+```
+mu: [2. 5. 8.] (3,)
+X - mu (sai):
+ [[-1. -3. -5.]
+ [ 2.  0. -2.]
+ [ 5.  3.  1.]]
+X - mu[:, None] (dung):
+ [[-1.  0.  1.]
+ [-1.  0.  1.]
+ [-1.  0.  1.]]
+```
+
+`mu` là trung bình của từng **hàng**, nên phải trừ theo hàng. Nhưng `(3,3) - (3,)` broadcasting theo **cột**: NumPy biến `mu` thành `(1, 3)` và trừ nó khỏi mọi hàng. Kết quả sai hoàn toàn mà không có lấy một cảnh báo.
+
+Cách kiểm rẻ nhất: sau khi trừ trung bình theo hàng, **tổng mỗi hàng phải bằng 0**. Bản đúng cho `[0, 0, 0]`; bản sai thì không. Mỗi phép biến đổi đều có một bất biến như thế — tìm ra nó và kiểm là thói quen đáng giá nhất.
+
+Bài học riêng: **đừng bao giờ thử code mới trên dữ liệu vuông.** Dùng `(5, 3)` chứ đừng dùng `(3, 3)`; lỗi trục sẽ tự lộ ra thành `ValueError` thay vì trốn.
+
+### NaN: thứ không so sánh được với cái gì
+
+```python
+print(np.nan > 100, np.nan < 100, np.nan == np.nan)
+
+x = np.array([1.0, np.nan, 3.0])
+print("mean:", x.mean(), "max:", x.max())
+```
+
+```
+False False False
+mean: nan max: nan
+```
+
+Ba `False` đó là điều cần khắc vào đầu: NaN **không lớn hơn, không nhỏ hơn, cũng không bằng** bất cứ thứ gì — kể cả chính nó. Ngoại lệ duy nhất là `!=`, luôn cho `True`: `np.nan != np.nan` là `True`, một giá trị không bằng chính mình. Hệ quả thực tế:
+
+- `if loss > 100: print("phan ky")` — không bao giờ chạy khi loss là NaN.
+- `if loss < nho_nhat: luu_mo_hinh()` — không bao giờ chạy, nên bạn giữ lại checkpoint từ trước khi hỏng và tưởng mọi thứ ổn.
+- Một NaN trong mảng làm `mean`, `max`, `sum` đều thành NaN.
+
+Và NaN **lây**: một phần tử NaN trong gradient, sau một bước cập nhật, làm cả tham số đó thành NaN, rồi lan ra mạng.
+
+```python
+g = np.array([1.0, np.nan, 3.0])
+w = np.ones(3)
+w = w - 0.1 * g
+print("w sau 1 buoc:", w)
+w = w - 0.1 * np.array([1.0, 1.0, 1.0])
+print("w sau 2 buoc:", w)
+print("isfinite all:", np.isfinite(w).all())
+```
+
+```
+w sau 1 buoc: [0.9 nan 0.7]
+w sau 2 buoc: [0.8 nan 0.6]
+isfinite all: False
+```
+
+Cách bắt duy nhất đáng tin: `np.isnan(x)` cho NaN, `np.isfinite(x).all()` cho cả NaN lẫn inf. Đừng dùng `==`.
+
+### Bẫy kiểu số nguyên
+
+```python
+x = np.array([1, 2, 3])
+print("dtype:", x.dtype)
+x[0] = 0.9
+print("sau khi gan 0.9:", x)
+```
+
+```
+dtype: int64
+sau khi gan 0.9: [0 2 3]
+```
+
+Mảng tạo từ số nguyên có `dtype=int64`, và gán một số thực vào đó thì phần thập phân **bị cắt trong im lặng**: `0.9` thành `0`. Trong vòng lặp huấn luyện, khởi tạo `w = np.zeros(3, dtype=int)` (hoặc `np.array([0, 0, 0])`) rồi cập nhật bằng gradient nhỏ sẽ khiến `w` **đứng im mãi mãi** ở 0, vì mọi bước cập nhật đều bị làm tròn về 0. Không lỗi, không cảnh báo, loss không giảm, và bạn đi tìm bug trong thuật toán.
+
+Phòng: luôn tạo mảng số thực rõ ràng — `np.zeros(3)` (mặc định float64), `np.array([1.0, 2.0])`, hay `np.asarray(x, dtype=float)`.
+
+### Danh mục lỗi thầm lặng
+
+| Lỗi | Vì sao không báo | Dấu hiệu nhận ra |
+|---|---|---|
+| `(n,1)` gặp `(n,)` | Broadcasting thành `(n,n)` hợp lệ | Kết quả đột nhiên có shape bình phương; loss lớn bất thường hoặc metric "hợp lý" một cách khả nghi |
+| Sai `axis` trên ma trận vuông | Hai chiều bằng nhau nên mọi trục đều hợp lệ | Kết quả đúng trên dữ liệu vuông, sai khi đổi kích thước |
+| Cắt lát vượt biên | NumPy/list trả mảng rỗng, không nổ | `len()` nhỏ hơn mong đợi; `mean()` của mảng rỗng ra `nan` |
+| dtype nguyên | Gán số thực bị cắt | Tham số đứng im ở 0; loss phẳng lì |
+| NaN trong dữ liệu | So sánh với NaN luôn `False` | Mọi thống kê thành `nan`; điều kiện `if` không bao giờ vào |
+| Chia cho 0 trong NumPy | Chỉ `RuntimeWarning` | Có `inf` hoặc `nan` xuất hiện trong kết quả |
+| Gán mảng không copy (`b = a`) | Hai tên trỏ cùng vùng nhớ | Sửa `b` thì `a` đổi theo; dùng `a.copy()` |
+| Bật `model.train()` lúc đánh giá | Thư viện không biết ý định của bạn | Kết quả đánh giá dao động giữa các lần chạy |
+
+## Quy trình tự chẩn đoán
+
+Ba thói quen dưới đây bắt gần hết những lỗi ở trên, và chúng rẻ tới mức không có lý do gì để không làm.
+
+### 1. In shape và dtype trước mọi phép nhân ma trận
+
+Một hàm sáu dòng, dùng cả đời:
+
+```python
+import numpy as np
+
+
+def kt(ten, a):
+    a = np.asarray(a)
+    print(f"{ten:10s} shape={str(a.shape):10s} dtype={a.dtype}")
+
+
+rng = np.random.default_rng(0)
+X = rng.normal(size=(8, 3))
+y = rng.normal(size=(8, 1))
+w = np.zeros(3)
+
+kt("X", X)
+kt("y", y)
+kt("w", w)
+kt("X @ w", X @ w)
+kt("X@w - y", X @ w - y)
+```
+
+```
+X          shape=(8, 3)     dtype=float64
+y          shape=(8, 1)     dtype=float64
+w          shape=(3,)       dtype=float64
+X @ w      shape=(8,)       dtype=float64
+X@w - y    shape=(8, 8)     dtype=float64
+```
+
+Dòng cuối là toàn bộ giá trị của thói quen này. Phần dư `X @ w - y` **phải** là `(8,)`, nhưng nó là `(8, 8)` vì `y` được nạp với shape `(8, 1)`. Không có dòng in đó thì bug này sống sót qua cả buổi huấn luyện.
+
+### 2. Thu nhỏ dữ liệu
+
+Trước khi chạy trên 50.000 mẫu, chạy trên **5 mẫu và 3 đặc trưng** mà bạn tự viết ra. Lợi ích cộng dồn:
+
+- Chạy trong một phần nghìn giây, nên thử được hai chục lần trong thời gian trước đây chỉ chạy được một.
+- In cả mảng ra màn hình được, nên **nhìn thấy** giá trị thay vì đoán.
+- Tính tay kiểm chứng được một vài ô.
+- Shape không vuông, không tròn trịa (dùng `(5, 3)`, đừng dùng `(4, 4)` hay `(10, 10)`) nên lỗi trục lộ ra thành `ValueError`.
+
+Quy tắc bổ sung: **cố định seed** (`rng = np.random.default_rng(0)`). Lỗi tái hiện được mới sửa được.
+
+### 3. Chạy từng đoạn, không chạy cả bài
+
+Khi một hàm dài cho kết quả lạ, đừng đọc nó — **chặt nó ra**. Copy từng dòng vào REPL hoặc từng ô notebook, in kết quả trung gian sau mỗi dòng, và tìm **dòng đầu tiên** mà kết quả khác với điều bạn mong đợi. Đó là kỹ thuật chia đôi: mười lăm dòng code chỉ cần bốn lần kiểm là khoanh được.
+
+Khi cần dừng hẳn lại để nhìn, Python có sẵn:
+
+```python
+breakpoint()   # dung tai day, mo pdb
+```
+
+Trong pdb: `p ten_bien` in giá trị, `n` chạy dòng tiếp, `l` xem code quanh đây, `c` chạy tiếp, `q` thoát.
+
+## `assert` — biến lỗi thầm lặng thành lỗi ồn ào
+
+Ba thói quen trên cần bạn nhớ mà làm. `assert` thì làm hộ bạn mãi mãi.
+
+```python
+def mse(y_that, y_doan):
+    assert y_that.shape == y_doan.shape, f"shape lech: {y_that.shape} vs {y_doan.shape}"
+    return ((y_that - y_doan) ** 2).mean()
+```
+
+Với hai mảng `(4,)` và `(4,1)` ở ví dụ trên, dòng `assert` nổ ngay lập tức với thông báo nói đúng hai shape — thay vì trả về một con số sai mà bạn tin tưởng suốt ba ngày.
+
+Bốn chỗ đáng đặt rào chắn nhất trong một dự án ML:
+
+```python
+# 1. Ngay sau khi nap du lieu
+assert np.isfinite(X).all(), "du lieu co nan/inf"
+assert len(X) == len(y), f"so mau lech: {len(X)} vs {len(y)}"
+
+# 2. Truoc moi phep nhan ma tran
+assert X.shape[1] == w.shape[0], f"({X.shape}) @ ({w.shape}) khong hop le"
+
+# 3. Sau moi ham tra ve mang
+assert kq.shape == (len(X),), f"du doan phai la ({len(X)},), nhan {kq.shape}"
+
+# 4. Trong vong lap huan luyen
+assert np.isfinite(loss), f"loss = {loss} tai buoc {buoc}"
+```
+
+Ba điều cần biết về `assert`:
+
+- **Luôn viết thông báo kèm số liệu.** `assert a.shape == b.shape` khi nổ chỉ nói "AssertionError". `assert a.shape == b.shape, f"{a.shape} vs {b.shape}"` nói luôn nguyên nhân. Chi phí: mười ký tự.
+- **`assert` dành cho lỗi lập trình, không dành cho dữ liệu người dùng.** Kiểm tra đầu vào từ bên ngoài thì dùng `if ...: raise ValueError(...)`, vì `assert` bị **vô hiệu hoá hoàn toàn** khi Python chạy với cờ `-O`.
+- **Đừng viết `assert (dieu_kien, "thong bao")`** với dấu ngoặc bao cả hai. Đó là một tuple không rỗng, luôn đúng, nên câu lệnh không bao giờ nổ. Python cảnh báo trường hợp này, nhưng vẫn có người mắc.
+
+<CauHoi cau="doc-loi-python/q10" />
+
+## Nâng cao
+
+**Chuỗi exception: `During handling...` và `The above exception was the direct cause...`.** Khi một lỗi xảy ra trong lúc đang xử lý một lỗi khác, Python in **hai** traceback nối nhau. Đọc **traceback dưới cùng** trước (đó là lỗi cuối), nhưng nguyên nhân gốc thường nằm ở traceback trên. `raise B from A` tạo liên kết rõ ràng và in "direct cause"; `raise B` trơn bên trong `except A` in "During handling".
+
+**Bắt lỗi hẹp, không bắt rộng.** `except Exception:` (hay tệ hơn, `except:`) nuốt luôn cả `KeyboardInterrupt` và mọi bug lập trình, biến lỗi ồn ào thành lỗi thầm lặng — đúng thứ cả bài này đang chống lại. Bắt đúng loại bạn dự liệu được, và nếu đã bắt thì phải **làm gì đó**, đừng `pass`. Muốn ghi lại rồi ném tiếp: `except ValueError as e: ghi_log(e); raise`.
+
+**Cảnh báo cũng là thông tin.** `RuntimeWarning: invalid value encountered` của NumPy chính là NaN vừa ra đời. Đang săn lỗi thì biến cảnh báo thành lỗi: `np.seterr(all="raise")` cho NumPy, hoặc `python -W error huan_luyen.py` cho toàn bộ cảnh báo Python.
+
+**`traceback` trong vòng lặp dài.** Huấn luyện chạy bốn tiếng mà chết ở phút cuối thì tiếc. Bọc một bước lại, ghi traceback vào file rồi vẫn để nó dừng:
+
+```python
+import traceback
+
+try:
+    mot_buoc(batch)
+except Exception:
+    traceback.print_exc()          # ghi lai day du
+    np.save("batch_loi.npy", batch)  # giu lai du lieu gay loi
+    raise
+```
+
+**Lỗi khác nhau giữa các lần chạy.** Nếu cùng một code lúc chạy lúc không, nghi ngờ theo thứ tự: seed ngẫu nhiên chưa cố định, thứ tự duyệt dict/set từ một nguồn không có thứ tự, dữ liệu có mẫu bẩn nằm rải rác (chỉ nổ khi rơi vào batch), hay một điều kiện chỉ xảy ra ở batch cuối (batch lẻ, kích thước nhỏ hơn).
+
+**Traceback trong notebook.** Colab và Jupyter in traceback đẹp hơn nhưng có một khác biệt quan trọng: khung `<module>` trỏ vào **ô** chứ không phải file, nên số dòng là số dòng **trong ô đó**. Và vì ô chạy không theo thứ tự, trạng thái biến có thể không giống code bạn đang nhìn. Gặp lỗi khó hiểu trong notebook, phản xạ đầu tiên là *Restart & Run All*.
+
+## Sai lầm hay gặp, kèm triệu chứng
+
+| Sai lầm | Triệu chứng nhìn thấy | Cách sửa |
+|---|---|---|
+| Đọc traceback từ trên xuống | Thấy toàn tên file lạ trong `site-packages`, tưởng thư viện hỏng | Đọc dòng cuối trước; rồi tìm khung cuối cùng thuộc file của mình |
+| Chỉ đọc tên lỗi, bỏ qua phần mô tả | "Lại `ValueError` nữa" mà không biết hai shape nào đang xung đột | Đọc hết câu sau dấu hai chấm — hai con số cần tìm nằm ở đó |
+| Sửa bừa cho hết đỏ | Thêm `.T` rồi `.reshape` cho tới khi chạy được, không hiểu vì sao | Viết ra shape **đúng phải là gì** trước, rồi mới sửa |
+| Không in shape trước phép nhân ma trận | Loss lớn bất thường hoặc metric đẹp một cách khó tin, không có lỗi nào | Thêm `kt(...)` in shape+dtype cho mọi mảng trung gian |
+| Thử code mới trên ma trận vuông | Chạy đúng lúc thử, sai khi đổi kích thước dữ liệu | Luôn thử với shape không vuông, ví dụ `(5, 3)` |
+| Trộn `(n,)` và `(n,1)` | Kết quả ra shape `(n,n)`; loss gấp hàng chục lần; accuracy "hợp lý" mà sai | `assert a.shape == b.shape`; dùng `.ravel()` hay `[:, None]` để thống nhất |
+| Dùng `==` để bắt NaN | Điều kiện không bao giờ vào; NaN lọt qua mọi rào | `np.isnan(x)`, `np.isfinite(x).all()` |
+| Bỏ qua `RuntimeWarning` của NumPy | `inf`/`nan` xuất hiện vài bước sau đó, không rõ từ đâu | `np.seterr(all="raise")` khi đang săn lỗi |
+| Hàm quên `return` | `TypeError: ... 'NoneType' and ...`, hoặc `AttributeError: 'NoneType' object has no attribute ...` | Tìm hàm tính xong mà không trả về |
+| Mảng dtype nguyên trong vòng lặp huấn luyện | Tham số đứng im ở 0, loss phẳng lì, không lỗi | `np.zeros(n)` thay cho `np.zeros(n, dtype=int)`; kiểm `dtype` |
+| `except Exception: pass` | Chương trình chạy "thành công" nhưng kết quả trống hoặc sai | Bắt đúng loại lỗi; đã bắt thì phải xử lý hoặc `raise` lại |
+| `assert (dieu_kien, "thong bao")` | Rào chắn không bao giờ nổ dù điều kiện sai | Bỏ ngoặc: `assert dieu_kien, "thong bao"` |
+| Chạy ô notebook không theo thứ tự | `NameError` với biến rõ ràng đã định nghĩa; kết quả không tái hiện được | *Restart & Run All* |
+| Không cố định seed | Lỗi lúc có lúc không, không thể thu hẹp | `rng = np.random.default_rng(0)` |
+
+## Tra nhanh
+
+| Thấy gì | Nghĩ ngay tới |
+|---|---|
+| `ModuleNotFoundError` | Lệch môi trường — so `sys.executable` với `python -m pip --version` |
+| `NameError` | Gõ sai tên, hoặc ô notebook chưa chạy |
+| `TypeError: ... 'NoneType' ...` | Một hàm quên `return` |
+| `TypeError: 'tuple' object is not callable` | Viết `a.shape(0)` thay vì `a.shape[0]` |
+| `ValueError: operands could not be broadcast` | Hai shape in sẵn trong thông báo — in `.shape` ra đối chiếu |
+| `ValueError: cannot reshape array of size ...` | Số phần tử không khớp; thử `.reshape(-1, k)` |
+| `ValueError: too many values to unpack` | Vế trái ít biến hơn vế phải |
+| `IndexError: index i out of bounds ... size n` | Chỉ số chạy `0..n−1`; kiểm `range` và biên |
+| `KeyError: 'x'` | `print(list(d))` xem khoá thật là gì |
+| `AttributeError: 'NoneType' ...` | Lại là quên `return` |
+| `AttributeError` trên hàm chắc chắn có | File của bạn che mất thư viện — `print(numpy.__file__)` |
+| `ZeroDivisionError` | Mảng rỗng; NumPy thì không nổ mà ra `inf`/`nan` |
+| `RuntimeWarning: invalid value` | NaN vừa ra đời — bật `np.seterr(all="raise")` |
+| Không lỗi mà kết quả sai | In shape mọi mảng trung gian; tìm shape `(n, n)` không mong muốn |
+| Metric đẹp khó tin | Đang so `(n,)` với `(n,1)`? Hay rò rỉ dữ liệu? |
+| Loss phẳng lì ở đúng một giá trị | Kiểm `dtype` của tham số — có phải số nguyên không |
+| Mọi thống kê thành `nan` | `np.isfinite(X).all()` ngay sau khi nạp dữ liệu |
+
+Lệnh gọn để kiểm một mảng:
+
+```python
+print(a.shape, a.dtype, np.isfinite(a).all(), a.min(), a.max())
+```
+
+Nguyên tắc một câu: **đọc dòng cuối trước, và nếu không có dòng cuối nào thì hãy nghi ngờ nhiều hơn, chứ đừng yên tâm hơn.**
+
+## Tóm tắt
+
+- Traceback đọc từ **dưới lên**: dòng cuối nói chuyện gì, các khung phía trên nói đường đi. Tìm khung cuối cùng thuộc file của bạn.
+- Đọc **hết** thông báo, không dừng ở tên lỗi — hai con số bạn cần thường nằm trong phần mô tả.
+- Thấy `NoneType` thì đi tìm hàm quên `return`. Thấy `ValueError` của NumPy thì đi in `.shape`.
+- Lỗi nguy hiểm nhất là lỗi im lặng: `(n,1)` gặp `(n,)` broadcasting thành `(n,n)`, làm loss sai hàng chục lần mà không cảnh báo gì.
+- NaN không bằng chính nó, nên mọi điều kiện `if` đều trượt qua nó; bắt bằng `np.isfinite`, không bằng `==`.
+- Ba thói quen chẩn đoán: in shape và dtype, thu nhỏ dữ liệu (và đừng dùng shape vuông), chạy từng đoạn.
+- `assert` kèm thông báo có số liệu là cách rẻ nhất để biến lỗi thầm lặng thành lỗi nổ ngay tại chỗ.

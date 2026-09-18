@@ -2,7 +2,8 @@
 tieu_de: Cài logsumexp ổn định số
 khai_niem: on-dinh-so
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Rất nhiều công thức cần đại lượng $\ln \sum_k e^{z_k}$ — gọi tắt là **log-sum-exp** (LSE). Viết thẳng theo định nghĩa thì hỏng ở **cả hai đầu**:

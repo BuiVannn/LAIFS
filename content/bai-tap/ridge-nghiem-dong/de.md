@@ -2,7 +2,8 @@
 tieu_de: Ridge (L2) bằng nghiệm dạng đóng
 khai_niem: regularization
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Hồi quy ridge tối thiểu hoá hàm mất mát có thêm phần phạt L2:

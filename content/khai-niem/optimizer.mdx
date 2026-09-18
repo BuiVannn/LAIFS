@@ -4,7 +4,8 @@ ten_en: "Optimizers: Momentum, RMSProp, Adam"
 tang: 3
 thu_tu: 32
 tien_quyet: ["sgd-mini-batch"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Optimizer là luật biến gradient thành bước cập nhật. Thay vì đi thẳng theo gradient hiện tại,
   các optimizer hiện đại giữ thêm trạng thái: momentum trung bình trượt gradient để giữ đà,
@@ -187,7 +188,7 @@ s_1 = (1-\beta) g^2 \;\Rightarrow\; \sqrt{s_1} = \sqrt{1-\beta}\,|g|
 \Delta w = \frac{\eta |g|}{\sqrt{1-\beta}\,|g|} = \frac{\eta}{\sqrt{1 - \beta}} = \frac{0.1}{\sqrt{0.1}} = 0.3162
 $$
 
-Vì $s$ khởi tạo bằng 0, ở bước đầu nó **nhỏ hơn giá trị đúng rất nhiều**, mà $s$ nằm dưới mẫu số nên bước bị phóng to. Với $\beta = 0.999$ (giá trị Adam dùng cho $v$) thì $\sqrt{s_1}$ chỉ bằng $1/\sqrt{0.001} = 31.6$ lần nhỏ hơn giá trị đúng, tức mẫu số hụt 31.6 lần.
+Vì $s$ khởi tạo bằng 0, ở bước đầu nó **nhỏ hơn giá trị đúng rất nhiều**, mà $s$ nằm dưới mẫu số nên bước bị phóng to. Với $\beta = 0.999$ (giá trị Adam dùng cho $v$) thì $\sqrt{s_1} = \sqrt{0.001}\,|g| = 0.0316\,|g|$, tức mẫu số hụt $1/\sqrt{0.001} = 31.6$ lần và bước đầu dài gấp 31.6 lần $\eta$.
 
 Đó chính là vấn đề mà Adam giải quyết.
 
@@ -325,7 +326,7 @@ Ba đường cùng xuất phát từ $(-2.6, 1)$ trên mặt lỗi $f = 0.02x^2 
 Đọc kỹ ba đường:
 
 - **SGD** dập tắt dao động theo $y$ rất nhanh (sau 5–6 bước $y \approx 0$) rồi bò dọc đáy khe theo $x$ với bước ngày càng ngắn. Nó không đi sai, chỉ là quá chậm.
-- **Momentum** cũng zigzag lúc đầu, thậm chí mạnh hơn, nhưng đà cộng dồn theo $x$ đưa nó tới đáy quanh bước 16, rồi vọt lố nhẹ và quay lại.
+- **Momentum** cũng zigzag lúc đầu, thậm chí mạnh hơn, nhưng đà cộng dồn theo $x$ đưa nó qua đáy quanh bước 21, rồi vọt lố sang $x \approx 0.22$ ở bước 30 và quay lại còn 0.11 ở bước 40.
 - **Adam** gần như đi thẳng: nó chia mỗi hướng cho độ lớn gradient của chính hướng đó, nên sự chênh lệch 100 lần giữa hai hướng bị xoá gần hết.
 
 ## Khi nào SGD+momentum vẫn tốt hơn Adam

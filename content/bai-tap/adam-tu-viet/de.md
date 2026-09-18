@@ -2,7 +2,8 @@
 tieu_de: Cài Adam có hiệu chỉnh thiên lệch
 khai_niem: optimizer
 do_kho: 3
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Cài **Adam** đầy đủ, **kể cả hai dòng hiệu chỉnh thiên lệch** — đó là phần dễ quên nhất và cũng là phần bộ test soi kỹ nhất.

@@ -4,7 +4,8 @@ ten_en: Probability and Distributions
 tang: 1
 thu_tu: 6
 tien_quyet: []
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Xác suất là một con số trong [0, 1] đo mức tin rằng một biến cố xảy ra. Phân phối xác suất là
   cách chia trọn vẹn một đơn vị niềm tin đó cho mọi kết quả có thể: mọi phần không âm, cộng lại
@@ -192,7 +193,7 @@ $$
 
 Không có gì sai. Phân phối càng hẹp, đỉnh càng phải cao để tổng diện tích vẫn bằng 1. Chỉ **diện tích** mới bị chặn bởi 1, không phải chiều cao.
 
-Điều này lát nữa sẽ có hệ quả thực tế: log-likelihood của mô hình liên tục **có thể dương**, trong khi log-likelihood của mô hình rời rạc luôn âm. Thấy loss âm ở mô hình sinh ảnh hay flow thì đừng vội cho là bug.
+Điều này lát nữa sẽ có hệ quả thực tế: log-likelihood của mô hình liên tục **có thể dương**, trong khi log-likelihood của mô hình rời rạc không bao giờ dương (xác suất $\le 1$ nên log của nó $\le 0$). Thấy loss âm ở mô hình sinh ảnh hay flow thì đừng vội cho là bug.
 
 <CauHoi cau="xac-suat-co-ban/q7" />
 
@@ -270,7 +271,7 @@ Hai lưu ý thực chiến:
 | Nhân xác suất mà quên kiểm tra độc lập | Xác suất tính ra nhỏ hơn thực tế rất nhiều; ở naive Bayes là điểm số tự tin thái quá, gần 0 hoặc gần 1 chứ hiếm khi ở giữa |
 | Nhân xác suất thay vì cộng log | Loss ra `0.0`, `nan` hoặc `-inf` ngay từ batch đầu; câu càng dài càng dễ gặp. Kiểm bằng cách in độ dài chuỗi và giá trị tích |
 | Coi mật độ là xác suất | Hoảng khi thấy "xác suất" bằng 3.4, hoặc thấy log-likelihood dương ở mô hình liên tục và tưởng là bug |
-| Vector đầu ra không cộng lại bằng 1 | `np.sum(p)` ra 0.83 hay 1.4. Thường do dùng sigmoid cho bài nhiều lớp, hoặc lỡ tay chạy softmax hai lần |
+| Vector đầu ra không cộng lại bằng 1 | `np.sum(p, axis=-1)` ra 0.83 hay 1.4. Thường do dùng sigmoid cho từng lớp trong bài nhiều lớp, hoặc chạy softmax **sai trục** (`axis=0` trên mảng `(n, K)` làm mỗi CỘT cộng bằng 1, còn hàng thì không) |
 | Lẫn độc lập với xung khắc | Viết $P(A \cap B) = P(A)P(B)$ cho hai nhãn loại trừ nhau; giá trị đúng phải là 0 |
 
 <CauHoi cau="xac-suat-co-ban/q11" />

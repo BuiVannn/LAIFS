@@ -2,7 +2,8 @@
 tieu_de: "Nhân ma trận bằng tay, ba góc nhìn"
 khai_niem: nhan-ma-tran
 do_kho: 1
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Cài đặt phép nhân ma trận bằng vòng lặp để thấy rõ chỉ số chạy thế nào. **Không dùng `@`, `np.dot`, `np.matmul`, `np.einsum`** trong ba hàm dưới (test có kiểm).

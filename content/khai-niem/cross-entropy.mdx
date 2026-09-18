@@ -4,7 +4,8 @@ ten_en: Cross-Entropy
 tang: 2
 thu_tu: 16
 tien_quyet: ["hoi-quy-logistic"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Hàm mất mát cho bài toán phân loại: cross-entropy H(p, q) = −Σ p·log q đo số "bit bất ngờ"
   trung bình khi thực tế xảy ra theo p nhưng mô hình lại tin vào q. Nó tách được thành
@@ -184,7 +185,7 @@ $p$ cố định. $q$ do bạn chỉnh qua hai logit.
   client:visible
   duDoan={{
     de: "p = [0.5, 0.3, 0.2] cố định. Nếu kéo q về trùng khít p, cross-entropy sẽ xuống tới giá trị nào?",
-    lua_chon: ["Về 0, vì đoán đúng hoàn toàn", "Dừng ở H(p) ≈ 1.0297, không xuống thấp hơn được", "Dừng ở KL ban đầu ≈ 0.0920"],
+    lua_chon: ["Về 0, vì đoán đúng hoàn toàn", "Dừng ở H(p) ≈ 1.0297, không xuống thấp hơn được", "Dừng ở đúng giá trị KL lúc ban đầu"],
     dap_an: 1,
     giai_thich: "CE = H(p) + KL. Kéo q về p chỉ đưa KL về 0; phần H(p) là mức bất định sẵn có của dữ liệu, không mô hình nào hạ được. Loss phân loại tiến về 0 chỉ vì nhãn one-hot có H(p) = 0."
   }}

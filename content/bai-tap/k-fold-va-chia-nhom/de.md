@@ -2,7 +2,8 @@
 tieu_de: Chia theo thời gian và theo nhóm
 khai_niem: train-val-test
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Chia ngẫu nhiên là mặc định, không phải luôn đúng. Dữ liệu có thứ tự thời gian hoặc có nhóm phải chia kiểu khác.

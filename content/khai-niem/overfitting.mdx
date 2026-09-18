@@ -4,7 +4,8 @@ ten_en: Overfitting and Underfitting
 tang: 2
 thu_tu: 18
 tien_quyet: ["train-val-test"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Quá khớp (overfitting) là khi mô hình học thuộc cả những chi tiết ngẫu nhiên của tập huấn luyện,
   nên loss trên tập train rất thấp còn loss trên dữ liệu chưa gặp lại cao. Chưa khớp (underfitting)
@@ -133,6 +134,8 @@ $$
 + \underbrace{\mathbb{E}\left[\big(\hat{f}(x) - \mathbb{E}[\hat{f}(x)]\big)^2\right]}_{\text{variance}}
 + \underbrace{\sigma^2}_{\text{noise}}
 $$
+
+Ba số hạng tách rời được nhờ hai bước: trước hết tách nhiễu, vì $\varepsilon$ độc lập với $\hat{f}$ và có kỳ vọng 0 nên số hạng chéo $2\,\mathbb{E}[\varepsilon]\,\mathbb{E}[f - \hat{f}] = 0$; sau đó thêm bớt $\mathbb{E}[\hat{f}(x)]$ vào $f(x) - \hat{f}(x)$ và khai triển bình phương — số hạng chéo lần này cũng bằng 0 vì $\mathbb{E}\big[\hat{f}(x) - \mathbb{E}[\hat{f}(x)]\big] = 0$. Còn lại đúng ba mảnh trên.
 
 Đọc ba số hạng bằng lời:
 

@@ -2,7 +2,8 @@
 tieu_de: "Chuẩn L2 và chuẩn hoá từng hàng"
 khai_niem: vector-ma-tran
 do_kho: 1
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Cho ma trận `X` shape `(n, d)`: mỗi **hàng** là một mẫu, mỗi **cột** là một đặc trưng. Viết hai hàm.

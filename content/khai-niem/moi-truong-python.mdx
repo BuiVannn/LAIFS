@@ -1,0 +1,621 @@
+---
+ten_vi: "Môi trường Python"
+ten_en: "Python Environments"
+tang: 0
+thu_tu: -4
+tien_quyet: []
+trang_thai: nhap
+dinh_nghia: >-
+  Một môi trường Python là một bộ ba gắn chặt với nhau: một file thực thi `python` cụ thể,
+  một phiên bản Python, và một thư mục `site-packages` chứa các gói đã cài cho đúng file
+  thực thi đó. Máy bạn có thể có nhiều môi trường cùng lúc; mỗi lệnh `python` hay `pip`
+  bạn gõ đều thuộc về đúng một môi trường, và đó là gốc rễ của gần như mọi lỗi "cài rồi mà
+  vẫn báo không có".
+truc_giac: >-
+  Hãy tưởng tượng mỗi môi trường là một căn bếp riêng: có một đầu bếp (file python) và một
+  cái kệ gia vị (site-packages). `pip install` là hành động đặt lọ gia vị lên kệ — nhưng lên
+  kệ NÀO thì phụ thuộc bạn đang đứng trong bếp nào. Người mới thường nghĩ mình đang cài "vào
+  máy tính", trong khi thực ra đang cài vào một căn bếp cụ thể, rồi lại chạy code từ căn bếp khác.
+hieu_nham:
+  - "`pip` không phải một chương trình độc lập cài gói 'vào máy': nó là một module thuộc về MỘT file python cụ thể, và nó chỉ cài vào `site-packages` của file python đó."
+  - "Kích hoạt venv (`source .venv/bin/activate`) không tạo ra một máy ảo hay container: nó chỉ sửa biến `PATH` để chữ `python` trỏ sang chỗ khác. Không kích hoạt vẫn dùng được, chỉ cần gọi thẳng `.venv/bin/python`."
+  - "`requirements.txt` ghi `numpy` (không có phiên bản) KHÔNG phải 'linh hoạt cho tiện': đó là cách bảo đảm ba tháng sau đồng nghiệp cài ra một phiên bản khác và code hỏng không ai hiểu vì sao."
+  - "`ModuleNotFoundError` gần như không bao giờ có nghĩa là 'gói chưa được cài': đúng hơn là 'gói không có trong môi trường mà file python NÀY đang dùng'."
+  - "conda không phải 'venv có thêm tính năng': nó quản lý cả thư viện hệ thống ngoài Python (BLAS, CUDA, compiler), nên giải quyết được lớp vấn đề mà venv không chạm tới — và cũng vì thế mà nặng hơn nhiều."
+  - "Trong Jupyter/Colab, `!pip install` không bảo đảm cài vào đúng kernel đang chạy notebook; `%pip install` mới bảo đảm."
+y_chinh:
+  - "Môi trường = một file `python` + `site-packages` của nó; `sys.executable` cho biết bạn đang ở môi trường nào"
+  - "Luôn gọi `python -m pip install ...` thay vì `pip install ...`: cách viết này buộc pip cài đúng vào python vừa gõ"
+  - "`venv` tạo một thư mục chứa `pyvenv.cfg` + `site-packages` rỗng; dấu hiệu đang ở trong venv là `sys.prefix != sys.base_prefix`"
+  - "`requirements.txt` với `==` là bản ghi để dựng lại môi trường; không pin thì không tái lập được"
+  - "conda khi cần thư viện ngoài Python (CUDA, MKL, GDAL) hoặc nhiều phiên bản Python; venv cho mọi trường hợp còn lại"
+  - "`%pip install` trong notebook, không dùng `!pip`; cài xong phải khởi động lại kernel nếu gói đã từng được import"
+  - "`ModuleNotFoundError` dù đã cài = cài vào môi trường khác; kiểm bằng `sys.executable` ở cả hai bên"
+  - "File cùng tên với thư viện (`numpy.py`) trong thư mục làm việc sẽ che mất thư viện thật"
+tai_lieu:
+  - url: https://docs.python.org/3/tutorial/venv.html
+    tieu_de: "Virtual Environments and Packages"
+    tac_gia: Python documentation
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Chương chính thức trong Python Tutorial, ngắn gọn và đủ cho toàn bộ phần venv của bài này. Đọc đầu tiên.
+  - url: https://docs.python.org/3/library/venv.html
+    tieu_de: "venv — Creation of virtual environments"
+    tac_gia: Python documentation
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: "Tài liệu module. Đọc mục 'How venvs work' nếu muốn hiểu vì sao kích hoạt chỉ là sửa PATH."
+  - url: https://packaging.python.org/en/latest/tutorials/installing-packages/
+    tieu_de: Installing Packages
+    tac_gia: Python Packaging Authority
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: "Hướng dẫn chính thức về pip. Giải thích rõ vì sao nên viết `python -m pip` thay vì `pip`."
+  - url: https://pip.pypa.io/en/stable/user_guide/
+    tieu_de: pip User Guide
+    tac_gia: pip documentation
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: "Tra khi cần: cú pháp requirements, constraints file, cách pip giải phụ thuộc và vì sao báo conflict."
+  - url: https://jakevdp.github.io/blog/2017/12/05/installing-python-packages-from-jupyter/
+    tieu_de: Installing Python Packages from a Jupyter Notebook
+    tac_gia: Jake VanderPlas
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Bài giải thích cặn kẽ nhất về chuyện `!pip` cài vào đâu và vì sao `%pip` ra đời. Đọc nếu hay dùng Colab/Jupyter.
+  - url: https://www.anaconda.com/blog/understanding-conda-and-pip
+    tieu_de: Understanding Conda and Pip
+    tac_gia: Anaconda
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: So sánh conda với pip từ phía nhà làm conda. Đọc để hiểu conda giải quyết lớp vấn đề nào mà pip không chạm tới.
+  - url: https://pymi.vn/blog/virtualenv/
+    tieu_de: "Đừng sudo, nếu không biết virtualenv"
+    tac_gia: HVN (PyMi.vn)
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: vi
+    ghi_chu: Bài tiếng Việt lý giải vì sao `sudo pip install` là thói quen xấu và môi trường ảo thay thế nó thế nào.
+  - url: https://www.youtube.com/watch?v=Kg1Yvry_Ydk
+    tieu_de: "Python Tutorial: VENV (Mac & Linux) - How to Use Virtual Environments with the Built-In venv Module"
+    tac_gia: Corey Schafer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Xem thao tác thật trên terminal. Bản cho Windows cùng tác giả là video `APOPm01BVrk`.
+---
+
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Tình huống: "máy tôi chạy được mà"
+
+Bạn gửi code cho bạn cùng nhóm. Bên bạn chạy mượt. Bên họ:
+
+```
+Traceback (most recent call last):
+  File "huan_luyen.py", line 2, in <module>
+    import numpy as np
+ModuleNotFoundError: No module named 'numpy'
+```
+
+Họ cài numpy. Chạy lại. Vẫn y nguyên lỗi đó.
+
+Họ cài lại lần nữa, lần này pip báo `Requirement already satisfied`. Nhưng Python vẫn khăng khăng không có numpy.
+
+Đây không phải chuyện hiếm hay xui xẻo. Đây là tình huống **mặc định** của người mới, và nó bắt nguồn từ một hiểu nhầm rất tự nhiên: nghĩ rằng "cài thư viện" là cài vào máy tính. Không phải. Cài là cài vào **một môi trường**, và trên một máy bình thường có sẵn ba bốn môi trường mà bạn không biết.
+
+## Trực giác: mỗi môi trường là một căn bếp
+
+Một môi trường Python gồm đúng hai thứ gắn chặt với nhau:
+
+1. **Một file thực thi `python`** — một file cụ thể nằm ở một đường dẫn cụ thể, ví dụ `/usr/bin/python3` hay `C:\Users\ban\AppData\Local\Programs\Python\Python312\python.exe`.
+2. **Một thư mục `site-packages`** nằm cạnh file đó, chứa mọi gói đã cài cho riêng nó.
+
+Hãy hình dung mỗi môi trường là một căn bếp: đầu bếp là file `python`, kệ gia vị là `site-packages`. `pip install numpy` là hành động **đặt lọ numpy lên kệ** — nhưng lên kệ của bếp nào thì tuỳ bạn đang đứng ở bếp nào lúc gõ lệnh.
+
+Máy bạn thường có sẵn nhiều bếp mà bạn không để ý:
+
+| Bếp | Từ đâu ra |
+|---|---|
+| `/usr/bin/python3` | Python của hệ điều hành (macOS, Linux) — **đừng cài gì vào đây** |
+| `/opt/homebrew/bin/python3` | Cài qua Homebrew |
+| `~/miniconda3/bin/python` | Cài Anaconda/Miniconda |
+| `.venv/bin/python` trong thư mục dự án | Bạn tự tạo bằng `python -m venv` |
+| Python của VS Code / PyCharm đang chọn | Trình soạn thảo chọn giúp bạn, thường không phải cái bạn nghĩ |
+
+Lỗi kinh điển ở đầu bài giờ đã có tên: `pip` đã đặt numpy lên kệ của bếp A, còn bạn chạy `python huan_luyen.py` từ bếp B.
+
+## Bước 1: biết mình đang ở bếp nào
+
+Python có sẵn câu trả lời. Ba dòng này là thứ đầu tiên nên gõ mỗi khi có gì đó lạ:
+
+```python
+import sys
+print(sys.executable)   # file python nao dang chay
+print(sys.version)      # phien ban nao
+print(sys.prefix != sys.base_prefix)   # True neu dang o trong mot venv
+```
+
+`sys.executable` là **địa chỉ của bếp**. `sys.prefix` là thư mục gốc của môi trường đang dùng; `sys.base_prefix` là thư mục gốc của bản Python đã sinh ra nó. Hai cái khác nhau nghĩa là bạn đang ở trong một venv.
+
+Còn phía `pip`, câu hỏi tương ứng là "pip này thuộc bếp nào". Trả lời bằng:
+
+```
+python -m pip --version
+```
+
+Nó in ra đường dẫn của pip **kèm phiên bản Python đi kèm**:
+
+```
+pip 25.3 from /duong/dan/du-an/.venv/lib/python3.13/site-packages/pip (python 3.13)
+```
+
+Từ đây rút ra quy tắc quan trọng nhất của cả bài:
+
+> **Luôn gõ `python -m pip install ...`, đừng gõ `pip install ...`.**
+
+Vì sao? `pip` gõ trơn là một file thực thi riêng, và hệ điều hành tìm nó trong `PATH` — có thể là pip của một bếp hoàn toàn khác với `python` mà bạn vừa chạy. Còn `python -m pip` nghĩa là "chạy module pip **bằng chính python này**", nên nó chắc chắn cài vào đúng `site-packages` của chính python đó. Một chữ `python -m` xoá sổ cả một họ lỗi.
+
+<CauHoi cau="moi-truong-python/q3" />
+
+## Bước 2: phiên bản Python — cái mà không venv nào sửa được
+
+Trước khi nói tới gói, phải nói tới **phiên bản Python**, vì đó là thứ duy nhất không thể đổi sau khi đã tạo môi trường.
+
+Python đánh số `3.MINOR.PATCH` (ví dụ 3.13.11). Trong đó:
+
+- **MINOR đổi là chuyện lớn.** Cú pháp mới, thư viện chuẩn đổi, và quan trọng nhất: các gói biên dịch sẵn (`wheel`) được build riêng cho từng MINOR. Không có wheel cho 3.13 thì pip phải **biên dịch từ mã nguồn**, và đó là lúc bạn gặp một bãi lỗi compiler dài ba trang.
+- **PATCH đổi thì gần như vô hại** — chỉ sửa lỗi.
+
+Hệ quả thực tế rất hay gặp: bạn cài Python mới nhất ra lò, rồi `pip install torch` báo `No matching distribution found`. Không phải torch hỏng — mà là phiên bản Python của bạn mới quá, nhóm torch chưa kịp build wheel cho nó. Với ML, an toàn nhất là đi **sau bản mới nhất một hoặc hai MINOR**.
+
+Một cái bẫy nhỏ nhưng chết người khi so sánh phiên bản bằng tay:
+
+```python
+a, b = "1.10.0", "1.9.0"
+print(a > b)                                                          # so sanh chuoi
+print(tuple(map(int, a.split("."))) > tuple(map(int, b.split("."))))  # so sanh so
+```
+
+```
+False
+True
+```
+
+So sánh chuỗi nói `1.10.0` **cũ hơn** `1.9.0`, vì ký tự `1` đứng trước `9`. Sai. Phiên bản phải so từng thành phần như số nguyên. Đây chính là lý do tồn tại chuẩn PEP 440 và thư viện `packaging` — và là lý do đừng bao giờ tự viết `if phien_ban > "2.0"`.
+
+## Bước 3: pip và PyPI
+
+**PyPI** (Python Package Index, đọc là "pai-pi-ai") là kho gói công cộng ở `pypi.org`. **pip** là công cụ tải gói từ đó về và đặt vào `site-packages`.
+
+Mỗi gói trên PyPI có thể phát hành hai dạng:
+
+| Dạng | Là gì | Hệ quả |
+|---|---|---|
+| **wheel** (`.whl`) | Đã biên dịch sẵn cho một bộ (hệ điều hành, kiến trúc CPU, phiên bản Python) | Cài trong vài giây, không cần compiler |
+| **sdist** (`.tar.gz`) | Mã nguồn thô | pip phải tự biên dịch trên máy bạn — chậm, và cần đúng compiler + thư viện hệ thống |
+
+Tên file wheel nói hết: `numpy-2.4.6-cp313-cp313-macosx_11_0_arm64.whl` nghĩa là numpy 2.4.6, cho CPython 3.13, macOS 11+ trên chip ARM. Nếu máy bạn không khớp một trường nào trong đó, pip bỏ qua wheel này và đi tìm cái khác — hoặc rơi về sdist.
+
+Khi cài, pip còn phải giải **phụ thuộc**: mỗi gói khai báo nó cần gói nào, phiên bản nào. `scipy` cần `numpy`, `torch` cần `filelock`, `jinja2`, `networkx`... Một lệnh `pip install` có thể kéo theo vài chục gói.
+
+## Bước 4: venv — mỗi dự án một căn bếp riêng
+
+Nếu mọi dự án dùng chung một `site-packages` thì sớm muộn cũng có hai dự án cần hai phiên bản khác nhau của cùng một gói, và một trong hai sẽ hỏng. `venv` là lời giải, và nó nằm sẵn trong thư viện chuẩn từ Python 3.3.
+
+### Tạo và dùng
+
+```
+cd du-an
+python3 -m venv .venv
+```
+
+Xong. Thư mục `.venv` xuất hiện với `bin/` (hay `Scripts/` trên Windows), `lib/` và một file `pyvenv.cfg`. Từ giờ trở đi, `.venv/bin/python` là một bếp mới với kệ trống trơn.
+
+**Kích hoạt** (khuyên dùng, nhưng không bắt buộc):
+
+| Hệ | Lệnh |
+|---|---|
+| macOS / Linux | `source .venv/bin/activate` |
+| Windows PowerShell | `.venv\Scripts\Activate.ps1` |
+| Windows cmd | `.venv\Scripts\activate.bat` |
+
+Sau khi kích hoạt, dấu nhắc terminal có thêm `(.venv)`, và chữ `python` trơn giờ trỏ vào bếp mới. Thoát ra bằng `deactivate`.
+
+### Kích hoạt thật ra làm gì
+
+Đây là chỗ hay bị thần bí hoá. `activate` **không** tạo máy ảo, không container, không sandbox. Nó làm đúng ba việc tầm thường:
+
+1. Thêm `.venv/bin` vào **đầu** biến `PATH`, nên `python` và `pip` gõ trơn tìm thấy bản trong venv trước.
+2. Đặt biến `VIRTUAL_ENV`.
+3. Sửa dấu nhắc cho bạn nhìn thấy.
+
+Vậy nên nếu quên kích hoạt, bạn vẫn dùng được venv bằng cách gọi thẳng đường dẫn:
+
+```
+.venv/bin/python huan_luyen.py
+.venv/bin/python -m pip install numpy
+```
+
+Cách này thậm chí an toàn hơn trong script tự động, vì không phụ thuộc vào việc terminal có kích hoạt hay chưa.
+
+Còn thứ thật sự làm nên venv là file `pyvenv.cfg`. Nội dung của nó rất ngắn:
+
+```
+home = /Users/ban/.pyenv/versions/3.13.11/bin
+include-system-site-packages = false
+version = 3.13.11
+```
+
+Khi `.venv/bin/python` khởi động, nó thấy file này nằm cạnh mình, và đặt `sys.prefix` thành thư mục `.venv`, còn `sys.base_prefix` thành `home` ở trên. Từ đó `site-packages` của nó là `.venv/lib/python3.13/site-packages`. Toàn bộ "phép màu" gói gọn trong ba dòng cấu hình.
+
+Điều đó cũng giải thích hai tính chất quan trọng:
+
+- **Không copy được venv sang máy khác.** Đường dẫn trong `pyvenv.cfg` và trong các script `bin/` là tuyệt đối. Chép thư mục `.venv` đi nơi khác thì hỏng. Cách đúng là chép `requirements.txt` rồi tạo lại.
+- **`.venv` phải nằm trong `.gitignore`.** Nó có thể nặng hàng GB (torch + CUDA), và vô dụng với người khác.
+
+### Một phiên làm việc thật
+
+Chạy thật trên máy, không phải minh hoạ:
+
+```
+$ python3 -m venv .venv
+$ source .venv/bin/activate
+(.venv) $ python -c "import sys; print(sys.executable)"
+/duong/dan/du-an/.venv/bin/python
+(.venv) $ python -m pip --version
+pip 25.3 from /duong/dan/du-an/.venv/lib/python3.13/site-packages/pip (python 3.13)
+(.venv) $ python -c "import numpy"
+ModuleNotFoundError: No module named 'numpy'
+(.venv) $ python -m pip install numpy==2.4.6
+Successfully installed numpy-2.4.6
+(.venv) $ python -c "import numpy; print(numpy.__version__)"
+2.4.6
+(.venv) $ python -m pip freeze
+numpy==2.4.6
+```
+
+Để ý dòng `ModuleNotFoundError` ở giữa: numpy có sẵn trên máy này (ở bếp conda), nhưng venv mới sinh ra thì kệ trống. Đó chính là mục đích của nó.
+
+## Bước 5: `requirements.txt` và chuyện pin phiên bản
+
+`python -m pip freeze` in ra danh sách mọi gói trong môi trường kèm phiên bản chính xác. Ghi nó ra file:
+
+```
+python -m pip freeze > requirements.txt
+```
+
+Người khác dựng lại môi trường y hệt bằng:
+
+```
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+### Vì sao phải ghi phiên bản
+
+So hai file:
+
+```
+# Cach viet te
+numpy
+scipy
+scikit-learn
+```
+
+```
+# Cach viet dung
+numpy==2.4.6
+scipy==1.16.0
+scikit-learn==1.7.2
+```
+
+File đầu nói "cho tôi numpy nào cũng được". Hôm nay bạn cài được 2.4.6. Ba tháng sau đồng nghiệp cài, ra 2.6.0, trong đó một hàm đổi hành vi mặc định, và kết quả mô hình lệch đi mà không ai báo lỗi. **Không pin phiên bản thì không có tái lập.** Với nghiên cứu ML, mất tái lập là mất tất cả: không so sánh được kết quả hôm nay với kết quả tháng trước, vì không biết cái gì đã đổi.
+
+### Các toán tử hay dùng
+
+| Viết | Nghĩa | Dùng khi |
+|---|---|---|
+| `numpy==2.4.6` | Đúng phiên bản này | Mặc định cho dự án cần tái lập |
+| `numpy>=2.0` | Từ 2.0 trở lên, không chặn trên | Thư viện bạn viết cho người khác dùng |
+| `numpy>=2.0,<3.0` | Trong khoảng | Khi biết bản major sau sẽ phá vỡ |
+| `numpy~=2.4.6` | Tương đương `>=2.4.6, ==2.4.*` — cho lên PATCH, không cho lên MINOR | Nhận vá lỗi mà không nhận tính năng mới |
+| `numpy!=2.5.0` | Trừ đúng một bản | Khi một bản cụ thể có lỗi đã biết |
+
+Quy ước ngầm của cả cộng đồng: **ứng dụng thì pin chặt, thư viện thì nới lỏng.** Ứng dụng của bạn là thứ cuối cùng trong chuỗi, pin chặt thì không ai bị ảnh hưởng. Thư viện pin chặt thì mọi người dùng nó đều bị ép theo, và hai thư viện pin chặt hai phiên bản khác nhau là một xung đột không lối thoát.
+
+### Giới hạn của `pip freeze`
+
+`pip freeze` ghi ra **mọi** gói trong môi trường, kể cả những gói chỉ là phụ thuộc của phụ thuộc. Với môi trường có torch thì file dài cả trăm dòng, và bạn không còn phân biệt được đâu là thứ mình thật sự cần. Cách gọn hơn: tự tay viết `requirements.txt` chỉ gồm các gói mình gọi tên trực tiếp, để pip tự lo phần còn lại. Muốn nghiêm túc hơn nữa thì dùng lockfile (mục nâng cao).
+
+<CauHoi cau="moi-truong-python/q6" />
+
+## Bước 6: conda hay venv?
+
+Hai công cụ này hay bị đặt cạnh nhau như hai lựa chọn tương đương. Chúng không tương đương — chúng giải hai bài toán khác nhau, chỉ chồng lấn một phần.
+
+| | venv + pip | conda |
+|---|---|---|
+| Quản lý gói Python | Có | Có |
+| Quản lý thư viện **ngoài** Python (BLAS, CUDA runtime, compiler, GDAL, ffmpeg) | **Không** | **Có** |
+| Đổi được phiên bản Python của môi trường | Không (cố định lúc tạo) | Có |
+| Nằm sẵn trong Python | Có | Không, phải cài Miniconda/Anaconda |
+| Dung lượng | Nhỏ | Lớn (base đã vài trăm MB) |
+| Tốc độ giải phụ thuộc | Nhanh | Chậm (đỡ hơn nhiều nếu dùng `mamba` hay `conda-libmamba-solver`) |
+| Kho gói | PyPI (rất đầy đủ) | conda-forge, defaults (ít gói hơn, nhưng gói khoa học rất chắc) |
+
+**Chọn venv khi:** dự án thuần Python, các gói đều có wheel sẵn (numpy, pandas, scikit-learn, torch bản CPU hoặc CUDA chuẩn), bạn muốn nhẹ và nhanh. Đây là mặc định hợp lý cho gần hết việc học ML.
+
+**Chọn conda khi:** cần thư viện hệ thống mà pip không quản (một số gói địa lý, sinh học, ffmpeg), cần nhiều phiên bản Python song song trên cùng một máy, hoặc cần một CUDA runtime cụ thể mà không muốn đụng vào driver hệ thống.
+
+### Quy tắc sống còn khi đã trót dùng cả hai
+
+Trộn `conda install` và `pip install` trong cùng một môi trường là nguồn của những lỗi khó chịu nhất: conda không biết pip đã làm gì, nên lần `conda install` sau có thể đè lên và làm hỏng gói pip vừa cài. Nếu buộc phải trộn:
+
+1. Cài **hết** những gì có thể bằng `conda` trước.
+2. Rồi mới `pip install` phần còn lại.
+3. Sau đó **đừng chạy `conda install` nữa** trong môi trường đó. Cần thêm gói thì dựng lại từ đầu.
+
+## Bước 7: `pip install` trong Colab và Jupyter
+
+Notebook thêm một lớp rắc rối, vì có tới **ba** thứ có thể là "môi trường": môi trường chạy giao diện Jupyter, môi trường của **kernel** đang chạy ô code, và shell mà dấu `!` gọi ra.
+
+| Viết | Thật sự làm gì |
+|---|---|
+| `!pip install numpy` | Mở một shell mới, chạy file `pip` mà shell đó tìm thấy trong `PATH`. **Không bảo đảm** đó là pip của kernel đang chạy notebook. |
+| `%pip install numpy` | Lệnh magic của IPython: cài bằng đúng `sys.executable` của kernel. **Luôn đúng chỗ.** |
+| `!{sys.executable} -m pip install numpy` | Tương đương `%pip`, viết dài hơn. Dùng khi chạy trên môi trường không có magic. |
+
+Vậy nên quy tắc trong notebook chỉ có một dòng: **dùng `%pip`, đừng dùng `!pip`.** Trên Colab hai cách thường trùng nhau vì Colab chỉ có một môi trường, nhưng trên Jupyter ở máy bạn — nơi hay có nhiều kernel — `!pip` cài lạc chỗ là chuyện thường ngày.
+
+### Cái bẫy thứ hai: cài xong vẫn chưa dùng được
+
+Một ô notebook như thế này vẫn hỏng dù cài đúng chỗ:
+
+```python
+import numpy as np        # o 1: chay tu truoc, numpy 1.26 da nam trong bo nho
+%pip install numpy==2.4.6 # o 2: cai ban moi vao dia
+print(np.__version__)     # o 3: van in 1.26!
+```
+
+Lý do: Python nạp module vào bộ nhớ **một lần duy nhất** cho mỗi tiến trình. Ghi đè file trên đĩa không làm module đã nạp thay đổi. Sau khi cài hay nâng cấp một gói đã từng `import`, bắt buộc **khởi động lại kernel** (Colab: *Runtime → Restart session*; Jupyter: nút ↻). Đây là nguyên nhân của rất nhiều giờ ngồi ngơ ngác.
+
+Trên Colab còn thêm ba điều nên nhớ: máy ảo bị xoá sạch khi hết phiên, nên mọi thứ `%pip install` phải cài lại mỗi lần mở; Colab đã cài sẵn một bộ gói khá đầy đủ với các phiên bản do Google chọn, nên ép phiên bản khác dễ gây xung đột với phần còn lại; và nên đặt ô `%pip install` ở **đầu** notebook để người chạy lại biết phải chạy nó trước.
+
+<CauHoi cau="moi-truong-python/q9" />
+
+## Bước 8: xung đột phiên bản numpy / torch
+
+Đây là loại xung đột đau nhất, vì nó không chỉ là chuyện số phiên bản mà là chuyện **giao diện nhị phân** (ABI).
+
+numpy có phần lõi viết bằng C. Các thư viện như torch, scipy, opencv cũng có phần C, và khi build chúng **biên dịch dựa trên header của numpy**. Bản biên dịch đó khớp với bố cục bộ nhớ của numpy tại thời điểm build. NumPy 2.0 đổi bố cục đó. Hệ quả: một gói build cho numpy 1.x nạp cùng numpy 2.x có thể sai hoặc sập ở tầng C, nên numpy chủ động phát hiện và báo lỗi khi import, đại ý "module này được biên dịch với NumPy 1.x, không chạy được trên NumPy 2.x — hãy hạ numpy xuống `<2` hoặc nâng cấp gói kia".
+
+Điểm mấu chốt để không hoảng: **thông báo đó không nói numpy hỏng.** Nó nói cặp (numpy, gói kia) không khớp. Nên chỉ có hai hướng sửa, và hướng thứ hai luôn tốt hơn:
+
+1. Hạ numpy: `python -m pip install "numpy<2"` — nhanh, nhưng bạn bị kẹt ở bản cũ.
+2. Nâng gói kia lên bản đã build cho numpy 2: `python -m pip install --upgrade torch` — đúng hướng lâu dài.
+
+Còn với torch nói riêng, có một chuyện nữa mà người mới hay vấp: **bản torch phụ thuộc CUDA**. `pip install torch` cho ra một bản mặc định có thể không khớp driver GPU của bạn. Trang chủ PyTorch có công cụ sinh đúng lệnh cài theo hệ điều hành và phiên bản CUDA — dùng nó, đừng đoán. Cách kiểm tra sau khi cài:
+
+```python
+import torch
+print(torch.__version__)          # vi du 2.6.0+cu124
+print(torch.cuda.is_available())  # False nghia la dang chay CPU
+```
+
+Nếu `torch.cuda.is_available()` ra `False` trên máy có GPU, gần như luôn là do cài nhầm bản CPU (`+cpu` trong tên phiên bản) hoặc CUDA runtime không khớp driver.
+
+## Bước 9: đọc thông báo lỗi khi cài
+
+pip nói khá rõ nếu chịu đọc **ba dòng cuối** thay vì cả trang. Bốn nhóm thường gặp:
+
+### a) Không tìm thấy phiên bản
+
+```
+ERROR: Ignored the following versions that require a different python version: 1.26.0 Requires-Python >=3.9,<3.13
+ERROR: Could not find a version that satisfies the requirement numpy==1.99.0 (from versions: 1.3.0, ..., 2.5.3)
+ERROR: No matching distribution found for numpy==1.99.0
+```
+
+Dòng đầu là chìa khoá: một số bản **bị loại vì không hợp phiên bản Python của bạn**. Dòng giữa liệt kê những bản thật sự có. Hai câu hỏi cần trả lời: bạn gõ đúng tên và số chưa, và Python của bạn có quá mới (hoặc quá cũ) so với gói không.
+
+### b) Xung đột phụ thuộc
+
+```
+ERROR: pip's dependency resolver does not currently take into account all the packages that are installed.
+This behaviour is the source of the following dependency conflicts.
+requests 2.32.3 requires urllib3<3,>=1.21.1, but you have urllib3 1.21 which is incompatible.
+```
+
+Đây là ERROR nhưng pip **vẫn cài xong** — nó chỉ cảnh báo môi trường giờ đã mâu thuẫn. Đọc câu cuối theo đúng mẫu: *gói A cần B trong khoảng X, nhưng bạn đang có B ở phiên bản Y*. Lệnh kiểm tra lại toàn bộ môi trường:
+
+```
+python -m pip check
+```
+
+Sạch thì in `No broken requirements found.`; có vấn đề thì liệt kê từng cặp mâu thuẫn và trả mã lỗi khác 0 (tiện cho CI).
+
+### c) Phải biên dịch từ mã nguồn
+
+Thấy `Building wheel for ...`, `error: metadata-generation-failed`, hay một bãi lỗi có `gcc`, `clang`, `error: command ... failed`: nghĩa là **không có wheel sẵn cho máy bạn** nên pip đang thử tự build. Ba cách xử lý, theo thứ tự nên thử:
+
+1. Đổi sang phiên bản gói có wheel cho Python của bạn (thường là bản mới hơn).
+2. Đổi sang phiên bản Python phổ biến hơn (đi sau bản mới nhất 1–2 MINOR).
+3. Cài compiler + thư viện phát triển (`build-essential`, `python3-dev`, Xcode Command Line Tools). Đây là cách cuối, vì tốn thời gian nhất.
+
+### d) Không có quyền ghi
+
+`Permission denied` khi cài vào Python hệ thống. Cám dỗ là gõ `sudo pip install`. **Đừng.** Nó ghi đè các gói mà hệ điều hành đang dùng và có thể làm hỏng công cụ hệ thống. Cách đúng: tạo venv rồi cài vào đó. Đây cũng là lý do Python hiện đại chặn thẳng việc cài vào môi trường hệ thống với thông báo `externally-managed-environment` (PEP 668) — không phải nó gây khó dễ, mà là nó đang cứu máy bạn.
+
+## Code: script tự chẩn đoán môi trường
+
+Đây là thứ đáng lưu lại và chạy mỗi khi gặp chuyện lạ:
+
+```python
+import importlib.util
+import sys
+
+print("python   :", sys.executable)
+print("phien ban:", ".".join(map(str, sys.version_info[:3])))
+print("trong venv:", sys.prefix != sys.base_prefix)
+for ten in ("numpy", "torch", "pandas"):
+    spec = importlib.util.find_spec(ten)
+    print(f"{ten:9s}:", spec.origin if spec else "CHUA CAI")
+```
+
+Kết quả trên một máy dùng Miniconda, chưa tạo venv (đường dẫn trên máy bạn sẽ khác):
+
+```
+python   : /Users/buivan/miniconda3/bin/python3
+phien ban: 3.13.11
+trong venv: False
+numpy    : /Users/buivan/miniconda3/lib/python3.13/site-packages/numpy/__init__.py
+torch    : CHUA CAI
+pandas   : CHUA CAI
+```
+
+`importlib.util.find_spec` **không import** gói, chỉ tìm xem nó ở đâu — nên chạy nhanh và không nổ lỗi nếu gói bị hỏng. Dòng `numpy` cho biết chính xác file nào sẽ được nạp, và đó là bằng chứng không cãi được về việc bạn đang dùng bản numpy nào.
+
+Muốn so hai bên (máy bạn và máy bạn cùng nhóm), chạy script này ở cả hai rồi đặt cạnh nhau. Chín trên mười lần, chỗ khác nhau lộ ra ngay ở dòng đầu tiên.
+
+## Ví dụ: mổ xẻ "ModuleNotFoundError dù đã cài"
+
+Bạn cùng nhóm ở đầu bài làm đúng như sau:
+
+**Bước 1.** Chạy trong terminal, nơi vừa `pip install numpy`:
+
+```
+$ python -m pip --version
+pip 24.0 from /usr/lib/python3/dist-packages/pip (python 3.11)
+```
+
+**Bước 2.** Chạy trong chính file đang lỗi, thêm hai dòng lên đầu:
+
+```python
+import sys
+print(sys.executable, sys.version_info[:3])
+```
+
+```
+/opt/homebrew/bin/python3.12 (3, 12, 7)
+```
+
+**Chẩn đoán xong.** pip đặt numpy lên kệ của `python3.11` ở `/usr/lib`, còn VS Code chạy file bằng `python3.12` của Homebrew. Hai căn bếp khác nhau. Không có bug nào cả, chỉ là hai lệnh khác nhau nói chuyện với hai môi trường khác nhau.
+
+**Cách sửa đúng** (không phải "cài lại lần nữa"):
+
+```
+cd du-an
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+rồi trỏ trình soạn thảo vào đúng `.venv/bin/python` (VS Code: *Python: Select Interpreter*).
+
+### Bốn nguyên nhân khác của cùng một lỗi
+
+`ModuleNotFoundError` không chỉ đến từ chuyện lệch môi trường. Kiểm theo thứ tự này:
+
+1. **Lệch môi trường** — như trên. Xác suất cao nhất.
+2. **Sai tên import.** Tên trên PyPI và tên để `import` không phải lúc nào cũng trùng: cài `scikit-learn` nhưng import `sklearn`; cài `opencv-python` nhưng import `cv2`; cài `pillow` nhưng import `PIL`; cài `python-dotenv` nhưng import `dotenv`.
+3. **File của bạn che mất thư viện.** Xem mục ngay dưới.
+4. **Quên kích hoạt venv** trong terminal mới mở. Nhìn dấu nhắc có `(.venv)` không.
+
+### Bẫy đặt tên file: khi chính bạn che mất numpy
+
+Python tìm module theo `sys.path`, và **thư mục hiện tại đứng đầu danh sách**. Nên một file tên `numpy.py` trong thư mục làm việc sẽ được nạp thay cho numpy thật:
+
+```python
+# file numpy.py cua ban chi co mot dong:  print("day la file cua ban")
+import numpy
+print(numpy.array([1, 2, 3]))
+```
+
+```
+day la file cua ban
+Traceback (most recent call last):
+  File "thu.py", line 2, in <module>
+    print(numpy.array([1, 2, 3]))
+          ^^^^^^^^^^^
+AttributeError: module 'numpy' has no attribute 'array'
+```
+
+(Đường dẫn file trong traceback đã rút gọn cho dễ đọc; Python in ra đường dẫn tuyệt đối.)
+
+Triệu chứng đặc trưng: **`AttributeError` trên một hàm chắc chắn tồn tại**. Gặp nó thì in `numpy.__file__` ra ngay — nếu đường dẫn trỏ về thư mục dự án của bạn chứ không phải `site-packages`, bạn đã tìm ra thủ phạm. Các tên hay bị dùng nhầm: `numpy.py`, `random.py`, `string.py`, `json.py`, `email.py`, `test.py`, `code.py`. Nhớ xoá luôn `__pycache__` sau khi đổi tên, vì file `.pyc` cũ vẫn còn đó.
+
+<CauHoi cau="moi-truong-python/q11" />
+
+## Nâng cao
+
+**`uv` và thế hệ công cụ mới.** `uv` (viết bằng Rust) làm việc của venv + pip nhưng nhanh hơn hàng chục lần và có lockfile thật: `uv venv`, `uv pip install`, `uv sync`. Poetry và PDM cùng họ, tập trung vào quản lý dự án qua `pyproject.toml`. Chúng đáng học **sau** khi đã hiểu venv + pip, vì mọi khái niệm bên dưới vẫn y nguyên — chỉ là lớp vỏ tiện hơn. Học vỏ trước thì lúc hỏng vẫn không biết mở nắp ở đâu.
+
+**Lockfile và tính tái lập thật sự.** `requirements.txt` với `==` vẫn chưa đủ chặt: cùng một lệnh cài trên hai máy có thể lấy hai file wheel khác nhau. Lockfile (`uv.lock`, `poetry.lock`, hay `pip-compile` của pip-tools) ghi thêm mã băm của từng file, nên cài lại là giống hệt tới từng byte. Với bài báo hay thí nghiệm cần lặp lại chính xác, đây là mức nên nhắm tới.
+
+**`pip install -e .`** cài gói ở chế độ "editable": thay vì chép code vào `site-packages`, nó tạo một liên kết tới thư mục nguồn. Sửa code là có hiệu lực ngay, không cần cài lại. Đây là cách chuẩn để làm việc trên chính thư viện của mình — và cũng là cách gọn nhất để `import` được module của dự án từ bất cứ thư mục nào mà không phải nghịch `sys.path`.
+
+**`PYTHONPATH` và `sys.path`.** `sys.path` là danh sách thư mục Python tìm module, theo thứ tự: thư mục của script đang chạy → các đường dẫn trong biến môi trường `PYTHONPATH` → `site-packages`. Thêm đường dẫn vào `PYTHONPATH` là cách nhanh để import code ở nơi khác, nhưng nó **vô hình** với người khác và không đi kèm dự án — nên coi là giải pháp tạm, không phải cách dựng dự án.
+
+**Docker khi venv không đủ.** venv chỉ cô lập gói Python. Khi thứ khác nhau là phiên bản CUDA, driver, hay cả hệ điều hành, container mới là câu trả lời. Trong ML, Docker hay được dùng cho lúc triển khai; lúc học và thử nghiệm thì venv (hoặc Colab) là đủ.
+
+**`python -m venv --system-site-packages`** cho venv nhìn thấy cả gói của Python gốc. Nghe tiện, nhưng nó phá đúng cái tính chất khiến venv có giá trị: sự cô lập. Chỉ dùng khi có một gói rất nặng đã cài sẵn ở hệ thống mà bạn không muốn cài lại.
+
+## Sai lầm hay gặp, kèm triệu chứng
+
+| Sai lầm | Triệu chứng nhìn thấy | Cách sửa |
+|---|---|---|
+| Gõ `pip install` thay vì `python -m pip install` | Cài xong báo thành công, `import` vẫn `ModuleNotFoundError`; `pip -V` và `python -c "import sys; print(sys.executable)"` chỉ hai đường dẫn khác nhau | Luôn dùng `python -m pip`; kiểm bằng `python -m pip --version` |
+| Quên kích hoạt venv trong terminal mới | Dấu nhắc không có `(.venv)`; lệnh chạy được hôm qua nay báo thiếu gói | `source .venv/bin/activate`, hoặc gọi thẳng `.venv/bin/python` |
+| Trình soạn thảo trỏ vào interpreter khác terminal | Chạy trong terminal thì được, bấm nút Run trong IDE thì lỗi (hoặc ngược lại) | *Python: Select Interpreter* → chọn `.venv/bin/python` của dự án |
+| `requirements.txt` không ghi phiên bản | Code chạy đúng tháng trước, tháng này ra kết quả khác mà không ai sửa gì | `python -m pip freeze > requirements.txt`, pin bằng `==` |
+| Chép nguyên thư mục `.venv` sang máy khác | `bad interpreter: No such file or directory`, hoặc python trong venv không khởi động được | Chép `requirements.txt` rồi tạo lại venv ở máy mới |
+| `!pip install` trong notebook | Cài báo thành công, ô sau vẫn `ModuleNotFoundError` | Dùng `%pip install` |
+| Không khởi động lại kernel sau khi nâng cấp gói | `__version__` vẫn in bản cũ dù vừa cài bản mới | Restart kernel/runtime rồi chạy lại từ đầu |
+| Đặt tên file trùng tên thư viện (`numpy.py`, `random.py`) | `AttributeError: module 'numpy' has no attribute 'array'` — lỗi trên hàm chắc chắn có thật | Đổi tên file, xoá `__pycache__`, kiểm bằng `print(numpy.__file__)` |
+| Nhầm tên PyPI với tên import | `pip install sklearn` báo lỗi và bảo bạn cài `scikit-learn`; `import scikit_learn` báo không có module | Cài `scikit-learn`, import `sklearn`; tra lại cặp tên trên trang PyPI của gói |
+| `sudo pip install` | `Permission denied` biến mất nhưng công cụ hệ thống hỏng dần; hoặc thông báo `externally-managed-environment` | Tạo venv, cài vào đó; không bao giờ `sudo pip` |
+| Trộn `conda install` và `pip install` lẫn lộn | Gói vừa cài bằng pip biến mất sau một lệnh conda; import lỗi ở tầng C | conda trước, pip sau, rồi không conda nữa; hoặc dựng lại môi trường |
+| Ép numpy xuống/lên mà không đụng gói phụ thuộc | Lỗi lúc import nói module được biên dịch với NumPy 1.x; hoặc sập ở tầng C | Nâng gói phụ thuộc lên bản build cho numpy 2, thay vì hạ numpy |
+| Dùng Python quá mới | `No matching distribution found`, hoặc pip cố build từ nguồn và chết ở compiler | Lùi 1–2 MINOR so với bản mới nhất |
+
+## Tra nhanh
+
+| Cần gì | Gõ gì |
+|---|---|
+| Biết mình đang ở môi trường nào | `python -c "import sys; print(sys.executable)"` |
+| Biết pip đang cài vào đâu | `python -m pip --version` |
+| Đang ở trong venv hay không | `python -c "import sys; print(sys.prefix != sys.base_prefix)"` |
+| Tạo venv | `python3 -m venv .venv` |
+| Kích hoạt | mac/Linux `source .venv/bin/activate` · Windows `.venv\Scripts\activate` |
+| Thoát | `deactivate` |
+| Cài gói | `python -m pip install <ten>` |
+| Cài đúng phiên bản | `python -m pip install "numpy==2.4.6"` |
+| Xem gói đã cài | `python -m pip list` |
+| Xuất danh sách để chia sẻ | `python -m pip freeze > requirements.txt` |
+| Dựng lại môi trường | `python -m pip install -r requirements.txt` |
+| Kiểm tra môi trường có mâu thuẫn không | `python -m pip check` |
+| Xem một gói ở đâu, ai cần nó | `python -m pip show numpy` |
+| Gỡ gói | `python -m pip uninstall <ten>` |
+| Trong notebook | `%pip install <ten>` rồi **restart kernel** |
+| Một gói đang nạp từ file nào | `python -c "import numpy; print(numpy.__file__)"` |
+| Xoá môi trường | xoá thư mục `.venv` (không có lệnh riêng) |
+
+Nguyên tắc một câu: **mọi lệnh Python đều hỏi "python nào?" trước khi hỏi "gói nào?" — trả lời được câu đầu thì câu sau tự sáng.**
+
+## Tóm tắt
+
+- Một môi trường Python = một file `python` cụ thể + `site-packages` của riêng nó. Máy bạn có nhiều môi trường dù bạn không cố ý tạo.
+- `python -m pip install` thay cho `pip install` là thay đổi nhỏ nhất có tác dụng lớn nhất: nó buộc pip cài đúng vào python vừa gõ.
+- `venv` không phải máy ảo; kích hoạt chỉ là sửa `PATH`. Bằng chứng đang ở trong venv là `sys.prefix != sys.base_prefix`.
+- `requirements.txt` pin bằng `==` là điều kiện tối thiểu để người khác (và chính bạn ba tháng sau) dựng lại được kết quả.
+- venv cho gần hết việc học ML; conda khi cần thư viện ngoài Python hoặc nhiều phiên bản Python.
+- Trong notebook dùng `%pip`, và khởi động lại kernel sau khi nâng cấp gói đã import.
+- "Cài rồi mà vẫn `ModuleNotFoundError`" gần như luôn là lệch môi trường — so `sys.executable` hai bên trước khi nghi ngờ bất cứ điều gì khác.

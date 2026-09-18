@@ -1,0 +1,147 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: "Trên Hugging Face Hub, `Helsinki-NLP/opus-mt-vi-en` là gì?"
+    lua_chon:
+      - "Một địa chỉ URL rút gọn của một bài báo"
+      - "Tên đầy đủ của một repo mô hình, gồm phần tổ chức và phần tên"
+      - "Một lệnh của thư viện transformers"
+      - "Tên một bộ dữ liệu"
+    dap_an: 1
+    giai_thich: "Tên có dạng `<tổ chức>/<tên>`, và mỗi repo trên Hub là một repo Git thật, có commit và lịch sử. Vài mô hình đời đầu như `gpt2` không có phần tổ chức. Biết điều này có lợi ngay: bạn ghim được `revision=\"<commit hash>\"` để thí nghiệm lặp lại được."
+
+  - id: q2
+    loai: mot
+    do_kho: 1
+    de: "`pipeline(\"sentiment-analysis\")` hoạt động thế nào khi bạn gọi nó lần thứ hai trên cùng một câu?"
+    lua_chon:
+      - "Gửi câu lên máy chủ Hugging Face và nhận kết quả về"
+      - "Chạy hoàn toàn cục bộ: mô hình đã được tải về cache ở lần đầu, từ đó chạy trên máy bạn"
+      - "Huấn luyện lại mô hình trên câu đó"
+      - "Tải lại mô hình mỗi lần gọi"
+    dap_an: 1
+    giai_thich: "`pipeline` tải mô hình và tokenizer về cache (mặc định `~/.cache/huggingface/hub`) ở lần đầu, sau đó mọi phép tính chạy trên CPU/GPU của bạn. Đây là lý do lần chạy đầu chậm còn các lần sau nhanh, và cũng là lý do bạn phải quan tâm tới dung lượng cache."
+
+  - id: q3
+    loai: mot
+    do_kho: 2
+    de: "Bạn định đưa một mô hình dịch vào sản phẩm có thu phí. Mô hình khai license `cc-by-nc-4.0` trên Hub. Kết luận?"
+    lua_chon:
+      - "Dùng được, chỉ cần ghi nguồn"
+      - "Không dùng được cho mục đích thương mại — phần `nc` là non-commercial; học tập và nghiên cứu thì được"
+      - "Dùng được nếu không sửa mô hình"
+      - "License trên Hub chỉ mang tính tham khảo"
+    dap_an: 1
+    giai_thich: "`nc` là non-commercial, một ràng buộc thật chứ không phải khuyến nghị. Ví dụ cụ thể: `facebook/nllb-200-distilled-600M` dịch được 200 ngôn ngữ và khai `cc-by-nc-4.0`, trong khi `Helsinki-NLP/opus-mt-vi-en` nằm ngay cạnh trong kết quả tìm kiếm lại là `apache-2.0`. Cùng một dòng lệnh tải về, hai quyền dùng khác hẳn nhau — nên phải đọc license TRƯỚC."
+
+  - id: q4
+    loai: mot
+    do_kho: 2
+    de: "Mục nào trong model card thường bị lướt qua nhất nhưng lại hữu ích nhất khi quyết định có dùng mô hình hay không?"
+    lua_chon:
+      - "Số lượt tải trong tháng"
+      - "Mục Limitations and bias, nơi chính tác giả nói mô hình hỏng ở đâu"
+      - "Số sao và lượt thích"
+      - "Kích thước file trọng số"
+    dap_an: 1
+    giai_thich: "Điểm số trên tập test của tác giả đo trên dữ liệu của tác giả. Mục giới hạn nói mô hình gãy ở đâu — miền dữ liệu nào, ngôn ngữ nào, kiểu văn bản nào. Số lượt tải thì chỉ nói nhiều người đã THỬ, không nói nó tốt, và một phần đến từ script tự động."
+
+  - id: q5
+    loai: mot
+    do_kho: 2
+    de: "Bạn nạp tokenizer của `opus-mt-en-vi` nhưng nạp mô hình `opus-mt-vi-en`. Chuyện gì xảy ra khi chạy?"
+    lua_chon:
+      - "Báo lỗi ngay khi nạp mô hình"
+      - "Thường không có lỗi nào cả: shape khớp, mô hình chạy, và trả về một chuỗi vô nghĩa"
+      - "transformers tự động sửa lại cho khớp"
+      - "Kết quả chỉ kém đi một chút"
+    dap_an: 1
+    giai_thich: "Mỗi mô hình có bảng ánh xạ chữ ↔ số riêng, xây trong lúc huấn luyện. Ghép lệch thì mô hình vẫn nhận đúng kiểu dữ liệu và đúng dải chỉ số, chỉ là các con số trỏ tới từ khác — nên nó chạy và cho ra chữ, chỉ là chữ vô nghĩa. Đây là kiểu lỗi tệ nhất: sai lặng lẽ. Cách phòng: đặt tên vào MỘT biến rồi dùng biến đó cho cả hai lệnh `from_pretrained`."
+
+  - id: q6
+    loai: mot
+    do_kho: 3
+    de: "Lần chạy đầu tiên sau khi nạp mô hình, bạn gặp `IndexError: index out of range in self`. Nên nghi ngờ điều gì trước?"
+    lua_chon:
+      - "Dữ liệu có giá trị âm"
+      - "Tokenizer không khớp mô hình: nó sinh ra id vượt quá kích thước bảng embedding"
+      - "Thiếu bộ nhớ GPU"
+      - "Learning rate quá lớn"
+    dap_an: 1
+    giai_thich: "Bảng embedding có đúng `vocab_size` hàng. Một tokenizer khác sinh id lớn hơn số hàng đó thì việc tra bảng vượt biên và báo IndexError ngay ở lần chạy đầu — trước cả khi có bước cập nhật nào, nên learning rate không liên quan. Kiểm nhanh: so `len(tok)` với `model.config.vocab_size`."
+
+  - id: q7
+    loai: nhieu
+    do_kho: 2
+    de: "Khi mã hoá một batch câu dài ngắn khác nhau rồi đưa vào mô hình, những điều nào là đúng? (chọn tất cả ý đúng)"
+    lua_chon:
+      - "`padding=True` để mọi câu về cùng độ dài, xếp được vào một tensor chữ nhật"
+      - "`attention_mask` đánh dấu đâu là token thật, đâu là chỗ đệm"
+      - "Phải truyền cả `attention_mask` cho mô hình, không chỉ `input_ids`"
+      - "`skip_special_tokens=True` khi giải mã để bỏ các token kỹ thuật khỏi chuỗi trả về"
+      - "Chỗ đệm không ảnh hưởng gì tới kết quả nên có thể bỏ qua `attention_mask`"
+    dap_an: [0, 1, 2, 3]
+    giai_thich: "Bốn ý đầu đúng. Ý cuối sai và sai lặng lẽ: thiếu mask thì cơ chế chú ý tính cả các vị trí đệm như token thật, kết quả tệ dần theo mức chênh lệch độ dài trong batch — mà không có lỗi nào được báo. Mẹo an toàn: truyền `**inputs` để không bao giờ quên."
+
+  - id: q8
+    loai: mot
+    do_kho: 2
+    de: "`from_pretrained(\"gpt2\")` tải file về đâu theo mặc định?"
+    lua_chon:
+      - "Thư mục dự án hiện tại"
+      - "Cache dùng chung ở `~/.cache/huggingface/hub`, trong thư mục tên `models--gpt2`"
+      - "Bộ nhớ RAM, không ghi ra đĩa"
+      - "Thư mục cài đặt của thư viện transformers"
+    dap_an: 1
+    giai_thich: "Cache dùng chung cho mọi dự án trên máy, nên xoá thư mục dự án không giải phóng byte nào. Tên thư mục thay `/` bằng `--` và có tiền tố loại repo ở số nhiều: `models--Helsinki-NLP--opus-mt-vi-en`, `datasets--glue`. Đổi chỗ bằng `HF_HOME` hoặc `HF_HUB_CACHE`, dọn bằng `hf cache ls` rồi `hf cache rm`."
+
+  - id: q9
+    loai: mot
+    do_kho: 3
+    de: "Notebook của bạn sẽ chạy trong môi trường KHÔNG có mạng. Chuẩn bị đúng là gì?"
+    lua_chon:
+      - "Gọi `from_pretrained` sớm hơn trong notebook"
+      - "`snapshot_download(\"<tên>\")` trong một lần chạy CÓ mạng, rồi nạp từ đường dẫn đó với `local_files_only=True`"
+      - "Bọc lệnh tải trong `try/except`"
+      - "Giảm kích thước mô hình"
+    dap_an: 1
+    giai_thich: "`snapshot_download` kéo cả repo về đĩa và trả về đường dẫn snapshot. Lần chạy không mạng nạp thẳng từ đường dẫn đó, hoặc đặt `HF_HUB_OFFLINE=1` cho mọi lệnh gọi. Đặt biến này ngay lúc soạn bài là mẹo tốt: lỗi lộ ra khi bạn còn sửa được, thay vì lúc nộp bài."
+
+  - id: q10
+    loai: mot
+    do_kho: 2
+    de: "Bạn nạp `AutoModel.from_pretrained(...)` cho một việc phân loại và thấy cảnh báo rằng một số trọng số được khởi tạo mới. Điều đó nghĩa là gì?"
+    lua_chon:
+      - "Cảnh báo vô hại, cứ chạy tiếp"
+      - "Phần đầu ra của mô hình đang là số ngẫu nhiên chưa qua huấn luyện — cần lớp `AutoModelForSequenceClassification` và/hoặc phải fine-tune"
+      - "File trọng số bị hỏng"
+      - "Phiên bản transformers quá cũ"
+    dap_an: 1
+    giai_thich: "`AutoModel` chỉ nạp thân mô hình, không có đầu ra tác vụ. Lớp `AutoModelFor...` thêm một đầu ra; nếu repo không chứa trọng số cho đầu ra đó thì nó được khởi tạo ngẫu nhiên, và dự đoán sẽ như tung đồng xu. Cảnh báo này là thông tin thật, không phải nhiễu — đọc nó."
+
+  - id: q11
+    loai: nhieu
+    do_kho: 2
+    de: "Trước khi tin một bộ dữ liệu tải từ Hub, những việc nào nên làm? (chọn tất cả ý đúng)"
+    lua_chon:
+      - "In vài mẫu ra đọc bằng mắt"
+      - "Xem kích thước từng split và kiểm tra train có trùng với test không"
+      - "Đọc license của dataset, vốn độc lập với license của mô hình"
+      - "Xem nhanh bằng `split=\"train[:1%]\"` hoặc `streaming=True` thay vì tải hết"
+      - "Chỉ cần nhìn số lượt tải: cao là dùng được"
+    dap_an: [0, 1, 2, 3]
+    giai_thich: "Bốn ý đầu đều rẻ và đều bắt được lỗi thật: rác trong dữ liệu, rò rỉ giữa train và test, ràng buộc pháp lý, và lãng phí băng thông. Ý cuối sai vì cùng lý do như với mô hình: lượt tải đo mức phổ biến, không đo mức phù hợp với việc của bạn."
+
+  - id: q12
+    loai: mot
+    do_kho: 3
+    de: "Hai lần chạy cùng một notebook cách nhau ba tuần cho kết quả khác nhau, dù code không đổi. Cách phòng ngừa đúng cho lần sau là gì?"
+    lua_chon:
+      - "Đặt seed ngẫu nhiên là đủ"
+      - "Ghim `revision=\"<commit hash>\"` khi gọi `from_pretrained`, vì chủ repo có thể đã đẩy bản cập nhật"
+      - "Xoá cache trước mỗi lần chạy"
+      - "Dùng mô hình nhỏ hơn cho ổn định"
+    dap_an: 1
+    giai_thich: "Mỗi repo trên Hub là repo Git, và `main` là một nhánh chuyển động: chủ repo đẩy trọng số mới thì lần tải sau lấy bản mới. Seed không cứu được chuyện đó vì thứ đã đổi là trọng số. Ghim commit hash là cách duy nhất khoá đúng phiên bản đã dùng — và xoá cache thì còn làm tình hình tệ hơn, vì nó buộc tải lại bản mới nhất."

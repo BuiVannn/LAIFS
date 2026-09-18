@@ -4,7 +4,8 @@ ten_en: "Train / Validation / Test Splits, Cross-Validation and Data Leakage"
 tang: 2
 thu_tu: 9
 tien_quyet: ["ml-la-gi"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Cách tách dữ liệu thành ba phần có vai trò khác nhau: tập train để chỉnh tham số, tập validation
   để chọn giữa các phương án (siêu tham số, kiến trúc, điểm dừng), tập test chỉ mở đúng một lần ở
@@ -197,14 +198,40 @@ Ba dòng `assert` và một phép so tập hợp. Đó là toàn bộ chi phí �
 
 Dữ liệu thật đầy bản sao: cùng một bản ghi xuất ra hai lần, cùng một bài viết đăng lại, cùng một ảnh lưu hai độ phân giải. Chia ngẫu nhiên tách bản sao sang hai bên và mô hình chỉ cần nhớ.
 
-Đo thử: lấy 200 mẫu, nhân đôi 60 mẫu trong số đó thành 260 dòng, rồi chạy 1-NN (mô hình học thuộc lòng thuần tuý), chia 70/30 ngẫu nhiên, trung bình 20 lần chia:
+Đo thử trên dữ liệu tự sinh: 200 mẫu, 8 đặc trưng Gauss, hai lớp chồng lấn nhau (tâm cách nhau 0.25 mỗi chiều). Nhân đôi 60 mẫu trong số đó thành 260 dòng, rồi chạy 1-NN (mô hình học thuộc lòng thuần tuý), chia 70/30 ngẫu nhiên, lấy trung bình 20 lần chia:
+
+```python
+import numpy as np
+
+def nn1(X_tr, y_tr, X_te):                    # 1-NN: mô hình học thuộc lòng thuần tuý
+    D = ((X_te[:, None, :] - X_tr[None, :, :]) ** 2).sum(-1)
+    return y_tr[D.argmin(1)]
+
+def chay(X, y, seed):                         # chia 70/30 rồi đo accuracy trên test
+    p = np.random.default_rng(seed).permutation(len(y))
+    k = int(len(y) * 0.7)
+    tr, te = p[:k], p[k:]
+    return (nn1(X[tr], y[tr], X[te]) == y[te]).mean()
+
+trung, sach = [], []
+for s in range(20):
+    r = np.random.default_rng(s)
+    y = r.integers(0, 2, 200)
+    X = r.normal(size=(200, 8)) + (y[:, None] * 2 - 1) * 0.25   # hai lớp chồng lấn
+    i = r.choice(200, 60, replace=False)                        # 60 dòng bị nhân đôi
+    trung.append(chay(np.vstack([X, X[i]]), np.concatenate([y, y[i]]), 1000 + s))
+    sach.append(chay(X, y, 1000 + s))
+
+print(f"có 60 mẫu trùng: {np.mean(trung):.3f}")   # 0.756
+print(f"đã khử trùng   : {np.mean(sach):.3f}")    # 0.641
+```
 
 | Dữ liệu | Độ chính xác trên test |
 |---|---|
-| Có 60 mẫu trùng | **0.779** |
-| Đã khử trùng | **0.650** |
+| Có 60 mẫu trùng | **0.756** |
+| Đã khử trùng | **0.641** |
 
-Chỉ riêng 23% dòng trùng đã thổi kết quả lên 13 điểm phần trăm.
+Chỉ riêng 23% dòng trùng (60/260) đã thổi kết quả lên gần 12 điểm phần trăm — mà dữ liệu thì không hề tốt lên chút nào.
 
 *Triệu chứng:* kết quả tốt bất thường với một mô hình đơn giản; khử trùng lặp xong thì điểm tụt mạnh. *Cách kiểm:* băm từng dòng (hoặc từng câu, từng ảnh) và đếm; với văn bản thì so gần đúng bằng MinHash hoặc n-gram chồng lấp.
 

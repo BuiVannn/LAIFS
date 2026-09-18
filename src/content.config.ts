@@ -9,7 +9,7 @@ const khaiNiem = defineCollection({
   schema: z.object({
     ten_vi: z.string(),
     ten_en: z.string(),
-    tang: z.number().int().min(1).max(6),
+    tang: z.number().int().min(0).max(6),
     thu_tu: z.number().int(),
     tien_quyet: z.array(z.string()).default([]),
     trang_thai: trangThai,

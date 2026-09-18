@@ -2,7 +2,8 @@
 tieu_de: Sinh nhãn từ chính dữ liệu (tự giám sát)
 khai_niem: ml-la-gi
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Học tự giám sát biến một câu không nhãn thành nhiều mẫu huấn luyện có nhãn. Bài này cài đúng hai cách sinh nhãn mà LLM dùng.

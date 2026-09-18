@@ -1,0 +1,143 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: "Bạn xoá một ô đã chạy, trong đó có dòng `nguong = 0.7`. Ngay sau khi xoá, biến `nguong` còn trong bộ nhớ Python không?"
+    lua_chon:
+      - "Không, xoá ô là xoá luôn mọi thứ nó tạo ra"
+      - "Còn: kernel giữ biến cho tới khi restart, nó không hề biết ô đã bị xoá khỏi màn hình"
+      - "Còn nhưng chỉ tới khi bạn chạy ô kế tiếp"
+      - "Tuỳ, Colab thì mất còn Kaggle thì còn"
+    dap_an: 1
+    giai_thich: "Kernel là một tiến trình Python riêng, giữ một không gian biến duy nhất. Giao diện notebook chỉ là cái bảng để gửi code sang; xoá một ô trên bảng không gửi lệnh nào sang kernel cả. Đây chính là cơ chế sinh ra 'biến còn sót': notebook chạy đúng với bạn và chết với người khác."
+
+  - id: q2
+    loai: mot
+    do_kho: 2
+    de: "Notebook của bạn chạy trót lọt, nhưng người khác mở ra thì gặp NameError. Cách kiểm tra rẻ nhất và chắc chắn nhất trên chính máy bạn là gì?"
+    lua_chon:
+      - "Chạy lại ô bị lỗi vài lần"
+      - "Bấm Run all"
+      - "Bấm Restart and run all — phải có Restart, vì Run all không xoá bộ nhớ cũ"
+      - "Đổi sang trình duyệt khác"
+    dap_an: 2
+    giai_thich: "Run all chạy lại các ô nhưng giữ nguyên bộ nhớ hiện có, nên mọi biến còn sót vẫn ở đó và notebook vẫn 'chạy được'. Chỉ Restart mới dựng kernel mới với bộ nhớ trắng, đúng cảnh người khác gặp. Đây là thước đo duy nhất cho một notebook tái lập được."
+
+  - id: q3
+    loai: mot
+    do_kho: 2
+    de: "Cột số bên trái các ô của bạn, đọc từ trên xuống, là: [5], [12], [3], [9]. Điều này nói lên gì?"
+    lua_chon:
+      - "Notebook có 12 ô"
+      - "Các ô này chưa bao giờ chạy theo thứ tự từ trên xuống — thứ tự thật là ô thứ ba, rồi ô đầu, rồi ô cuối, rồi ô thứ hai"
+      - "Có 4 ô bị lỗi"
+      - "Các số đó là thời gian chạy tính bằng giây"
+    dap_an: 1
+    giai_thich: "Con số trong ngoặc vuông là số thứ tự thật của lần gửi code sang kernel. Dãy không tăng đều nghĩa là bạn đã bấm lung tung. Trạng thái hiện tại của bộ nhớ được xây theo thứ tự 3 → 5 → 9 → 12, không theo thứ tự trên màn hình — và không ai đọc file có thể đoán ra điều đó."
+
+  - id: q4
+    loai: mot
+    do_kho: 2
+    de: "Bạn bật GPU trên Colab và code vẫn chạy, nhưng mỗi epoch lâu y như lúc chưa bật. Việc đầu tiên nên làm là gì?"
+    lua_chon:
+      - "Đổi sang Kaggle"
+      - "In `torch.cuda.is_available()` và kiểm mô hình lẫn dữ liệu đã `.to(device)` chưa"
+      - "Tăng batch size"
+      - "Cài lại PyTorch"
+    dap_an: 1
+    giai_thich: "PyTorch không tự chuyển mô hình lên GPU. Thiếu `.to(device)` thì mọi thứ chạy trên CPU, và không có cảnh báo nào cả — chỉ chậm. Trường hợp còn lại là đổi runtime nhưng chưa được cấp GPU, `is_available()` sẽ trả về False. Một dòng print trả lời cả hai khả năng."
+
+  - id: q5
+    loai: so
+    do_kho: 2
+    de: "Một epoch mất 25 phút, phiên tối đa 720 phút (12 giờ). Chạy trọn vẹn được nhiều nhất bao nhiêu epoch trong MỘT phiên?"
+    dap_an: 28
+    sai_so: 0.5
+    giai_thich: "720 // 25 = 28 (dư 20 phút). Phải chia lấy phần nguyên: epoch thứ 29 bắt đầu ở phút 700 và không kịp xong trước khi phiên bị thu hồi, nên nó không được tính. Đây là phép tính phải làm TRƯỚC khi bấm chạy: 30 epoch không vừa một phiên, nên bắt buộc phải có checkpoint."
+
+  - id: q6
+    loai: mot
+    do_kho: 2
+    de: "Trên Colab, bạn ghi kết quả huấn luyện vào `/content/ket_qua.csv` rồi đóng máy tính đi ngủ. Hôm sau quay lại, file đó ở đâu?"
+    lua_chon:
+      - "Trong Google Drive, mục Colab Notebooks"
+      - "Không còn nữa: `/content` là đĩa của máy ảo, máy ảo bị thu hồi thì mất sạch"
+      - "Trong thư mục Downloads của máy bạn"
+      - "Vẫn còn trên máy ảo, chỉ cần kết nối lại"
+    dap_an: 1
+    giai_thich: "`/content` là đĩa tạm của máy ảo, không phải Drive. Muốn giữ thì phải mount Drive và ghi vào `/content/drive/MyDrive/...`, hoặc `files.download()` về máy, hoặc đẩy lên nơi khác. Trên Kaggle thì `/kaggle/working` được giữ lại theo phiên bản notebook, đây là một khác biệt thật giữa hai dịch vụ."
+
+  - id: q7
+    loai: nhieu
+    do_kho: 2
+    de: "Những cách nào thật sự giữ được kết quả sau khi phiên Colab kết thúc? (chọn tất cả ý đúng)"
+    lua_chon:
+      - "Ghi vào `/content/drive/MyDrive/...` sau khi đã `drive.mount`"
+      - "`files.download(\"/content/ket_qua.csv\")` để tải về máy"
+      - "Đẩy file lên một kho bên ngoài (GitHub, Hugging Face Hub, Drive qua API)"
+      - "Ghi vào `/content/ket_qua.csv` rồi để nguyên đó"
+      - "Để notebook mở tab, không đụng vào"
+    dap_an: [0, 1, 2]
+    giai_thich: "Ba cách đầu đều đưa dữ liệu RA KHỎI máy ảo, nên đều sống sót. Hai ý cuối thì không: `/content` mất cùng máy ảo, và việc mở tab không ngăn Colab thu hồi máy — FAQ nói rõ máy ảo bị xoá khi để yên và có tuổi thọ tối đa."
+
+  - id: q8
+    loai: mot
+    do_kho: 3
+    de: "Bạn nạp lại checkpoint để học tiếp, chỉ nạp `model.load_state_dict(...)`. Epoch đầu tiên sau khi khôi phục, loss nhảy vọt lên rồi mới giảm lại. Nguyên nhân có khả năng nhất?"
+    lua_chon:
+      - "Checkpoint bị hỏng file"
+      - "Bạn quên nạp `optimizer.state_dict()`, nên trạng thái động lượng của Adam bị mất và các bước đầu đi sai hướng"
+      - "GPU lần này khác loại"
+      - "Learning rate tự động tăng khi nạp lại"
+    dap_an: 1
+    giai_thich: "Adam (và mọi optimizer có động lượng) giữ trung bình động của gradient bậc một và bậc hai. Khởi tạo lại từ không thì vài bước đầu có độ lớn sai hẳn, làm loss vọt lên. Vì vậy checkpoint đúng nghĩa phải chứa cả `model.state_dict()` lẫn `optimizer.state_dict()`, cộng số epoch để biết học tiếp từ đâu."
+
+  - id: q9
+    loai: mot
+    do_kho: 3
+    de: "Notebook Kaggle của bạn dùng `from_pretrained(\"<tên mô hình>\")` và chạy tốt lúc soạn. Khi nộp vào một cuộc thi tắt internet, nó hỏng. Cách sửa đúng là gì?"
+    lua_chon:
+      - "Thử nộp lại vài lần cho tới khi mạng ổn định"
+      - "Tải mô hình về trong một notebook CÓ mạng, lưu thành Kaggle Dataset, gắn dataset đó vào notebook nộp bài rồi trỏ đường dẫn cục bộ"
+      - "Đổi sang mô hình nhỏ hơn"
+      - "Thêm `try/except` quanh lệnh tải"
+    dap_an: 1
+    giai_thich: "Tắt mạng là quy định của cuộc thi để đảm bảo công bằng và tái lập, không phải sự cố. Mọi thứ cần dùng — trọng số mô hình, gói pip chưa có sẵn — phải được đóng gói thành dataset và gắn từ trước. `try/except` chỉ giấu lỗi đi chứ không làm mô hình xuất hiện."
+
+  - id: q10
+    loai: mot
+    do_kho: 2
+    de: "Trong một ô notebook, `!cd /content/du-lieu` rồi ô sau đọc file bằng đường dẫn tương đối `\"anh.png\"`. Chuyện gì xảy ra?"
+    lua_chon:
+      - "Đọc được, vì đã chuyển vào thư mục đó"
+      - "Không đọc được: `!cd` chạy trong một shell con rồi thoát, thư mục làm việc của kernel không đổi — phải dùng `%cd`"
+      - "Báo lỗi cú pháp ngay ở dòng `!cd`"
+      - "Đọc được nhưng chậm hơn"
+    dap_an: 1
+    giai_thich: "Dấu `!` khởi động một shell mới cho đúng lệnh đó; shell đổi thư mục của chính nó rồi chết, kernel Python không biết gì. Magic `%cd` thì gọi thẳng `os.chdir` trong kernel nên có hiệu lực. Cách an toàn nhất vẫn là dùng đường dẫn tuyệt đối."
+
+  - id: q11
+    loai: mot
+    do_kho: 2
+    de: "Bạn lỡ dán API token vào một ô code, chạy nó, rồi xoá ô đi và lưu notebook. Việc cần làm là gì?"
+    lua_chon:
+      - "Không cần làm gì, đã xoá ô rồi"
+      - "Thu hồi (revoke) token đó ngay trên trang dịch vụ và tạo token mới"
+      - "Đổi tên notebook"
+      - "Đặt notebook ở chế độ riêng tư"
+    dap_an: 1
+    giai_thich: "Notebook được lưu kèm cả code lẫn output, và có lịch sử phiên bản. Xoá ô không xoá các bản lưu trước, không xoá bản người khác đã fork, không xoá các bản sao đã phát tán. Cách duy nhất thật sự vô hiệu hoá token là thu hồi nó. Lần sau dùng Secrets: `userdata.get` trên Colab, `UserSecretsClient` trên Kaggle."
+
+  - id: q12
+    loai: nhieu
+    do_kho: 3
+    de: "Những việc nào thật sự tiết kiệm quỹ giờ GPU? (chọn tất cả ý đúng)"
+    lua_chon:
+      - "Gỡ lỗi vòng lặp huấn luyện trên CPU với 32 mẫu trước khi bật GPU"
+      - "Ngắt runtime khi ngừng làm việc thay vì để phiên mở"
+      - "Ghi nhật ký cấu hình và kết quả mỗi thí nghiệm ra Drive"
+      - "Chạy thử một batch và kiểm shape trước khi chạy cả epoch"
+      - "Bật GPU ngay từ đầu để mọi bước, kể cả tiền xử lý văn bản, đều nhanh hơn"
+    dap_an: [0, 1, 2, 3]
+    giai_thich: "Bốn ý đầu đều cắt giờ GPU tiêu vào việc vô ích — mà phần lớn quota bị đốt đúng vào việc sửa lỗi shape và chạy lại thí nghiệm đã chạy. Ý cuối sai: tiền xử lý văn bản là công việc của CPU, bật GPU cho nó chỉ làm đồng hồ quota chạy mà không nhanh hơn chút nào."

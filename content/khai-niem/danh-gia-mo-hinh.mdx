@@ -4,7 +4,8 @@ ten_en: "Model Evaluation: Accuracy, Precision, Recall, F1, ROC-AUC and PR-AUC"
 tang: 2
 thu_tu: 20
 tien_quyet: ["train-val-test"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Bộ thước đo cho bài toán phân loại, dựng trên ma trận nhầm lẫn — bảng đếm bốn loại kết quả
   TP/FP/FN/TN. Accuracy là tỉ lệ đoán đúng nói chung; precision hỏi "trong những cái bị báo dương,
@@ -279,7 +280,7 @@ Hàm `do` trả `None` khi precision không có mẫu số. Đó là 6 ký tự 
     de: "Vẫn 10 thư ở bảng trên (4 rác / 6 thường), nhưng ngưỡng hạ xuống t = 0.45. So với t = 0.70 (P = 0.75, R = 0.75), hai con số sẽ thế nào?",
     lua_chon: ["Cả hai cùng tăng", "Recall tăng, precision giảm", "Recall giảm, precision tăng"],
     dap_an: 1,
-    giai_thich: "Tại t = 0.45: TP = 3, FP = 3 → precision 0.5000, recall vẫn 0.7500. Hạ ngưỡng chỉ làm tập bị gắn cờ nở ra, nên recall không bao giờ giảm — nhưng ba thư thêm vào đều là thư thường nên precision tụt."
+    giai_thich: "Tại t = 0.45: TP = 3, FP = 3 → precision 0.5000, recall vẫn 0.7500. Hạ ngưỡng chỉ làm tập bị gắn cờ nở ra, nên recall không bao giờ giảm — nhưng hai thư mới bị gắn cờ (0.60 và 0.50) đều là thư thường nên precision tụt từ 0.75 xuống 0.50."
   }}
 />
 
@@ -328,7 +329,7 @@ AUC $= 0.5$ là xếp hạng ngẫu nhiên, $1.0$ là xếp hạng hoàn hảo. 
 
 ### Khi lệch lớp, hai con số nói hai chuyện khác nhau
 
-Đây là chỗ quan trọng nhất của cả phần này. Lấy bộ dữ liệu 1010 giao dịch ở đầu bài (10 gian lận, 1000 bình thường) và một mô hình xếp được **cả 10 vụ gian lận vào top 100 điểm cao nhất**:
+Đây là chỗ quan trọng nhất của cả phần này. Lấy bộ dữ liệu 1010 giao dịch ở đầu bài (10 gian lận, 1000 bình thường) và một mô hình xếp được **cả 10 vụ gian lận vào top 100 điểm cao nhất** — cụ thể là ở các hạng 10, 20, …, 100 (rải đều, cứ 9 giao dịch thường thì tới một vụ gian lận):
 
 | Thước đo | Giá trị |
 |---|---|
@@ -337,6 +338,14 @@ AUC $= 0.5$ là xếp hạng ngẫu nhiên, $1.0$ là xếp hạng hoàn hảo. 
 | **PR-AUC** | **0.1000** |
 | Precision tại ngưỡng bắt hết 10 vụ | 10/100 = 0.10 |
 | Recall tại ngưỡng đó | 1.00 |
+
+Hai con số đó tính tay được. Vụ gian lận thứ $i$ nằm ở hạng $10i$, nên trên nó có $10i - i = 9i$ giao dịch thường, tức nó thắng $1000 - 9i$ mẫu âm:
+
+$$
+\text{ROC-AUC} = \frac{1}{10 \times 1000}\sum_{i=1}^{10}\big(1000 - 9i\big) = \frac{10000 - 495}{10000} = 0.9505
+$$
+
+Còn precision tại đúng vụ thứ $i$ là $i / 10i = 0.1$, và mỗi vụ đẩy recall thêm $1/10$, nên trung bình precision (average precision, chính là PR-AUC) bằng $10 \times 0.1 \times \frac{1}{10} = 0.1000$.
 
 ROC-AUC 0.95 nghe như một mô hình xuất sắc. PR-AUC 0.10 nói sự thật: **để bắt hết 10 vụ, phòng rủi ro phải xem xét 100 giao dịch, trong đó 90 là báo động giả.**
 

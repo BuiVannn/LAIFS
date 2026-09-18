@@ -2,7 +2,8 @@
 tieu_de: Lasso (L1) và đếm hệ số bằng 0
 khai_niem: regularization
 do_kho: 3
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Phần phạt L1 có trị tuyệt đối nên không có đạo hàm tại 0, không thể chạy gradient descent thẳng. Cách chuẩn là **ISTA** (proximal gradient): mỗi vòng đi một bước gradient cho phần MSE, rồi *kéo về 0* bằng phép **ngưỡng mềm** (soft threshold).

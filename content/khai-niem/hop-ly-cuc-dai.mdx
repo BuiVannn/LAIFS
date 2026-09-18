@@ -4,7 +4,8 @@ ten_en: Maximum Likelihood Estimation
 tang: 2
 thu_tu: 24
 tien_quyet: ["xac-suat-co-ban", "ham-mat-mat"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Nguyên lý chọn tham số: trong mọi bộ tham số có thể, chọn bộ làm cho dữ liệu đã quan sát trở nên
   khả dĩ nhất. Viết thành công thức là cực đại hoá hàm hợp lý, và trong thực hành là cực tiểu hoá
@@ -139,7 +140,7 @@ $$
 
 Tổng quát: $\hat{p} = k/n$, đúng tỉ lệ mẫu. Đây là lần đầu bạn thấy MLE cho ra một công thức mà trực giác đã đoán trước — nhưng giờ nó có lý do.
 
-Để ý thêm: cột $L(p)$ toàn số cỡ $10^{-3}$ với chỉ 10 lần tung. Với 1000 lần thì tích nằm ở cỡ $10^{-300}$, tức là sát ngưỡng tràn số dưới. Cột $\ell(p)$ thì luôn là những số đọc được. Đó là lý do thực dụng để không bao giờ động vào $L$ trực tiếp.
+Để ý thêm: cột $L(p)$ toàn số cỡ $10^{-3}$ với chỉ 10 lần tung. Giữ nguyên tỉ lệ 7:3 mà tung 1000 lần thì ngay tại đỉnh $L(0.7)$ cũng chỉ còn cỡ $10^{-265}$, còn $L(0.5) \approx 10^{-301}$ — sát ngưỡng tràn số dưới của `float64` (khoảng $10^{-308}$). Cột $\ell(p)$ thì luôn là những số đọc được. Đó là lý do thực dụng để không bao giờ động vào $L$ trực tiếp.
 
 <CauHoi cau="hop-ly-cuc-dai/q3" />
 
@@ -274,7 +275,7 @@ $$
 = \arg\min_w \; \Big[\text{NLL}(w) + \frac{1}{2\tau^2}\lVert w \rVert^2\Big]
 $$
 
-Số hạng thứ hai chính là **weight decay** / L2 regularization. Đổi tiên nghiệm sang Laplace thì ra L1. Nói cách khác, regularization không phải mẹo kỹ thuật ghép thêm vào — nó là một phát biểu xác suất về tham số.
+Số hạng thứ hai chính là **weight decay** / L2 regularization. (Ở đẳng thức này NLL là **tổng** chưa chia $n$; nếu dùng bản trung bình như công thức đóng khung ở trên thì hệ số phạt thành $\frac{1}{2n\tau^2}$. Trong code cả cụm hằng số đó được gộp vào một siêu tham số $\lambda$, nên thực tế bạn chỉ chỉnh $\lambda$.) Đổi tiên nghiệm sang Laplace thì ra L1. Nói cách khác, regularization không phải mẹo kỹ thuật ghép thêm vào — nó là một phát biểu xác suất về tham số.
 
 **Khi nào MLE hỏng.**
 

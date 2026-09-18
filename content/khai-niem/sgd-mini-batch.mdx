@@ -4,7 +4,8 @@ ten_en: "Stochastic & Mini-batch Gradient Descent"
 tang: 2
 thu_tu: 14
 tien_quyet: ["gradient-descent"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Biến thể của gradient descent trong đó mỗi bước cập nhật chỉ dùng gradient tính trên một
   nhóm nhỏ mẫu lấy ngẫu nhiên (mini-batch) thay vì toàn bộ tập huấn luyện. Gradient thu được
@@ -24,7 +25,7 @@ y_chinh:
   - "Mini-batch lấy B mẫu ngẫu nhiên; gradient thu được không thiên lệch (kỳ vọng đúng bằng gradient thật), độ lệch chuẩn giảm theo 1/√B"
   - "Epoch = một lượt hết dữ liệu = ⌈N/B⌉ iteration (bước cập nhật)"
   - "Nhiễu của mini-batch giúp thoát điểm yên ngựa và cao nguyên phẳng, nơi full-batch bị kẹt vì gradient ≈ 0"
-  - "Batch size cân bằng ba sức ép: nhiễu (nhỏ thì nhiễu lớn), tốc độ mỗi bước (lớn thì tận dụng GPU tốt), bộ nhớ (activation tỉ lệ thuận với B)"
+  - "Batch size cân bằng bốn sức ép: nhiễu (nhỏ thì nhiễu lớn), tốc độ mỗi bước (lớn thì tận dụng GPU tốt), bộ nhớ (activation tỉ lệ thuận với B), và số bước cập nhật mỗi epoch (⌈N/B⌉, nhỏ thì nhiều bước hơn)"
   - "Tăng batch size thì thường phải tăng learning rate theo: quy tắc tuyến tính η ∝ B (kèm warmup) hoặc η ∝ √B"
 tai_lieu:
   - url: https://www.youtube.com/watch?v=4qJaSmvhxi8
@@ -240,7 +241,7 @@ Mini-batch thì khác: tại điểm yên ngựa, $\nabla L = 0$ nhưng $\nabla 
 
 **Cực tiểu phẳng.** Nhiễu cũng khiến SGD khó "đậu" trong các khe hẹp và sâu, mà hay dừng ở vùng đáy rộng, phẳng. Các vùng phẳng thường tổng quát hoá tốt hơn trên dữ liệu mới: lệch $w$ đi một chút thì loss cũng không tăng mấy.
 
-## Chọn batch size: ba sức ép kéo ngược nhau
+## Chọn batch size: bốn sức ép kéo ngược nhau
 
 | Sức ép | Muốn $B$ nhỏ | Muốn $B$ lớn |
 |---|---|---|
@@ -249,7 +250,7 @@ Mini-batch thì khác: tại điểm yên ngựa, $\nabla L = 0$ nhưng $\nabla 
 | **Bộ nhớ** | Activation phải lưu cho backprop tỉ lệ thuận với $B$; batch lớn là nguyên nhân số 1 của lỗi hết VRAM | |
 | **Số bước/epoch** | $\lceil N/B \rceil$ bước: batch nhỏ cho nhiều lần cập nhật hơn trên cùng lượng dữ liệu | |
 
-Kết quả của ba sức ép này: điểm ngọt thường nằm trong khoảng **32 đến 512**, và trên phần cứng hiện đại hay chọn luỹ thừa của 2. Quy trình thực dụng: **lấy batch lớn nhất mà bộ nhớ chịu được, rồi chỉnh learning rate theo.**
+Kết quả của bốn sức ép này: điểm ngọt thường nằm trong khoảng **32 đến 512**, và trên phần cứng hiện đại hay chọn luỹ thừa của 2. Quy trình thực dụng: **lấy batch lớn nhất mà bộ nhớ chịu được, rồi chỉnh learning rate theo.**
 
 ## Batch size và learning rate đi cùng nhau
 

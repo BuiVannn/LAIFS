@@ -55,7 +55,7 @@ public/runner.py   →   chay(code, tests)
 
 Thêm hai loại vào thư viện: `bai-viet` (blog, tutorial) và `khoa-hoc` (khoá học).
 
-**Nguồn tiếng Anh dự kiến** (mỗi nguồn phải kiểm link sống và ghi rõ license trước khi đưa vào): Distill.pub · Lil'Log của Lilian Weng · Jay Alammar · blog Sebastian Raschka · Chris Olah · Hugging Face Course và blog · PyTorch Tutorials · NumPy/Matplotlib docs · Kaggle Learn · fast.ai · blog Karpathy · d2l.ai · Papers with Code.
+**Nguồn tiếng Anh dự kiến** (mỗi nguồn phải kiểm link sống và ghi rõ license trước khi đưa vào): Distill.pub · Lil'Log của Lilian Weng · Jay Alammar · blog Sebastian Raschka · Chris Olah · Hugging Face Course và blog · PyTorch Tutorials · NumPy/Matplotlib docs · Kaggle Learn · fast.ai · blog Karpathy · d2l.ai · Hugging Face Papers (thay Papers with Code — trang này đã đóng, chuyển hướng sang huggingface.co/papers, kiểm 2026-09-18).
 
 **Nguồn tiếng Việt**: AI VIET NAM · Machine Learning cơ bản (Vũ Hữu Tiệp) · d2l-vi · các blog kỹ thuật Việt (chọn lọc, kiểm chất lượng từng bài, không lấy bừa).
 
@@ -86,9 +86,11 @@ Thêm 4 khái niệm mà danh sách 15 ban đầu còn thiếu: `ky-vong-phuong-
 
 **Kết quả đợt 3.1:** 20 bài (mỗi bài dài gấp 2–4 lần bài mẫu cũ, có mục "Tra nhanh"), 240 câu trắc nghiệm, 32 bài code, 10 viz mới. Lộ trình đánh số lại còn 46 khái niệm, 43 bài đã có nội dung.
 
-### 3.2 Nhánh mới: Công cụ cho người mới (4 bài)
+### 3.2 Nhánh mới: Công cụ cho người mới ✅ xong 2026-09-18 (4 bài)
 
 `moi-truong-python` (pip, venv, vì sao code chạy máy này không chạy máy kia) · `colab-kaggle` (GPU miễn phí, giới hạn, lưu file, dataset) · `huggingface-hub` (model, dataset, pipeline, tokenizer, tải về đúng cách) · `doc-loi-python` (đọc traceback, lỗi shape, lỗi kiểu dữ liệu)
+
+**Kết quả:** 4 bài ở **tầng 0 "Công cụ & môi trường"** (mới, `thu_tu` âm vì không bài nào phụ thuộc chúng), 48 câu trắc nghiệm, 8 bài tập chạy được trong Pyodide (không cần mạng, không cần torch). Cả 4 bài còn `nhap`, chờ vòng rà soát.
 
 ### 3.3 Nhánh mới: NumPy & Matplotlib (5 bài)
 
@@ -175,3 +177,16 @@ Mỗi đợt vẫn theo quy trình cũ: agent soạn → tự kiểm chứng m�
 - **Tự dừng sau 10 giây** khi code chạy quá lâu, kèm gợi ý về vòng lặp vô hạn; sau đó vẫn chạy lại được.
 - `npm run dot-bien`: tự động cài 13 lỗi kinh điển vào từng `solution.py` và báo lỗi nào test không bắt được. Có cơ chế khai báo bỏ qua cho đột biến tương đương về toán (`# dot-bien-bo-qua: … — lý do`).
 - Nhờ script này đã bịt 2 lỗ hổng thật: test ổn định số của softmax trong `chu-y-dot-product` và `attention-co-mask` quá dễ, trừ min hay cộng max đều lọt.
+
+## 9. Khảo sát hướng nghiên cứu (2026-09-18)
+
+Hai tài liệu mới, **chỉ là khảo sát — chưa sinh bài học nào**:
+
+- `research/05-huong-nghien-cuu.md` — bức tranh dịch máy 2023–2026, 8 hướng đang mở (mỗi hướng kèm một câu hỏi nghiên cứu chạy được trên Colab), tài nguyên tiếng Việt có thật, cách làm nghiên cứu ở quy mô một người, và 12 khái niệm đề xuất thêm cho lộ trình.
+- `research/06-ky-nang-nghien-cuu.md` — đọc bài báo, tái lập, thiết kế thí nghiệm, ghi chép, viết, theo dõi nguồn; đề xuất 9 bài cho **khu `nghien-cuu`** (không phải tầng mới, vì kỹ năng nghiên cứu không có tiền quyết toán) cộng 2 khái niệm thật sự thuộc lộ trình: `do-lech-va-seed`, `khoang-tin-cay-bootstrap`.
+
+**Ba việc phát sinh cần nhớ:**
+
+1. **Papers with Code đã đóng** — chuyển hướng sang `huggingface.co/papers`. Đã sửa mục 2 của tài liệu này.
+2. **`aideadlin.es` chết nội dung** (còn liệt hạn nộp 2024). Dùng `ccfddl.com` thay.
+3. **Bẫy metric, ví dụ dạy học tốt nhất tìm được:** WMT25 General MT — hệ Shy-hunyuan-MT đạt AutoRank 1,0 (nhất tuyệt đối theo máy chấm) nhưng đánh giá người chỉ 3,2, hạng 11–16 ở En→Ả Rập Ai Cập; bài báo quy nguyên nhân cho việc huấn luyện bằng GRPO lấy chính XCOMET-XXL/GEMBA làm tín hiệu thưởng. Và ở WMT25 Metrics (Bảng 4, cột Avg Seg) các metric cũ lật ngược thế cờ: YiSi-1 hạng 1 (0,593), chrF hạng 2 (0,588), COMET22 chỉ hạng 5 (0,574) — chính tác giả gọi kết quả này là "surprising" và nói cần phân tích thêm. Đã tự tải PDF đối chiếu.

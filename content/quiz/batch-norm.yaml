@@ -1,4 +1,5 @@
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 cau_hoi:
   - id: q1
     loai: mot
@@ -78,7 +79,7 @@ cau_hoi:
     de: "Một đặc trưng có giá trị trên batch 4 mẫu là 2, 2, 6, 6 (μ = 4, σ² = 4, s = 2, x̂ = −1, −1, 1, 1). Cho γ = 3 và gradient từ phía sau ∂L/∂y = (1, 0, 0, 0). Tính ∂L/∂x của mẫu thứ nhất."
     dap_an: 0.75
     sai_so: 0.001
-    giai_thich: "g = γ·∂L/∂y = (3, 0, 0, 0), nên Σg = 3 và Σg·x̂ = 3 × (−1) = −3. Công thức: ∂L/∂x₁ = (n·g₁ − Σg − x̂₁·Σg·x̂)/(n·s) = (4×3 − 3 − (−1)(−3))/(4×2) = (12 − 3 − 3)/8 = 0.75. Cả vector ra (0.75, −0.75, 0, 0): tổng bằng 0 đúng như kỳ vọng, và ba mẫu không liên quan tới loss vẫn nhận gradient khác 0."
+    giai_thich: "g = γ·∂L/∂y = (3, 0, 0, 0), nên Σg = 3 và Σg·x̂ = 3 × (−1) = −3. Công thức: ∂L/∂x₁ = (n·g₁ − Σg − x̂₁·Σg·x̂)/(n·s) = (4×3 − 3 − (−1)(−3))/(4×2) = (12 − 3 − 3)/8 = 0.75. Cả vector ra (0.75, −0.75, 0, 0): tổng bằng 0 đúng như kỳ vọng, và mẫu thứ hai — vốn không liên quan gì tới loss — vẫn nhận gradient −0.75, chỉ vì nó góp phần vào μ và σ². (Mẫu 3 và 4 được đúng 0 là do batch này đối xứng: x̂ = +1 làm hai số hạng trừ triệt tiêu nhau.)"
 
   - id: q9
     loai: mot

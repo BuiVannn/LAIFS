@@ -2,7 +2,8 @@
 tieu_de: Học một tham số từ dữ liệu
 khai_niem: ml-la-gi
 do_kho: 1
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Dựng đủ ba mảnh ghép của một bài toán ML nhỏ nhất: mô hình, hàm mất mát, và bước "học".

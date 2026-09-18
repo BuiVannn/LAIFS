@@ -2,7 +2,8 @@
 tieu_de: Gradient clipping theo chuẩn toàn cục
 khai_niem: gradient-bien-mat
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Cách chữa gradient bùng nổ: trước khi cập nhật, nếu gradient quá dài thì **co lại, giữ nguyên hướng**.

@@ -2,7 +2,8 @@
 tieu_de: Đo chuẩn gradient qua 20 lớp, sigmoid vs ReLU
 khai_niem: gradient-bien-mat
 do_kho: 3
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Viết `chuan_gradient_theo_lop(X, Ws, kich_hoat)` để **nhìn thấy** gradient tắt dần bằng số thật.

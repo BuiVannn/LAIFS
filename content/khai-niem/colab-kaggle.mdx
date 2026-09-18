@@ -1,0 +1,457 @@
+---
+ten_vi: "Google Colab & Kaggle Notebooks"
+ten_en: "Google Colab & Kaggle Notebooks"
+tang: 0
+thu_tu: -2
+tien_quyet: ["moi-truong-python"]
+trang_thai: nhap
+dinh_nghia: >-
+  Hai dịch vụ chạy notebook Jupyter miễn phí trên máy của người khác, kèm GPU. Bạn viết code
+  trong trình duyệt, code chạy trên một máy ảo tạm thời ở đâu đó, và máy ảo đó sẽ bị xoá —
+  luôn luôn, không có ngoại lệ. Hiểu Colab/Kaggle là hiểu ba thứ: notebook giữ trạng thái ẩn
+  giữa các ô, phiên chạy có hạn mức và có hạn dùng, và mọi thứ không được lưu ra ngoài máy ảo
+  thì coi như chưa từng tồn tại.
+truc_giac: >-
+  Hãy coi notebook như một cái bảng trắng chung với một cái đầu nhớ. Các ô là những dòng bạn
+  viết lên bảng, còn "cái đầu" là bộ nhớ Python. Bạn có thể xoá một dòng trên bảng, nhưng cái
+  đầu vẫn nhớ nó; bạn có thể viết dòng 5 trước dòng 2, và cái đầu vẫn làm theo đúng thứ tự bạn
+  bấm chứ không theo thứ tự trên bảng. Còn máy ảo thì như một phòng khách sạn thuê theo giờ:
+  tới giờ trả phòng, đồ đạc để trong phòng bị dọn sạch, chỉ những gì bạn mang ra ngoài mới còn.
+hieu_nham:
+  - "Thứ tự các ô trên màn hình KHÔNG phải thứ tự chúng đã chạy. Python chỉ biết thứ tự bạn bấm; số trong ngoặc vuông bên trái mỗi ô mới là thứ tự thật."
+  - "Xoá một ô không xoá những gì nó đã làm: biến nó tạo ra vẫn nằm trong bộ nhớ cho tới khi restart."
+  - "GPU miễn phí không phải 'chậm hơn nhưng vô hạn'. Colab nói thẳng trong FAQ là tài nguyên không được bảo đảm và hạn mức có lúc thay đổi; Kaggle cấp một quỹ giờ GPU theo tuần."
+  - "File bạn tạo trong `/content` (Colab) không nằm trong Google Drive. Đó là đĩa của máy ảo, và nó biến mất cùng máy ảo."
+  - "Notebook 'chạy được' chưa chắc tái lập được. Thước đo duy nhất là Restart & run all chạy trót lọt từ đầu tới cuối."
+  - "Dán API token thẳng vào ô code là công khai nó: notebook được lưu cả output lẫn code, và chia sẻ link là chia sẻ luôn cái token."
+y_chinh:
+  - "Notebook = code + output + trạng thái ẩn; trạng thái ẩn là thứ duy nhất không nằm trong file, và là nguồn của hầu hết lỗi khó hiểu"
+  - "Thước đo notebook lành mạnh: Restart & run all chạy trót lọt — nếu không, notebook chỉ chạy được trên máy bạn, lúc này"
+  - "Bật GPU: Colab Runtime → Change runtime type; Kaggle Settings → Accelerator. Kiểm bằng `torch.cuda.is_available()`, không phải bằng niềm tin"
+  - "Phiên có hạn: Colab miễn phí tối đa 12 giờ và ngắt khi để yên; Kaggle 12 giờ mỗi phiên CPU/GPU, 9 giờ TPU, cộng quỹ giờ GPU theo tuần"
+  - "Đĩa máy ảo là đĩa tạm. Muốn giữ thì mount Google Drive, tải về máy, hoặc đẩy lên Hub — và lưu checkpoint theo nhịp, đừng chờ tới cuối"
+  - "Kaggle có sẵn dataset gắn thẳng vào `/kaggle/input` (chỉ đọc); Colab thì tự tải, thường từ Drive hoặc bằng Kaggle API"
+  - "Notebook thi đấu trên Kaggle có thể bị tắt mạng: mọi thứ cần dùng phải gắn sẵn dưới dạng dataset/model từ trước"
+  - "Token và mật khẩu đi vào Secrets (Colab: `userdata.get`; Kaggle: `UserSecretsClient`), không bao giờ đi vào ô code"
+tai_lieu:
+  - url: https://research.google.com/colaboratory/faq.html
+    tieu_de: "Colaboratory: Frequently Asked Questions"
+    tac_gia: Google Colab
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: "Nguồn chính thức duy nhất cho câu hỏi 'Colab cho tôi bao nhiêu'. Đọc kỹ đoạn về tuổi thọ tối đa 12 giờ và câu 'resources are not guaranteed and not unlimited'."
+  - url: https://www.kaggle.com/docs/notebooks
+    tieu_de: Notebooks Documentation
+    tac_gia: Kaggle
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Hạn mức phiên, quỹ giờ GPU, dung lượng đĩa và cách gắn dataset. Kaggle công bố số cụ thể hơn Colab nhiều.
+  - url: https://www.kaggle.com/docs/efficient-gpu-usage
+    tieu_de: Efficient GPU Usage Tips Documentation
+    tac_gia: Kaggle
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Cách không đốt quỹ GPU vào việc vô ích. Đọc sau khi đã chạy vài notebook và bắt đầu thấy tiếc giờ.
+  - url: https://www.kaggle.com/docs/api
+    tieu_de: Public API Documentation
+    tac_gia: Kaggle
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Cách lấy token và dùng lệnh `kaggle datasets download`. Phần cài token vào máy là chỗ người mới hay làm sai nhất.
+  - url: https://www.youtube.com/watch?v=7jiPeIFXb6U
+    tieu_de: "I don't like notebooks.- Joel Grus (Allen Institute for Artificial Intelligence)"
+    tac_gia: O'Reilly
+    loai: video
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: "Bài nói kinh điển về đúng vấn đề trạng thái ẩn và thứ tự chạy ô. Xem để hiểu vì sao notebook dễ tạo ra kết quả không tái lập được — kể cả khi bạn vẫn quyết định dùng nó."
+  - url: https://www.youtube.com/watch?v=inN8seMm7UI
+    tieu_de: Get started with Google Colaboratory (Coding TensorFlow)
+    tac_gia: TensorFlow
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Ba phút xem qua giao diện Colab. Xem nếu bạn chưa từng mở notebook bao giờ.
+  - url: https://docs.jupyter.org/en/latest/
+    tieu_de: Project Jupyter Documentation
+    tac_gia: Project Jupyter
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Colab và Kaggle đều là Jupyter khoác áo khác. Tra ở đây khi cần hiểu khái niệm gốc như kernel, cell, magic command.
+---
+
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Tình huống: notebook chạy ngon, gửi cho bạn thì chết
+
+Bạn làm xong một notebook phân loại ảnh. Bấm chạy lại vài ô cuối, mọi thứ ra kết quả đẹp. Gửi link cho bạn cùng nhóm.
+
+Mười phút sau:
+
+```
+NameError: name 'du_lieu_da_chuan_hoa' is not defined
+```
+
+Bạn mở lại notebook của mình, ô đó vẫn chạy ngon lành. Bạn gửi lại, vẫn lỗi. Bạn bắt đầu nghi ngờ Colab.
+
+Colab không có lỗi gì cả. Cái sai là **notebook của bạn không bao giờ chạy được từ đầu** — nó chỉ chạy được từ cái trạng thái bộ nhớ mà bạn đã xây dần suốt ba tiếng bằng cách bấm ô lung tung. Biến `du_lieu_da_chuan_hoa` được tạo bởi một ô mà bạn đã sửa lại sau đó, hoặc đã xoá, hoặc nó nằm ở ô số 14 trong khi ô cần nó là ô số 9.
+
+Chứng minh: bấm **Runtime → Restart and run all** trên chính máy bạn. Nó sẽ chết đúng chỗ đó.
+
+## Trực giác: cái bảng trắng và căn phòng thuê theo giờ
+
+Hai hình ảnh, mỗi cái giải thích một nửa của mọi rắc rối trong bài này.
+
+**Notebook là cái bảng trắng đi kèm một cái đầu biết nhớ.** Các ô là những dòng bạn viết lên bảng; "cái đầu" là bộ nhớ Python. Bạn xoá được một dòng trên bảng, nhưng cái đầu vẫn nhớ nó. Bạn viết dòng 5 trước dòng 2, và cái đầu làm theo đúng thứ tự bạn đọc lên chứ không theo thứ tự trên bảng. Người khác chỉ nhìn thấy cái bảng — **họ không có cái đầu của bạn**, và đó là toàn bộ câu chuyện ở mục trên.
+
+**Máy ảo là phòng khách sạn thuê theo giờ.** Bạn ở thoải mái trong khoảng thời gian đã thuê, nhưng tới giờ trả phòng thì đồ để trong phòng bị dọn sạch, không ai hỏi bạn một câu. Chỉ những gì bạn mang ra ngoài mới còn. Và phòng thì có giới hạn: có giờ tối đa mỗi lần thuê, có hạn mức trong tuần, và có lúc lễ tết thì hết phòng.
+
+Mọi thứ còn lại trong bài này là hệ quả của hai hình ảnh đó.
+
+## Notebook là gì, thật ra
+
+Một notebook `.ipynb` là file JSON chứa ba thứ: danh sách các ô, code trong mỗi ô, và output đã lưu của mỗi ô. Khi bạn mở nó, một tiến trình Python (gọi là **kernel**) được khởi động và nằm chờ. Bấm chạy một ô là gửi code của ô đó cho kernel.
+
+Điểm mấu chốt: **kernel giữ một không gian biến duy nhất, chung cho mọi ô**, và nó không hề biết các ô được sắp xếp thế nào trên màn hình. Với nó chỉ có một dòng lịch sử: ô nào được gửi tới, lúc nào.
+
+Hệ quả trực tiếp:
+
+| Bạn thấy | Python thấy |
+|---|---|
+| Ô số 3 nằm trên ô số 7 | Không có khái niệm "trên/dưới" |
+| Bạn xoá ô số 3 | Biến ô 3 tạo ra vẫn còn nguyên trong bộ nhớ |
+| Bạn sửa ô số 3 rồi chưa chạy lại | Bộ nhớ vẫn giữ kết quả của **bản cũ** |
+| Bạn chạy ô 7 rồi mới chạy ô 3 | Thứ tự thật là 7 → 3 |
+
+Con số trong ngoặc vuông bên trái mỗi ô (`In [12]:`) là **số thứ tự thật**. Đọc cột đó từ trên xuống mà thấy nó không tăng đều — `[5]`, `[12]`, `[3]`, `[9]` — thì notebook này chưa bao giờ chạy tuần tự.
+
+## Ba con quỷ của trạng thái ẩn
+
+**1. Biến còn sót.** Bạn từng có ô `nguong = 0.7`, sau đó xoá nó và chuyển sang dùng `nguong_toi_uu`. Nhưng `nguong` vẫn nằm trong bộ nhớ, và một ô khác vẫn đang lặng lẽ dùng nó. Notebook chạy đúng với bạn, chết với mọi người khác.
+
+**2. Biến cũ.** Bạn sửa hàm `chuan_hoa()` cho đúng, nhưng quên chạy lại ô định nghĩa nó. Mọi ô sau đó vẫn gọi phiên bản cũ. Không có lỗi nào cả — chỉ là kết quả sai, và bạn sẽ đi tìm bug ở chỗ khác suốt buổi chiều.
+
+**3. Ô chạy hai lần.** `df = df.drop(columns=["id"])` chạy lần hai là `KeyError`. `x = x + 1` chạy ba lần là cộng 3. Những ô **không idempotent** là mìn: chạy lại một cái là đổi kết quả.
+
+Một thuốc chữa cho cả ba, và chỉ có một: **Restart & run all**. Không phải "Run all" — phải có **Restart**, vì Run all không xoá bộ nhớ cũ. Trên Colab là `Runtime → Restart and run all`; trên Kaggle là `Run → Restart & run all` (và nút **Save Version → Save & Run All** cũng chạy lại sạch từ đầu trong một máy mới).
+
+Thói quen đáng có: bấm Restart & run all **trước khi** gửi notebook cho ai, và **sau khi** sửa xong một chỗ quan trọng. Bài tập [Mô phỏng trạng thái ẩn của notebook](/bai-tap/thu-tu-o-notebook) cho bạn cài lại đúng cái máy trạng thái này để thấy nó rõ hơn.
+
+<CauHoi cau="colab-kaggle/q2" />
+
+## GPU miễn phí: bật ở đâu và kiểm thế nào
+
+**Colab**: `Runtime → Change runtime type → Hardware accelerator`. Đổi loại máy là **restart runtime**, nên mọi biến mất sạch — hãy bật GPU trước khi làm gì khác.
+
+**Kaggle**: bảng `Settings` bên phải → `Accelerator`. Kaggle bắt xác thực số điện thoại trước khi cho dùng GPU.
+
+Bật xong, **kiểm chứng** thay vì tin:
+
+```python
+# Chay tren Colab / Kaggle, khong chay duoc trong trinh duyet o web nay
+!nvidia-smi
+```
+
+Lệnh này (dấu `!` là chạy lệnh shell từ trong notebook) in ra bảng trạng thái GPU của NVIDIA. Ba chỗ cần nhìn: tên GPU, cột `Memory-Usage` (đang dùng bao nhiêu trên tổng bao nhiêu), và danh sách tiến trình ở cuối. Không có GPU thì lệnh báo `command not found` hoặc `NVIDIA-SMI has failed`.
+
+Nhưng `nvidia-smi` chỉ nói máy **có** GPU. Câu hỏi thật là PyTorch có **thấy** nó không:
+
+```python
+# Chay tren Colab / Kaggle
+import torch
+print(torch.__version__)
+print("CUDA co san:", torch.cuda.is_available())
+if torch.cuda.is_available():
+    print("Ten GPU:", torch.cuda.get_device_name(0))
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("device =", device)
+```
+
+Trên một phiên có GPU T4, đầu ra có dạng:
+
+```
+<phien ban torch, vi du 2.x.y+cu121>
+CUDA co san: True
+Ten GPU: Tesla T4
+device = cuda
+```
+
+Không bật GPU thì hai dòng giữa thành `CUDA co san: False` và `device = cpu` — code vẫn chạy, chỉ chậm. Phiên bản torch in ra thay đổi theo thời điểm, đó chính là lý do nên in nó.
+
+Hai dòng `device = ...` đó là khuôn chuẩn nên viết ở mọi notebook: code chạy được cả khi có lẫn khi không có GPU, chỉ khác tốc độ. Sau đó mọi thứ phải **cùng ở trên một device**:
+
+```python
+# Chay tren Colab
+mo_hinh = mo_hinh.to(device)
+x = x.to(device)
+```
+
+Quên một trong hai dòng là gặp `RuntimeError: Expected all tensors to be on the same device`. Đây là lỗi phổ biến nhất của buổi đầu dùng GPU, và nó nói đúng cái nó bị.
+
+**Bẫy im lặng nhất**: bật GPU, code vẫn chạy, nhưng chậm y như CPU. Nguyên nhân gần như luôn là bạn quên `.to(device)` cho mô hình, hoặc `torch.cuda.is_available()` trả về `False` mà bạn không kiểm. In nó ra một lần, mất một giây, tiết kiệm một buổi.
+
+## Giới hạn thật
+
+Đây là phần người mới bỏ qua và trả giá đắt nhất. Colab FAQ nói thẳng: *"Colab resources are not guaranteed and not unlimited, and usage limits sometimes fluctuate"* — tài nguyên không được bảo đảm, không vô hạn, và hạn mức có lúc thay đổi.
+
+| | Colab (bản miễn phí) | Kaggle Notebooks |
+|---|---|---|
+| Tuổi thọ một phiên | Tối đa **12 giờ**, tuỳ tình trạng máy và cách bạn dùng | **12 giờ** phiên CPU/GPU, **9 giờ** phiên TPU |
+| Để yên không đụng | Bị ngắt (Colab ưu tiên phiên tương tác) | Phiên tương tác dừng sau khoảng **20 phút** không hoạt động [^idle] |
+| Quỹ GPU | Không công bố con số; hết hạn mức thì phải chờ | Quỹ giờ GPU theo tuần, mốc quen thuộc khoảng **30 giờ**, Kaggle nói rõ con số thay đổi theo nhu cầu |
+| Loại GPU | Thay đổi theo thời điểm và tình trạng máy | T4, P100, TPU tuỳ lựa chọn |
+| Đĩa còn sau phiên | Không. `/content` mất sạch | `/kaggle/working` được lưu lại (khoảng **20 GB**); đĩa nháp ngoài thư mục đó thì mất |
+| Chạy nền khi đóng tab | Không đáng tin | `Save & Run All` chạy trọn vẹn phía Kaggle, không cần mở tab |
+
+[^idle]: Tài liệu Kaggle tự mâu thuẫn ở đúng con số này: trang *Notebooks* ghi 20 phút, còn trang *Efficient GPU Usage Tips* ghi giới hạn nhàn rỗi 60 phút (kiểm ngày 2026-09-18). Dù là 20 hay 60, bài học thực hành không đổi: dừng phiên bằng tay khi đóng tab, đừng để quỹ giờ trôi.
+
+Các con số này thay đổi theo thời gian — hãy coi bảng trên là bản đồ, còn tài liệu chính thức là địa hình. Nhưng **hình dạng** của giới hạn thì không đổi: có hạn giờ, có hạn mức, và máy ảo luôn bị thu hồi.
+
+Ba hệ quả thực hành:
+
+1. **Đo trước khi chạy.** Một epoch mất bao lâu? Nhân với số epoch. Lớn hơn 12 giờ thì kế hoạch của bạn đã hỏng từ trước khi bắt đầu. Bài tập [Ngân sách phiên GPU](/bai-tap/ngan-sach-phien-gpu) làm đúng phép tính này.
+2. **Lưu checkpoint theo nhịp.** Không phải "lưu ở cuối", mà "lưu mỗi N epoch, ra chỗ không mất".
+3. **Đừng để phiên GPU chạy không.** Ngồi đọc tài liệu trong lúc phiên GPU vẫn mở là đang đốt quỹ. Ngắt runtime khi không dùng.
+
+<CauHoi cau="colab-kaggle/q5" />
+
+## Lưu file đúng cách
+
+Quy tắc một câu: **mọi thứ nằm trong máy ảo đều là tạm thời.** Thư mục làm việc mặc định của Colab là `/content`, và nó ra đi cùng máy ảo.
+
+**Cách 1 — gắn Google Drive (Colab):**
+
+```python
+# Chay tren Colab
+from google.colab import drive
+drive.mount('/content/drive')
+# Sau khi bam cho phep, Drive cua ban nam o /content/drive/MyDrive
+```
+
+Từ lúc đó `/content/drive/MyDrive/...` là thư mục thật trong Drive: ghi vào đấy là còn mãi. Ba lưu ý:
+
+- Drive **chậm hơn đĩa máy ảo rõ rệt**, nhất là với nhiều file nhỏ. Cách làm quen thuộc: giữ dữ liệu trên Drive dưới dạng **một file nén**, chép sang `/content` rồi giải nén ở đó, huấn luyện từ đĩa nhanh, và chỉ ghi checkpoint ngược ra Drive.
+- Mount là cấp cho notebook quyền vào toàn bộ Drive của bạn. Đừng mount trong notebook của người lạ.
+- Dung lượng Drive miễn phí là 15 GB dùng chung với Gmail và Photos. Checkpoint vài trăm MB mỗi cái sẽ ăn hết nhanh hơn bạn tưởng.
+
+**Cách 2 — lưu checkpoint theo nhịp:**
+
+```python
+# Chay tren Colab
+import os, torch
+
+THU_MUC = "/content/drive/MyDrive/laifs-checkpoint"
+os.makedirs(THU_MUC, exist_ok=True)
+
+def luu(epoch, mo_hinh, optimizer, loss):
+    torch.save({
+        "epoch": epoch,
+        "mo_hinh": mo_hinh.state_dict(),
+        "optimizer": optimizer.state_dict(),   # thieu dong nay la mat trang thai Adam
+        "loss": loss,
+    }, f"{THU_MUC}/ep{epoch:03d}.pt")
+
+def nap(duong_dan, mo_hinh, optimizer):
+    ck = torch.load(duong_dan, map_location=device)
+    mo_hinh.load_state_dict(ck["mo_hinh"])
+    optimizer.load_state_dict(ck["optimizer"])
+    return ck["epoch"] + 1        # epoch bat dau lai
+```
+
+Chi tiết dễ quên nhất là `optimizer.state_dict()`. Adam giữ trung bình động của gradient; nạp lại mô hình mà không nạp lại optimizer thì loss sẽ nhảy vọt ở epoch đầu sau khi khôi phục, và bạn sẽ tưởng mô hình hỏng.
+
+**Cách 3 — tải thẳng về máy (Colab):**
+
+```python
+# Chay tren Colab
+from google.colab import files
+files.download("/content/ket_qua.csv")
+```
+
+**Trên Kaggle** thì nhẹ hơn: ghi vào `/kaggle/working/` là được lưu cùng phiên bản notebook, tải về qua tab Output.
+
+Còn notebook thì sao? Colab tự lưu file `.ipynb` vào Google Drive (mục `Colab Notebooks`), và `File → Save a copy in GitHub` đẩy thẳng lên repo. Notebook được lưu **kèm output**, đây là điều cần nhớ ở mục bảo mật bên dưới.
+
+## Dùng dataset
+
+**Kaggle: dữ liệu đã có sẵn ở đó.** Bấm `Add Input` ở bảng bên phải, chọn dataset hoặc competition, xong. Nó xuất hiện tại `/kaggle/input/<ten-dataset>/`, **chỉ đọc**, không tốn thời gian tải, không tốn quota. Đây là ưu thế lớn nhất của Kaggle so với Colab.
+
+```python
+# Chay tren Kaggle
+import os
+for thu_muc, _, ten_file in os.walk("/kaggle/input"):
+    for f in ten_file[:5]:
+        print(os.path.join(thu_muc, f))
+```
+
+**Colab: bạn tự lo.** Ba đường quen thuộc:
+
+1. Dữ liệu của bạn → để trên Drive, mount, chép sang `/content`.
+2. Dữ liệu công khai có link → `!wget <url>` hoặc `!curl -L -o ten.zip <url>`.
+3. Dataset trên Kaggle → dùng Kaggle API.
+
+Đường thứ ba cần token. Vào `kaggle.com` → ảnh đại diện → `Settings` → `API` → `Create New Token`, trình duyệt tải về file `kaggle.json` chứa username và key. Cách cài đúng:
+
+```python
+# Chay tren Colab — LUU Y: dung Secrets, dung dan noi dung kaggle.json vao o code
+import os, json
+from google.colab import userdata
+
+os.makedirs("/root/.kaggle", exist_ok=True)
+with open("/root/.kaggle/kaggle.json", "w") as f:
+    json.dump({"username": userdata.get("KAGGLE_USERNAME"),
+               "key": userdata.get("KAGGLE_KEY")}, f)
+os.chmod("/root/.kaggle/kaggle.json", 0o600)   # thieu dong nay, kaggle CLI se canh bao
+```
+
+```python
+# Chay tren Colab
+!pip -q install kaggle
+!kaggle datasets download -d <chu-so-huu>/<ten-dataset> -p /content/du-lieu --unzip
+```
+
+Với dataset của cuộc thi thì đổi thành `kaggle competitions download -c <ten-cuoc-thi>`, và bạn phải bấm đồng ý điều khoản cuộc thi trên web trước.
+
+## Colab và Kaggle khác nhau ở đâu
+
+| | Colab | Kaggle Notebooks |
+|---|---|---|
+| Dữ liệu | Tự nạp (Drive, wget, Kaggle API) | Hàng chục nghìn dataset gắn một cú bấm vào `/kaggle/input` |
+| Thư viện | Ảnh máy khá mới, nhưng đổi theo thời gian | Ảnh máy cố định theo phiên bản, ít bất ngờ hơn |
+| Lưu kết quả | `/content` mất; phải mount Drive | `/kaggle/working` được giữ lại theo phiên bản notebook |
+| Chạy khi đóng tab | Không đáng tin | `Save & Run All` chạy phía Kaggle |
+| Mạng | Luôn có | **Có thể bị tắt**, xem bên dưới |
+| Cộng đồng | Chia sẻ qua link Drive/GitHub | Notebook công khai, có vote, fork, thảo luận ngay bên cạnh |
+| Nối với Google Drive | Sẵn có | Không |
+
+**Chuyện internet bị tắt** là khác biệt gây bất ngờ nhất. Nhiều cuộc thi Kaggle yêu cầu notebook nộp bài chạy **không có mạng**, để đảm bảo công bằng và tái lập được. Khi đó:
+
+- `pip install` một gói chưa có sẵn: **hỏng**
+- `from_pretrained("<tên model>")` tải từ Hugging Face: **hỏng**
+- `wget` bất cứ thứ gì: **hỏng**
+
+Cách làm đúng là chuẩn bị từ trước: tải mô hình và gói cài về trong một notebook có mạng, lưu thành **Kaggle Dataset** riêng, rồi gắn dataset đó vào notebook nộp bài và trỏ đường dẫn cục bộ. Đây cũng là lý do thực dụng để hiểu rõ cache của Hugging Face — bài [Hugging Face Hub](/khai-niem/huggingface-hub) nói kỹ chỗ đó.
+
+Một khác biệt nhỏ mà tốn thời gian: **phiên bản thư viện**. Kaggle đóng băng ảnh máy theo phiên bản, Colab cập nhật liên tục. Notebook chạy tháng trước trên Colab có thể hỏng tháng này vì `transformers` lên một phiên bản lớn. Cách phòng rẻ nhất: ghim phiên bản ở ô đầu tiên và in ra để biết mình đang ở đâu.
+
+```python
+# Chay tren Colab / Kaggle — o dau tien cua moi notebook
+!pip -q install "transformers==<phien-ban-ban-da-thu>" "datasets==<phien-ban-ban-da-thu>"
+import transformers, datasets, torch
+print(transformers.__version__, datasets.__version__, torch.__version__)
+```
+
+Cài đè một thư viện đang được dùng (nhất là `numpy` hay `torch`) thường đòi **restart runtime** mới có hiệu lực. Colab sẽ hiện nút "Restart session"; bấm nó, đừng bỏ qua rồi ngồi thắc mắc vì sao phiên bản in ra vẫn là cái cũ.
+
+<CauHoi cau="colab-kaggle/q9" />
+
+## Tiết kiệm phiên GPU
+
+Quỹ GPU là tài nguyên khan hiếm nhất bạn có. Bảy thói quen, xếp theo mức tiết kiệm:
+
+1. **Gỡ lỗi trên CPU với dữ liệu tí hon.** Lấy 32 mẫu, chạy 2 epoch, kiểm shape và loss có giảm không. Chỉ bật GPU khi vòng lặp đã đúng. Phần lớn giờ GPU bị đốt vào việc sửa lỗi `IndexError`.
+2. **Chạy thử một batch trước khi chạy cả epoch.** Một `assert` về shape đầu ra rẻ hơn 40 phút phát hiện mình xếp sai trục.
+3. **Tắt runtime khi ngừng làm việc.** Colab: `Runtime → Disconnect and delete runtime`. Kaggle: tắt Accelerator hoặc dừng phiên.
+4. **Đừng tải lại dữ liệu mỗi lần chạy.** Chép một lần sang đĩa máy ảo, hoặc trên Kaggle thì gắn dataset.
+5. **Chọn GPU đúng cỡ việc.** Không cần GPU để tiền xử lý văn bản hay vẽ biểu đồ.
+6. **Dùng mixed precision khi đã chạy đúng.** `torch.amp` giảm bộ nhớ và tăng tốc rõ trên T4 — nghĩa là cùng quỹ giờ chạy được nhiều thí nghiệm hơn.
+7. **Ghi nhật ký thí nghiệm ra file trên Drive.** Cấu hình, loss cuối, đường dẫn checkpoint. Không có nó, bạn sẽ chạy lại một thí nghiệm đã chạy — đó là cách đốt quota vô duyên nhất.
+
+## Riêng tư và API token
+
+Notebook được lưu **kèm output**. Một ô `print(token)` là token nằm vĩnh viễn trong file, và chia sẻ notebook là chia sẻ luôn token. Kaggle notebook công khai thì cả thế giới đọc được; Colab thì ai có link đều đọc được.
+
+Ba quy tắc, không có ngoại lệ:
+
+**1. Token vào Secrets, không vào ô code.**
+
+```python
+# Chay tren Colab: bieu tuong chia khoa o thanh ben trai -> Add new secret
+from google.colab import userdata
+token = userdata.get("HF_TOKEN")     # khong bao gio print() no ra
+```
+
+```python
+# Chay tren Kaggle: Add-ons -> Secrets
+from kaggle_secrets import UserSecretsClient
+token = UserSecretsClient().get_secret("HF_TOKEN")
+```
+
+Secrets của Colab được lưu ở tài khoản Google của bạn và **không** đi kèm khi chia sẻ notebook; secret của Kaggle gắn với tài khoản bạn, ai fork notebook phải tự nhập secret của họ.
+
+**2. Xin đúng quyền.** Token Hugging Face chỉ để tải mô hình công khai thì không cần quyền ghi. Quyền `write` là quyền đẩy nội dung lên tài khoản bạn.
+
+**3. Lỡ lộ thì thu hồi, không phải xoá ô.** Xoá ô code không xoá lịch sử phiên bản, không xoá bản người khác đã fork, không xoá cache của trình duyệt bên thứ ba. Vào thẳng trang cài đặt của dịch vụ và **revoke** token đó, rồi tạo cái mới.
+
+Thêm ba điều về riêng tư cần tỉnh táo:
+
+- **Dữ liệu bạn tải lên là dữ liệu bạn giao cho một công ty.** Dữ liệu cá nhân, dữ liệu khách hàng, dữ liệu y tế — đừng đưa lên notebook miễn phí.
+- **Mount Drive là cấp quyền vào toàn bộ Drive**, không phải một thư mục.
+- **Chạy notebook người lạ là chạy code người lạ** trên một máy ảo đang cầm token và đang gắn Drive của bạn. Đọc qua trước khi bấm Run all.
+
+<CauHoi cau="colab-kaggle/q11" />
+
+## Nâng cao
+
+**Magic command.** `!lệnh` chạy shell; `%lệnh` là magic của IPython. Khác biệt đáng nhớ: `!cd /content/du-lieu` **không** đổi thư mục của notebook (nó chạy trong một shell con rồi thoát), còn `%cd /content/du-lieu` thì có. Vài cái hay dùng: `%time` đo một dòng, `%%time` đo cả ô, `%%writefile ten.py` ghi nội dung ô ra file, `%%capture` nuốt output dài của `pip install`.
+
+**Vì sao `pip install` trong notebook cần `!`.** Notebook chạy một kernel Python đã khởi động sẵn. `pip` cài gói vào đĩa, nhưng kernel đang chạy đã nạp xong danh sách gói của nó. Vì vậy cài một gói **mới** thì `import` được ngay, còn **nâng cấp** một gói đã nạp thì phải restart kernel. Dùng `%pip install` thay cho `!pip install` an toàn hơn: nó đảm bảo cài đúng vào môi trường của kernel đang chạy, chứ không phải một Python khác trên máy. Bài [Môi trường Python](/khai-niem/moi-truong-python) giải thích kỹ vì sao "một máy có nhiều Python" là chuyện bình thường.
+
+**Notebook và git không hợp nhau.** File `.ipynb` là JSON có nhúng output (kể cả ảnh mã hoá base64), nên `git diff` gần như không đọc được và merge conflict thì khủng khiếp. Hai cách chữa: xoá output trước khi commit (`jupyter nbconvert --clear-output --inplace`), hoặc đẩy phần code đã ổn định ra file `.py` và để notebook chỉ còn phần thí nghiệm.
+
+**Khi nào nên rời notebook.** Notebook mạnh ở khám phá: xem dữ liệu, thử ý tưởng, vẽ biểu đồ, kiểm tra từng bước. Nó yếu ở chỗ chạy dài và lặp lại: một vòng huấn luyện 8 tiếng nên nằm trong file `.py` chạy bằng `python train.py`, có tham số dòng lệnh và ghi log ra file — như thế nó không chết vì tab bị đóng, và chạy lại được y hệt. Bố cục lành mạnh: code ổn định ở `.py`, notebook chỉ gọi vào và vẽ kết quả.
+
+**Notebook làm tài liệu kiểm chứng được.** Mặt mạnh thật sự của notebook là để lại bằng chứng: ô code kèm output kèm chú thích bằng lời. Một notebook có Restart & run all sạch, có ô `assert` tự kiểm ở mỗi bước, là thứ người khác đọc và tin được.
+
+## Sai lầm hay gặp, kèm triệu chứng
+
+| Sai lầm | Triệu chứng nhìn thấy | Cách sửa |
+|---|---|---|
+| Chạy ô lung tung, không bao giờ chạy lại từ đầu | `NameError` với người khác nhưng không với bạn; cột `In [ ]` nhảy cóc | Restart & run all trước khi gửi và sau mỗi lần sửa quan trọng |
+| Sửa hàm nhưng quên chạy lại ô định nghĩa | Không lỗi gì cả, chỉ là kết quả không đổi dù bạn đã sửa code | Chạy lại ô định nghĩa, hoặc restart cho chắc |
+| Quên bật GPU | Epoch lâu gấp hàng chục lần; `torch.cuda.is_available()` ra `False` | Change runtime type → GPU, rồi in `is_available()` ra kiểm |
+| Quên `.to(device)` cho mô hình hoặc dữ liệu | `RuntimeError: Expected all tensors to be on the same device` | Đưa cả mô hình lẫn từng batch về cùng `device` |
+| Lưu file vào `/content` rồi đóng máy | Kết quả biến mất, không có cảnh báo nào | Ghi ra `/content/drive/MyDrive/...`, hoặc `files.download`, hoặc `/kaggle/working` |
+| Không lưu checkpoint giữa chừng | Phiên đứt ở giờ thứ 10, mất trắng | Lưu mỗi N epoch, kèm `optimizer.state_dict()` |
+| Nạp lại mô hình mà quên optimizer | Loss nhảy vọt ngay epoch đầu sau khi khôi phục | Lưu và nạp cả `optimizer.state_dict()` |
+| Để phiên GPU mở khi không chạy gì | Hết quota mà chẳng nhớ đã làm gì; Kaggle báo hết giờ tuần | Ngắt runtime khi nghỉ; gỡ lỗi trên CPU |
+| Dán token vào ô code | Token nằm trong file đã lưu và trong mọi bản fork | Dùng Secrets; lỡ lộ thì revoke ngay, không chỉ xoá ô |
+| Đọc dữ liệu nhiều file nhỏ thẳng từ Drive | Epoch chậm bất thường dù GPU gần như rảnh | Chép/giải nén sang `/content` rồi đọc từ đĩa máy ảo |
+| `!cd` rồi tưởng đã đổi thư mục | Đường dẫn tương đối ở ô sau vẫn trỏ chỗ cũ | Dùng `%cd`, hoặc luôn dùng đường dẫn tuyệt đối |
+| Nâng cấp thư viện rồi dùng luôn | Phiên bản in ra vẫn là cái cũ, lỗi cũ vẫn còn | Restart runtime sau khi nâng cấp |
+| Nộp bài Kaggle với `from_pretrained` tải online | Notebook chạy được lúc soạn, lỗi mạng khi nộp | Lưu mô hình thành dataset và gắn vào; trỏ đường dẫn cục bộ |
+
+## Tra nhanh
+
+| Cần gì | Làm thế nào |
+|---|---|
+| Bật GPU | Colab: `Runtime → Change runtime type`. Kaggle: `Settings → Accelerator` |
+| Kiểm GPU có thật không | `!nvidia-smi` và `torch.cuda.is_available()` |
+| Tên GPU đang được cấp | `torch.cuda.get_device_name(0)` |
+| Khuôn chọn thiết bị | `device = torch.device("cuda" if torch.cuda.is_available() else "cpu")` |
+| Chạy lại sạch | Colab `Runtime → Restart and run all`; Kaggle `Run → Restart & run all` |
+| Gắn Google Drive | `from google.colab import drive; drive.mount('/content/drive')` |
+| Tải file về máy | `from google.colab import files; files.download("duong/dan")` |
+| Thư mục dữ liệu Kaggle | `/kaggle/input/<ten>/` (chỉ đọc) |
+| Thư mục kết quả Kaggle | `/kaggle/working/` (được lưu lại) |
+| Đọc token an toàn | Colab `userdata.get("TEN")`; Kaggle `UserSecretsClient().get_secret("TEN")` |
+| Tải dataset Kaggle | `!kaggle datasets download -d <chu-so-huu>/<ten> --unzip -p <thu-muc>` |
+| Cài gói đúng môi trường kernel | `%pip install <goi>` (rồi restart nếu là nâng cấp) |
+| Đổi thư mục làm việc | `%cd <duong-dan>` — `!cd` không có tác dụng |
+| Đo thời gian một ô | `%%time` ở dòng đầu ô |
+| Xoá output trước khi commit | `jupyter nbconvert --clear-output --inplace <file>.ipynb` |
+
+## Tóm tắt
+
+- Notebook có một **trạng thái ẩn** không nằm trong file; thứ tự ô trên màn hình không phải thứ tự đã chạy, và đó là nguồn của hầu hết lỗi "chạy máy tôi thì được".
+- Thước đo duy nhất cho một notebook lành mạnh là **Restart & run all** chạy trót lọt từ đầu tới cuối.
+- GPU miễn phí có hạn giờ, có hạn mức, và không được bảo đảm; hãy tính ngân sách **trước** khi bấm chạy, đừng sau.
+- Máy ảo luôn bị thu hồi: thứ gì không được ghi ra Drive, tải về, hay đẩy lên Hub thì coi như chưa từng tồn tại. Lưu checkpoint theo nhịp, kèm trạng thái optimizer.
+- Kaggle mạnh ở dataset sẵn có và phiên bản ổn định, nhưng notebook thi đấu có thể **bị tắt mạng**; Colab mạnh ở Drive và thư viện mới, nhưng bạn tự lo dữ liệu.
+- Token đi vào Secrets. Notebook lưu cả output, nên một lần `print(token)` là lộ vĩnh viễn — và cách chữa là thu hồi token, không phải xoá ô.

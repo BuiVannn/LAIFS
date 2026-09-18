@@ -1,0 +1,145 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: "Bạn gõ `pip install numpy`, pip báo `Successfully installed numpy-2.4.6`. Ngay sau đó `python huan_luyen.py` vẫn báo `ModuleNotFoundError: No module named 'numpy'`. Giải thích nào hợp lý nhất?"
+    lua_chon:
+      - pip cài hỏng, phải gỡ ra cài lại
+      - "Lệnh `pip` và lệnh `python` đang thuộc hai môi trường khác nhau: numpy nằm trong site-packages của một file python khác với file đang chạy script"
+      - numpy chưa tương thích với hệ điều hành
+      - Phải khởi động lại máy để Python nhận gói mới
+    dap_an: 1
+    giai_thich: "Cài gói không phải cài 'vào máy' mà vào site-packages của MỘT file python cụ thể. `pip` gõ trơn là một file thực thi mà shell tìm trong PATH, có thể thuộc bếp khác với `python`. Kiểm bằng cách so `python -m pip --version` với `python -c \"import sys; print(sys.executable)\"` — hai đường dẫn phải cùng gốc."
+
+  - id: q2
+    loai: mot
+    do_kho: 2
+    de: "Lệnh `source .venv/bin/activate` thực chất làm gì?"
+    lua_chon:
+      - Khởi động một máy ảo nhẹ chạy Python riêng biệt
+      - Tạo một container cách ly khỏi hệ điều hành
+      - "Chủ yếu là thêm `.venv/bin` vào đầu biến PATH (kèm đặt VIRTUAL_ENV và sửa dấu nhắc), nên chữ `python` trơn trỏ vào bản trong venv"
+      - "Chép toàn bộ thư viện của Python hệ thống vào `.venv`"
+    dap_an: 2
+    giai_thich: "Kích hoạt không có gì thần bí: chỉ là sửa biến môi trường. Hệ quả thực tế rất tiện: nếu quên kích hoạt, bạn vẫn dùng venv được bằng cách gọi thẳng `.venv/bin/python`. Thứ thật sự làm nên venv là file `pyvenv.cfg` — nó khiến python đặt `sys.prefix` vào thư mục venv."
+
+  - id: q3
+    loai: mot
+    do_kho: 2
+    de: "Vì sao tài liệu chính thức khuyên viết `python -m pip install X` thay vì `pip install X`?"
+    lua_chon:
+      - "Vì `python -m pip` chạy nhanh hơn"
+      - "Vì `pip` gõ trơn đã bị gỡ bỏ trong Python 3"
+      - "Vì `python -m pip` chạy module pip bằng CHÍNH file python vừa gõ, nên chắc chắn cài vào site-packages của python đó"
+      - "Vì `python -m pip` tự động tạo venv nếu chưa có"
+    dap_an: 2
+    giai_thich: "`pip` trơn là một file riêng được shell tìm trong PATH — không có gì bảo đảm nó thuộc cùng môi trường với `python` bạn dùng để chạy code. `python -m` buộc hai vế phải là một. Đây là thay đổi một chữ xoá được cả một họ lỗi ModuleNotFoundError."
+
+  - id: q4
+    loai: mot
+    do_kho: 2
+    de: "Trong Python, biểu thức `\"1.10.0\" > \"1.9.0\"` cho kết quả gì, và điều đó nói lên điều gì?"
+    lua_chon:
+      - "True — so sánh chuỗi tình cờ trùng với thứ tự phiên bản"
+      - "False — vì so sánh chuỗi so từng ký tự, '1' < '9', nên không được so phiên bản bằng chuỗi"
+      - Báo TypeError vì không so sánh được hai chuỗi
+      - "True, và đó là cách pip so sánh phiên bản"
+    dap_an: 1
+    giai_thich: "So sánh chuỗi đi từng ký tự: sau '1.' thì '1' đứng trước '9', nên Python kết luận 1.10.0 nhỏ hơn 1.9.0 — ngược hoàn toàn với thực tế. Phiên bản phải so từng thành phần như số nguyên. Đây chính là lý do có chuẩn PEP 440 và thư viện `packaging`; đừng tự viết `if phien_ban > \"2.0\"`."
+
+  - id: q5
+    loai: mot
+    do_kho: 2
+    de: "Trong `requirements.txt`, dòng `numpy~=2.4.6` cho phép cài những phiên bản nào?"
+    lua_chon:
+      - Chỉ đúng 2.4.6
+      - "Từ 2.4.6 trở lên trong nhánh 2.4.* (2.4.7, 2.4.9 được; 2.5.0 thì không)"
+      - Mọi bản từ 2.0.0 trở lên
+      - Mọi bản nhỏ hơn 2.4.6
+    dap_an: 1
+    giai_thich: "`~=2.4.6` tương đương `>=2.4.6, ==2.4.*`: nhận vá lỗi ở mức PATCH nhưng không nhảy sang MINOR mới. Nó nằm giữa `==` (chặt nhất, cho tái lập) và `>=` (lỏng nhất, cho thư viện dùng chung)."
+
+  - id: q6
+    loai: mot
+    do_kho: 2
+    de: "Vì sao `requirements.txt` chỉ ghi `numpy` mà không ghi phiên bản là nguy hiểm cho một dự án ML?"
+    lua_chon:
+      - Vì pip sẽ từ chối cài nếu không có phiên bản
+      - "Vì mỗi lần cài có thể ra một phiên bản khác, nên kết quả thí nghiệm không còn tái lập được, và lỗi do đổi hành vi mặc định thường không báo lỗi gì cả"
+      - Vì không ghi phiên bản thì pip luôn cài bản cũ nhất
+      - Vì nó làm việc cài chậm hơn nhiều
+    dap_an: 1
+    giai_thich: "Không pin nghĩa là hai người cài cùng một file có thể ra hai môi trường khác nhau. Nguy hiểm nhất không phải lỗi nổ ra, mà là kết quả LỆCH ĐI trong im lặng khi một hàm đổi giá trị mặc định. Mất tái lập là mất khả năng so sánh kết quả hôm nay với kết quả tháng trước."
+
+  - id: q7
+    loai: mot
+    do_kho: 3
+    de: "Khi nào conda thật sự cần thiết, chứ không phải chỉ là 'venv nặng hơn'?"
+    lua_chon:
+      - Khi dự án dùng nhiều gói Python thuần
+      - Khi muốn cài gói nhanh hơn pip
+      - "Khi cần quản lý cả thư viện NGOÀI Python (CUDA runtime, BLAS, ffmpeg, GDAL) hoặc cần nhiều phiên bản Python song song"
+      - Khi muốn pin phiên bản chặt hơn
+    dap_an: 2
+    giai_thich: "venv chỉ cô lập gói Python và không đổi được phiên bản Python sau khi tạo. conda quản lý cả phần nhị phân ngoài Python, nên giải được lớp vấn đề venv không chạm tới — đổi lại nặng và chậm hơn. Với phần lớn việc học ML (numpy, torch có wheel sẵn), venv là đủ."
+
+  - id: q8
+    loai: mot
+    do_kho: 3
+    de: "Nếu buộc phải dùng cả conda lẫn pip trong một môi trường, thứ tự nào an toàn nhất?"
+    lua_chon:
+      - pip trước, rồi conda, rồi pip tiếp nếu cần
+      - "conda cài hết những gì có thể trước, pip cài phần còn lại sau, và từ đó không chạy `conda install` trong môi trường này nữa"
+      - Xen kẽ tuỳ tiện, hai công cụ tự hoà giải với nhau
+      - Chỉ dùng conda, pip luôn hỏng trong môi trường conda
+    dap_an: 1
+    giai_thich: "conda không ghi nhận những gì pip đã làm, nên một lệnh `conda install` sau đó có thể đè lên và làm hỏng gói pip vừa cài. Triệu chứng: gói vừa cài 'biến mất', hoặc import lỗi ở tầng C. Cần thêm gói sau đó thì dựng lại môi trường từ đầu, đó là cách rẻ nhất."
+
+  - id: q9
+    loai: mot
+    do_kho: 2
+    de: "Trong một notebook Jupyter ở máy bạn (nhiều kernel), vì sao nên viết `%pip install numpy` thay vì `!pip install numpy`?"
+    lua_chon:
+      - "Vì `!pip` đã bị gỡ khỏi Jupyter"
+      - "Vì `%pip` cài bằng đúng `sys.executable` của kernel đang chạy, còn `!pip` mở một shell mới và dùng pip mà shell đó tìm thấy trong PATH — có thể là kernel khác"
+      - "Vì `%pip` tự khởi động lại kernel sau khi cài"
+      - "Vì `!pip` chỉ cài được gói thuần Python"
+    dap_an: 1
+    giai_thich: "`!` gọi ra một shell riêng, hoàn toàn không biết kernel nào đang chạy ô code. Trên Colab hai cách thường trùng vì chỉ có một môi trường, nhưng trên Jupyter ở máy có nhiều kernel thì `!pip` cài lạc chỗ là chuyện thường ngày. `%pip` là magic của IPython, sinh ra đúng để bịt lỗ này."
+
+  - id: q10
+    loai: mot
+    do_kho: 3
+    de: "Ô 1 đã `import numpy as np` (bản 1.26). Ô 2 chạy `%pip install numpy==2.4.6` và báo thành công. Ô 3 in `np.__version__` ra `1.26`. Vì sao?"
+    lua_chon:
+      - "%pip đã cài nhầm môi trường"
+      - "numpy 2.4.6 không tồn tại nên pip giữ nguyên bản cũ"
+      - "Python nạp mỗi module vào bộ nhớ một lần cho mỗi tiến trình: ghi đè file trên đĩa không đổi module đã nạp — phải khởi động lại kernel"
+      - "`__version__` là thuộc tính cố định, không phản ánh bản đang dùng"
+    dap_an: 2
+    giai_thich: "Đây là bẫy tốn thời gian nhất trong notebook. Module đã import nằm trong `sys.modules` và không tự nạp lại khi file trên đĩa đổi. Quy tắc: sau khi cài hoặc nâng cấp một gói đã từng import, restart kernel rồi chạy lại từ ô đầu."
+
+  - id: q11
+    loai: mot
+    do_kho: 3
+    de: "Code báo `AttributeError: module 'numpy' has no attribute 'array'`. Bạn chắc chắn numpy đã cài và `array` là hàm có thật. Nên nghi ngờ điều gì TRƯỚC?"
+    lua_chon:
+      - Bản numpy quá cũ nên chưa có hàm array
+      - "Có một file tên `numpy.py` (hoặc thư mục `numpy/`) trong thư mục làm việc đang che mất thư viện thật, vì thư mục hiện tại đứng đầu `sys.path`"
+      - numpy bị cài hỏng, phải cài lại
+      - Thiếu `import numpy as np`
+    dap_an: 1
+    giai_thich: "`AttributeError` trên một hàm chắc chắn tồn tại là triệu chứng đặc trưng của việc bị che tên. Xác nhận trong một dòng: `print(numpy.__file__)` — nếu nó trỏ về thư mục dự án chứ không phải site-packages thì đã tìm ra thủ phạm. Đổi tên file và xoá `__pycache__`."
+
+  - id: q12
+    loai: mot
+    do_kho: 3
+    de: "pip in ra: `ERROR: pip's dependency resolver ... requests 2.32.3 requires urllib3<3,>=1.21.1, but you have urllib3 1.21 which is incompatible.` Điều gì đúng?"
+    lua_chon:
+      - pip đã dừng lại và không cài gì cả
+      - "pip VẪN cài xong; dòng này chỉ cảnh báo môi trường giờ đã mâu thuẫn, và `python -m pip check` sẽ liệt kê lại các mâu thuẫn đó"
+      - Lỗi này nghĩa là urllib3 chưa được cài
+      - Phải gỡ requests thì mới cài được urllib3
+    dap_an: 1
+    giai_thich: "Đây là chỗ dễ hiểu nhầm: chữ ERROR nhưng việc cài vẫn hoàn tất, môi trường chỉ bị đánh dấu là không nhất quán. Đọc câu cuối theo mẫu 'gói A cần B trong khoảng X, nhưng bạn đang có B ở Y'. `python -m pip check` là lệnh kiểm lại toàn bộ, in `No broken requirements found.` khi sạch và trả mã lỗi khác 0 khi có vấn đề."

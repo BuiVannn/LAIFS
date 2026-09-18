@@ -4,7 +4,8 @@ ten_en: Vectors and Matrices
 tang: 1
 thu_tu: 1
 tien_quyet: []
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Vector là một dãy số có thứ tự (một điểm dữ liệu, một tham số, một hướng). Ma trận là một
   bảng số hai chiều, thường dùng để xếp chồng nhiều vector lại. Trong NumPy cả hai đều là
@@ -278,7 +279,7 @@ Muốn tách rời thì `X[0].copy()`. Ngược lại, chỉ mục nâng cao (`X
 *Cách sửa*: thêm `keepdims=True` vào `sum`/`mean`/`max`; hoặc kiểm tra bằng một ma trận **không vuông** (ví dụ 3×5) để bug lộ ra thành lỗi thật.
 
 **3. Dùng `axis` ngược.**
-*Triệu chứng*: `X.mean(axis=0)` trên `(batch, features)` cho ra số phần tử bằng số **mẫu** thay vì số **đặc trưng** — dấu hiệu bạn đang tính trung bình sai chiều.
+*Triệu chứng*: bạn muốn trung bình của từng đặc trưng nhưng viết `X.mean(axis=1)` trên `(batch, features)`, nên kết quả có số phần tử bằng số **mẫu** thay vì số **đặc trưng** — dấu hiệu rõ nhất là độ dài kết quả sai.
 *Cách sửa*: kiểm tra bằng độ dài kết quả, không bằng trực giác. Chuẩn hoá đặc trưng trên `(n, d)` phải cho vector độ dài $d$, tức `axis=0`.
 
 **4. Dùng `reshape` để chuyển vị.**

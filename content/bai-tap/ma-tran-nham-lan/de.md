@@ -2,7 +2,8 @@
 tieu_de: Ma trận nhầm lẫn và precision/recall/F1
 khai_niem: danh-gia-mo-hinh
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Cài lại toàn bộ bộ thước đo phân loại nhị phân từ số 0, **kể cả trường hợp mẫu số bằng 0**. Nhãn là mảng numpy chỉ chứa 0 và 1.

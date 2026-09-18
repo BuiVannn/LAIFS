@@ -1,0 +1,483 @@
+---
+ten_vi: "Hugging Face Hub"
+ten_en: "Hugging Face Hub"
+tang: 0
+thu_tu: -1
+tien_quyet: ["colab-kaggle"]
+trang_thai: nhap
+dinh_nghia: >-
+  Kho công khai chứa mô hình, bộ dữ liệu và ứng dụng demo, cộng với bộ thư viện Python
+  (`transformers`, `datasets`, `huggingface_hub`) để tải chúng về bằng một dòng lệnh.
+  Mỗi mục là một repo Git có phiên bản, có thẻ mô tả (model card) và có license riêng.
+  Cái tên như `Helsinki-NLP/opus-mt-vi-en` là địa chỉ đầy đủ của một mô hình,
+  và `from_pretrained` là lệnh đi lấy nó về.
+truc_giac: >-
+  Hub với mô hình giống như npm với thư viện JavaScript, hay PyPI với gói Python: một nơi
+  ai cũng đăng lên được, tải về dễ như gõ tên. Điểm khác quan trọng nhất cũng nằm ở chữ
+  "ai cũng đăng lên được" — không có ai kiểm duyệt chất lượng hộ bạn, và mỗi mô hình mang
+  một giấy phép riêng. Tải về thì một dòng; chịu trách nhiệm cho thứ mình tải về thì không.
+hieu_nham:
+  - "Mô hình trên Hub KHÔNG được ai kiểm duyệt chất lượng. Số lượt tải cao chỉ nói là nhiều người đã thử, không nói là nó tốt cho việc của bạn."
+  - "License của mô hình không phải chi tiết pháp lý xa xôi: có mô hình rất phổ biến chỉ cho dùng phi thương mại, dùng sai là vi phạm thật."
+  - "`pipeline(\"sentiment-analysis\")` không gọi API lên mạng mỗi lần chạy: nó tải mô hình về máy lần đầu rồi chạy cục bộ."
+  - "Tokenizer không phải phụ kiện đi kèm cho tiện. Nó là bảng ánh xạ chữ sang số của riêng mô hình đó; dùng lệch là mô hình đọc phải số vô nghĩa."
+  - "`from_pretrained` không tải vào thư mục dự án. Nó tải vào cache dùng chung ở `~/.cache/huggingface/hub`, nên xoá thư mục dự án không giải phóng ổ đĩa."
+  - "Mô hình chạy được không có nghĩa là mô hình đúng việc: một mô hình phân loại cảm xúc tiếng Anh vẫn trả về nhãn cho câu tiếng Việt, kèm điểm số trông rất tự tin."
+y_chinh:
+  - "Hub có ba loại repo: models, datasets, spaces — mỗi cái là một repo Git có lịch sử phiên bản"
+  - "Tên đầy đủ có dạng `<tổ chức>/<tên>`; vài mô hình đời đầu như `gpt2` không có phần tổ chức"
+  - "Đọc model card TRƯỚC khi chạy: mô hình làm gì, huấn luyện trên dữ liệu nào, giới hạn gì, và license nào"
+  - "`pipeline` là đường ngắn nhất để thử: ba dòng, tự lo tokenizer lẫn hậu xử lý"
+  - "Mô hình và tokenizer phải cùng một tên; lệch là ra kết quả sai mà không báo lỗi"
+  - "`from_pretrained` tải về `~/.cache/huggingface/hub`, đổi chỗ bằng `HF_HOME`, dọn bằng `hf cache ls` / `hf cache rm`"
+  - "Muốn chạy offline: tải trước bằng `snapshot_download`, rồi đặt `HF_HUB_OFFLINE=1` hoặc `local_files_only=True`"
+  - "License khác nhau rất xa: apache-2.0 thoải mái, cc-by-nc-4.0 cấm thương mại, agpl-3.0 ràng buộc mã nguồn — phải đọc từng cái"
+tai_lieu:
+  - url: https://huggingface.co/docs/hub/index
+    tieu_de: Hugging Face Hub documentation
+    tac_gia: Hugging Face
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Trang gốc giải thích ba loại repo (model, dataset, space) và cách chúng đều là repo Git. Đọc đầu tiên để có bản đồ.
+  - url: https://huggingface.co/docs/transformers/pipeline_tutorial
+    tieu_de: "Pipeline (Transformers documentation)"
+    tac_gia: Hugging Face
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: "Tài liệu chính thức của `pipeline`, kèm ví dụ có đầu ra thật cho từng tác vụ. Đọc phần Device và Batch inference khi bắt đầu chạy trên GPU."
+  - url: https://huggingface.co/docs/hub/model-cards
+    tieu_de: Model Cards
+    tac_gia: Hugging Face
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Model card gồm những mục gì và vì sao mục "Limitations and bias" đáng đọc hơn phần điểm số.
+  - url: https://huggingface.co/docs/hub/repositories-licenses
+    tieu_de: "Licenses (Hugging Face Hub)"
+    tac_gia: Hugging Face
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Danh sách các license Hub nhận và cách chúng được khai trong metadata. Tra ở đây khi thấy một nhãn license lạ.
+  - url: https://huggingface.co/docs/huggingface_hub/guides/manage-cache
+    tieu_de: Understand caching
+    tac_gia: Hugging Face
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: "Cấu trúc thư mục cache (`blobs`, `refs`, `snapshots`), biến môi trường `HF_HOME`/`HF_HUB_CACHE`, và các lệnh `hf cache ls` / `rm` / `prune`."
+  - url: https://huggingface.co/docs/datasets/load_hub
+    tieu_de: Load a dataset from the Hub
+    tac_gia: Hugging Face
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: "`load_dataset`, chọn `split`, và cách xem nhanh vài mẫu trước khi tin vào bộ dữ liệu."
+  - url: https://huggingface.co/learn/llm-course/chapter1/1
+    tieu_de: "Introduction (Hugging Face LLM Course)"
+    tac_gia: Hugging Face
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Khoá học miễn phí của chính Hugging Face. Chương 1 và 2 phủ đúng phần pipeline và tokenizer của bài này, có notebook chạy thẳng trên Colab.
+  - url: https://www.youtube.com/watch?v=XvSGPZFEjDY
+    tieu_de: Navigating the Model Hub
+    tac_gia: Hugging Face
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Video ngắn chỉ cách lọc mô hình theo tác vụ, ngôn ngữ, license và đọc model card. Xem trước khi tự đi tìm mô hình lần đầu.
+  - url: https://www.youtube.com/watch?v=VFp38yj8h3A
+    tieu_de: Tokenizers Overview
+    tac_gia: Hugging Face
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Vì sao có nhiều kiểu tách từ khác nhau và mỗi mô hình lại có tokenizer riêng. Xem nếu mục tokenizer trong bài còn thấy mơ hồ.
+---
+
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Tình huống: mô hình chạy, kết quả vô nghĩa
+
+Bạn cần dịch Việt–Anh. Tìm trên Hub, thấy một cái tên quen, viết ba dòng, chạy được ngay. Kết quả đọc lên thì... lạ. Không phải sai hẳn, mà là *lạ*: câu cụt, tên riêng biến mất, đôi chỗ lặp từ.
+
+Bạn kiểm lại code. Không có lỗi nào. Không có cảnh báo nào.
+
+Ba nguyên nhân thường gặp, và không cái nào phát ra thông báo lỗi:
+
+1. Bạn dùng **tokenizer của một mô hình khác**. Mô hình nhận vào các con số, và nó nhận đúng số lượng số, đúng kiểu dữ liệu — chỉ là các con số đó trỏ tới những từ khác.
+2. Bạn dùng **mô hình dịch sai chiều**: `opus-mt-vi-en` dịch Việt sang Anh, `opus-mt-en-vi` dịch chiều ngược lại. Đưa tiếng Việt vào cái thứ hai thì nó vẫn trả về một chuỗi.
+3. Bạn dùng một **mô hình đa ngữ cần khai báo ngôn ngữ nguồn và đích** (như NLLB), mà bạn không khai.
+
+Bài này là bản đồ để ba chuyện đó không xảy ra: Hub chứa gì, đọc model card thế nào, license nói gì, và vì sao mô hình với tokenizer là một cặp không tách rời.
+
+## Trực giác: một cái npm cho mô hình
+
+Hub với mô hình đóng đúng vai mà PyPI đóng với gói Python, hay npm với thư viện JavaScript: một kho công khai, ai cũng đăng lên được, và tải về chỉ cần gõ tên. Cái tên `Helsinki-NLP/opus-mt-vi-en` là địa chỉ, `from_pretrained` là lệnh đi lấy.
+
+Hình ảnh đó giải thích cả mặt mạnh lẫn mặt nguy hiểm. Mặt mạnh: bạn đứng trên vai hàng nghìn người, không phải huấn luyện lại từ đầu thứ người ta đã làm. Mặt nguy hiểm nằm nguyên trong cụm "ai cũng đăng lên được": **không có ai kiểm duyệt chất lượng hộ bạn**, mỗi mục mang một giấy phép riêng, và cái tên gõ vào chỉ cần lệch một chữ là bạn đang tải về một thứ hoàn toàn khác.
+
+Chỗ Hub khác npm: một gói npm hỏng thì chương trình báo lỗi. Một mô hình sai thì chương trình **vẫn chạy** và vẫn cho ra kết quả trông hợp lý. Bạn phải tự đi tìm cái sai đó.
+
+## Hub chứa gì
+
+Ba loại repo, và cả ba đều là **repo Git thật** — có commit, có nhánh, có lịch sử:
+
+| Loại | Chứa gì | Địa chỉ | Ví dụ |
+|---|---|---|---|
+| **Model** | Trọng số, config, tokenizer, model card | `huggingface.co/<tên>` | `Helsinki-NLP/opus-mt-vi-en` |
+| **Dataset** | Dữ liệu + dataset card | `huggingface.co/datasets/<tên>` | các bộ dịch song ngữ |
+| **Space** | Ứng dụng demo chạy được trên web | `huggingface.co/spaces/<tên>` | demo dịch, demo sinh ảnh |
+
+Tên có dạng `<tổ chức>/<tên mô hình>`. Vài mô hình đời đầu như `gpt2` không có phần tổ chức (về sau chúng được gắn vào một tổ chức chính thức và tên cũ tự chuyển hướng tới tên mới).
+
+Việc chúng là repo Git kéo theo một thứ rất hữu ích: **`revision`**. Bạn ghim được một commit cụ thể thay vì luôn lấy bản mới nhất.
+
+```python
+# Chay tren Colab
+from transformers import AutoModel
+mo_hinh = AutoModel.from_pretrained("gpt2", revision="607a30d783dfa663caf39e06633721c8d4cfcd7e")
+```
+
+Nghe thừa cho tới lúc chủ repo đẩy một bản cập nhật và kết quả của bạn đổi mà không hiểu vì sao. Trong một thí nghiệm cần lặp lại được, ghim `revision` là chuyện nên làm.
+
+## Model card: đọc gì trước khi chạy
+
+Trang của mỗi mô hình có một file `README.md` gọi là **model card**, đầu file là khối metadata YAML khai `license`, ngôn ngữ, tác vụ, và các thẻ khác. Hub dùng khối đó để lọc tìm kiếm — và bạn nên dùng nó để quyết định.
+
+Thứ tự đọc, theo mức độ tốn kém nếu bỏ qua:
+
+1. **License.** Ở ngay đầu trang, cạnh tên mô hình. Đọc nó **trước** khi đọc điểm số, vì nếu license không cho phép thì phần còn lại vô nghĩa.
+2. **Tác vụ và ngôn ngữ.** Mô hình dịch có chiều. Mô hình phân loại có tập nhãn cố định. Mô hình tiếng Anh vẫn trả kết quả cho tiếng Việt, kèm điểm số trông rất tự tin.
+3. **Dữ liệu huấn luyện.** Mô hình huấn luyện trên phụ đề phim sẽ dịch văn bản pháp lý rất tệ, dù điểm BLEU trên tập test của nó cao.
+4. **Limitations and bias.** Mục này thường bị lướt qua và lại là mục đáng đọc nhất: chính tác giả nói mô hình hỏng ở đâu.
+5. **Cách dùng mẫu.** Đoạn code trong card cho biết dùng lớp nào và có cần tham số đặc biệt nào (ví dụ mã ngôn ngữ) không.
+6. **Kích thước file.** Xem tab `Files and versions`. Một mô hình 2,4 GB trên đĩa Colab là chuyện phải tính trước.
+
+Cái model card **không** nói với bạn: mô hình này có tốt cho dữ liệu của bạn không. Chỉ có cách tự thử trên vài chục mẫu thật của bạn mới trả lời được.
+
+<CauHoi cau="huggingface-hub/q3" />
+
+## License: chỗ dễ vi phạm nhất
+
+"Tải được" không có nghĩa là "dùng được cho việc của bạn". Vài nhóm license hay gặp trên Hub:
+
+| Nhãn | Nghĩa thực tế |
+|---|---|
+| `apache-2.0`, `mit` | Thoải mái, kể cả thương mại. Vẫn phải giữ thông báo bản quyền |
+| `cc-by-4.0` | Dùng được, phải ghi nguồn |
+| `cc-by-nc-4.0` | **Cấm dùng cho mục đích thương mại.** Nghiên cứu, học tập thì được |
+| `agpl-3.0` | Copyleft mạnh: dựng dịch vụ web dùng nó thì phải mở mã nguồn dịch vụ đó |
+| `openrail`, `bigscience-openrail-m` | Mở nhưng kèm **danh sách việc bị cấm** (dùng để lừa đảo, gây hại...) |
+| License riêng của hãng | Phải đọc từng chữ; nhiều cái giới hạn theo quy mô người dùng |
+
+Ví dụ cụ thể để thấy khoảng cách này rộng thế nào. Cả bốn mô hình dưới đây đều làm được việc dịch Việt–Anh, đều tải về bằng đúng một dòng như nhau, và license thì khác nhau hoàn toàn:
+
+| Mô hình trên Hub | License khai trên Hub | Ghi chú |
+|---|---|---|
+| `Helsinki-NLP/opus-mt-vi-en` | `apache-2.0` | Nhỏ, nhanh, dịch một chiều Việt → Anh; có cả bản `opus-mt-en-vi` chiều ngược |
+| `VietAI/envit5-translation` | `openrail` | Nhóm Việt Nam làm, hai chiều Việt–Anh |
+| `vinai/vinai-translate-vi2en-v2` | `agpl-3.0` | VinAI làm; copyleft mạnh, cân nhắc kỹ nếu định dựng dịch vụ |
+| `facebook/nllb-200-distilled-600M` | `cc-by-nc-4.0` | 200 ngôn ngữ, chất lượng tốt, nhưng **phi thương mại** |
+
+Cái bảng này là toàn bộ bài học: hai mô hình nằm cạnh nhau trong cùng một trang kết quả tìm kiếm, cùng một lệnh tải về, mà một cái dùng thoải mái còn một cái không được đưa vào sản phẩm bán tiền. Không có gì trong code cảnh báo bạn điều đó.
+
+Cách kiểm nhanh license bằng API công khai, không cần token:
+
+```python
+# Chay tren Colab — can mang
+import requests
+for ten in ["Helsinki-NLP/opus-mt-vi-en", "facebook/nllb-200-distilled-600M"]:
+    d = requests.get(f"https://huggingface.co/api/models/{ten}").json()
+    print(ten, "->", [t for t in d["tags"] if t.startswith("license:")])
+```
+
+Ngoài license còn hai chuyện khác cần tỉnh táo:
+
+- **Mô hình "gated"**: một số mô hình bắt bấm đồng ý điều khoản và đăng nhập bằng token mới tải được. Không phải lỗi mạng, mà là cửa khoá.
+- **Mô hình "chỉ dùng cho nghiên cứu"**: khá nhiều mô hình mạnh khai như vậy. Dùng trong bài tập thì được; đưa vào sản phẩm thì không.
+
+## Ba dòng để thử: `pipeline`
+
+Đường ngắn nhất từ "nghe nói có mô hình này" tới "thấy nó chạy":
+
+```python
+# Chay tren Colab
+from transformers import pipeline
+
+classifier = pipeline("sentiment-analysis")
+classifier("I've been waiting for a HuggingFace course my whole life.")
+```
+
+Đầu ra (đúng như tài liệu khoá học chính thức của Hugging Face ghi):
+
+```
+[{'label': 'POSITIVE', 'score': 0.9598047137260437}]
+```
+
+Ba dòng đó đã làm bốn việc: tải mô hình mặc định của tác vụ về cache, tải tokenizer đi kèm, tách câu thành token rồi cho qua mô hình, và đổi logit thành nhãn kèm xác suất. Chính vì nó giấu bốn việc đó nên nó vừa tiện vừa dễ gây hiểu nhầm.
+
+Chỉ định mô hình cụ thể bằng tham số `model` — và với việc nghiêm túc thì **luôn** chỉ định, vì mô hình mặc định có thể đổi theo phiên bản thư viện:
+
+```python
+# Chay tren Colab
+from transformers import pipeline
+
+dich = pipeline("translation", model="Helsinki-NLP/opus-mt-vi-en")
+dich("Hôm nay trời đẹp.")
+```
+
+Kết quả có dạng `[{'translation_text': '...'}]`. Chất lượng cụ thể thì phải tự chạy mới biết — đừng tin con số nào bạn chưa tự đo.
+
+Chạy trên GPU thì thêm `device`:
+
+```python
+# Chay tren Colab, sau khi da bat GPU
+dich = pipeline("translation", model="Helsinki-NLP/opus-mt-vi-en", device=0)
+```
+
+Tài liệu ghi rõ: `device=0` là GPU CUDA đầu tiên, `device="cpu"` ép chạy CPU, `device="mps"` cho Apple Silicon. Bỏ trống thì `Pipeline` tự chọn máy tăng tốc đang có.
+
+Một mô hình đa ngữ như NLLB cần khai ngôn ngữ, và đây chính là chỗ mục 3 ở đầu bài sập:
+
+```python
+# Chay tren Colab — NLLB dung ma ngon ngu Flores-200, khong phai ma hai chu
+dich = pipeline("translation",
+                model="facebook/nllb-200-distilled-600M",
+                src_lang="vie_Latn", tgt_lang="eng_Latn")
+```
+
+Thiếu `src_lang`/`tgt_lang` thì mô hình vẫn chạy và vẫn ra chữ — chỉ là nó tự đoán ngôn ngữ, và đoán sai là chuyện thường.
+
+<CauHoi cau="huggingface-hub/q5" />
+
+## Tokenizer: vì sao nó phải đi cùng mô hình
+
+Mô hình không đọc chữ. Nó đọc **số**. Tokenizer là cái bảng tra chuyển chữ thành số, và ngược lại.
+
+Chỗ mấu chốt: **bảng tra đó được xây riêng cho từng mô hình, trong lúc mô hình được huấn luyện.** Mô hình A học rằng số 2841 nghĩa là `" trời"`; mô hình B học rằng 2841 nghĩa là `" bank"`. Không có bảng tra chung.
+
+Nên khi bạn ghép nhầm:
+
+```python
+# Chay tren Colab — VI DU SAI, dung bat chuoc
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+
+tok = AutoTokenizer.from_pretrained("Helsinki-NLP/opus-mt-en-vi")   # tokenizer mo hinh A
+model = AutoModelForSeq2SeqLM.from_pretrained("Helsinki-NLP/opus-mt-vi-en")  # mo hinh B
+```
+
+Chuyện xảy ra tiếp theo là **không có gì cả**. Không lỗi, không cảnh báo. Shape khớp, kiểu dữ liệu khớp, mô hình chạy, ra một chuỗi. Chuỗi đó vô nghĩa vì mô hình đang đọc những con số trỏ tới từ khác. Đây là một trong những lỗi tệ nhất trong nghề: sai lặng lẽ.
+
+Còn nếu hai tokenizer có **kích thước từ vựng** khác nhau, bạn có thể gặp một lỗi mơ hồ khác:
+
+```
+IndexError: index out of range in self
+```
+
+Đó là mô hình bị đưa cho một id vượt quá bảng embedding của nó. Thấy lỗi này ngay ở lần chạy đầu, hãy nghi tokenizer trước tiên.
+
+Cách viết đúng là lấy cả hai từ **cùng một tên**, và đặt cái tên đó vào một biến để không thể gõ lệch:
+
+```python
+# Chay tren Colab
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+
+TEN = "Helsinki-NLP/opus-mt-vi-en"          # mot cho duy nhat giu ten
+tok = AutoTokenizer.from_pretrained(TEN)
+model = AutoModelForSeq2SeqLM.from_pretrained(TEN)
+
+x = tok(["Hôm nay trời đẹp.", "Tôi đang học dịch máy."],
+        return_tensors="pt", padding=True)
+print(x["input_ids"].shape, x["attention_mask"].shape)
+
+ra = model.generate(**x, max_new_tokens=64)
+print(tok.batch_decode(ra, skip_special_tokens=True))
+```
+
+Ba chi tiết trong đoạn trên đáng nhớ:
+
+- `padding=True` để hai câu dài ngắn khác nhau xếp được vào một tensor chữ nhật, và `attention_mask` đánh dấu đâu là token thật đâu là chỗ đệm. Bài tập [Đóng gói batch token](/bai-tap/dong-goi-batch-token) cài lại đúng bước này.
+- `**x` truyền cả `input_ids` lẫn `attention_mask`. Chỉ truyền `input_ids` là mô hình chú ý vào cả phần đệm.
+- `skip_special_tokens=True` bỏ các token kỹ thuật như `</s>`, `<pad>` khỏi chuỗi trả về.
+
+Một mẹo tự kiểm rẻ tiền: mã hoá rồi giải mã ngược lại, xem có ra câu ban đầu không.
+
+```python
+# Chay tren Colab
+ids = tok("Hôm nay trời đẹp.")["input_ids"]
+print(ids)
+print(tok.convert_ids_to_tokens(ids))
+print(tok.decode(ids))
+```
+
+Nếu `decode` trả về thứ không giống câu bạn đưa vào, dừng lại ngay: tokenizer không hợp với văn bản của bạn (hoặc bạn đang dùng nhầm cái). Với tiếng Việt, hãy nhìn kỹ dòng `convert_ids_to_tokens` — dấu thanh bị tách rời hay chữ bị vỡ thành các mảnh lạ đều là dấu hiệu tokenizer không được huấn luyện cho tiếng Việt.
+
+<CauHoi cau="huggingface-hub/q7" />
+
+## `from_pretrained` tải về đâu
+
+Không phải thư mục dự án. Mặc định là **cache dùng chung**:
+
+```
+~/.cache/huggingface/hub/
+├── models--Helsinki-NLP--opus-mt-vi-en/
+│   ├── blobs/       <- file that, ten la ma bam noi dung
+│   ├── refs/        <- nhanh "main" dang tro toi commit nao
+│   └── snapshots/
+│       └── <commit hash>/
+│           ├── config.json        -> symlink toi blobs/...
+│           └── model.safetensors  -> symlink toi blobs/...
+└── datasets--<to-chuc>--<ten>/
+```
+
+Dấu `/` trong tên repo thành `--`, loại repo ở đầu và ở số nhiều. File thật nằm ở `blobs/`, còn `snapshots/<commit>/` chỉ chứa symlink — nhờ vậy hai phiên bản của cùng một repo dùng chung mọi file không đổi. Bài tập [Đường dẫn cache của Hugging Face Hub](/bai-tap/cache-hugging-face) cho bạn cài lại đúng khuôn tên này.
+
+**Dùng chung** là điểm quan trọng: mọi dự án trên cùng một máy chia nhau cache đó. Xoá thư mục dự án không giải phóng một byte nào.
+
+Đổi chỗ bằng biến môi trường, đặt **trước** khi import `transformers`:
+
+| Biến | Tác dụng |
+|---|---|
+| `HF_HOME` | Đổi cả thư mục gốc `~/.cache/huggingface` |
+| `HF_HUB_CACHE` | Đổi riêng phần cache mô hình |
+| `HF_HUB_OFFLINE=1` | Cấm mọi truy cập mạng, chỉ dùng file đã có |
+
+Trên Colab thì mẹo này đáng giá: trỏ cache sang Drive để không phải tải lại mỗi phiên.
+
+```python
+# Chay tren Colab — dat TRUOC khi import transformers
+import os
+os.environ["HF_HOME"] = "/content/drive/MyDrive/hf-cache"
+```
+
+Đổi lại, đọc từ Drive chậm hơn đĩa máy ảo. Với mô hình vài GB dùng đi dùng lại thì vẫn lời; với mô hình nhỏ thì tải lại có khi nhanh hơn.
+
+**Dọn cache.** Công cụ dòng lệnh hiện nay là `hf`:
+
+```bash
+# Chay trong terminal, hoac them dau ! khi goi tu notebook
+hf cache ls                  # liet ke repo dang chiem cho, kem dung luong
+hf cache rm model/gpt2       # xoa han mot repo
+hf cache prune               # don cac ban revision khong con duoc tro toi
+```
+
+Trong Python, `scan_cache_dir()` làm đúng việc mà `hf cache ls` gọi tới.
+
+**Tải trước để chạy offline** là việc phải làm nếu notebook nộp bài bị tắt mạng (xem bài [Colab & Kaggle](/khai-niem/colab-kaggle)):
+
+```python
+# Chay tren Colab — lan chay CO mang
+from huggingface_hub import snapshot_download
+duong_dan = snapshot_download("Helsinki-NLP/opus-mt-vi-en")
+print(duong_dan)   # .../models--Helsinki-NLP--opus-mt-vi-en/snapshots/<commit>
+```
+
+```python
+# Chay tren Colab / Kaggle — lan chay KHONG co mang
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+tok = AutoTokenizer.from_pretrained(duong_dan, local_files_only=True)
+model = AutoModelForSeq2SeqLM.from_pretrained(duong_dan, local_files_only=True)
+```
+
+Đặt `HF_HUB_OFFLINE=1` có tác dụng tương tự cho mọi lệnh gọi, và hữu ích ở chỗ nó làm lỗi xuất hiện **ngay lúc bạn đang thử**, chứ không phải lúc nộp bài.
+
+## `datasets`: nạp và nhìn
+
+```python
+# Chay tren Colab
+from datasets import load_dataset
+
+ds = load_dataset("<to-chuc>/<ten-bo-du-lieu>")
+print(ds)                 # cac split va so dong moi split
+print(ds["train"][0])     # mot mau dau tien
+print(ds["train"].features)
+```
+
+`load_dataset` trả về `DatasetDict` — một `dict` các split (`train`, `validation`, `test`). Tải cả một bộ lớn về chỉ để xem mặt mũi là phí; hai cách xem nhanh:
+
+```python
+# Chay tren Colab
+ds = load_dataset("<ten>", split="train[:1%]")        # chi lay 1% dau
+ds = load_dataset("<ten>", split="train", streaming=True)  # doc dan, khong tai het
+```
+
+Ba việc nên làm trước khi tin một bộ dữ liệu, dù nó có bao nhiêu lượt tải:
+
+1. **In vài mẫu ra đọc bằng mắt.** Bạn sẽ thấy ngay rác, HTML sót, hay cặp câu lệch nhau.
+2. **Xem kích thước từng split** và kiểm tra có bị trùng giữa train với test không — rò rỉ dữ liệu bắt đầu từ đây.
+3. **Đọc license của dataset.** Dataset cũng có license riêng, và nó độc lập với license của mô hình.
+
+## Spaces: thử không cần cài gì
+
+Mỗi Space là một ứng dụng web nhỏ (thường viết bằng Gradio hoặc Streamlit) chạy trên máy của Hugging Face. Bạn mở link, gõ câu, xem kết quả — không cài gì, không tốn GPU của mình.
+
+Ba việc Spaces làm tốt:
+
+- **Sàng lọc nhanh.** Thử mô hình bằng chính vài câu khó của bạn trước khi tốn công tải 2 GB về.
+- **Đưa cho người không viết code.** Đồng nghiệp bấm thử được mà không cần biết Python.
+- **Học cách gọi.** Space nào cũng có mã nguồn công khai ở tab `Files`; đọc `app.py` là thấy đúng cách tác giả gọi mô hình.
+
+Hai cảnh báo: Space dùng máy miễn phí sẽ **ngủ** khi không ai vào và cần một lúc để tỉnh lại; và mọi thứ bạn gõ vào ô nhập của Space là **gửi cho máy của người khác** — đừng dán dữ liệu nhạy cảm.
+
+## Nâng cao
+
+**`Auto*` là gì.** `AutoModel`, `AutoTokenizer` không phải một kiến trúc nào cả. Chúng đọc `config.json` của repo, thấy `"model_type": "marian"` chẳng hạn, rồi tự chọn lớp đúng. Nhờ vậy đổi mô hình chỉ cần đổi một chuỗi. Nhưng `AutoModel` trả về **thân** mô hình không có đầu ra tác vụ — muốn phân loại thì dùng `AutoModelForSequenceClassification`, muốn dịch thì `AutoModelForSeq2SeqLM`. Nạp sai lớp thường hiện cảnh báo kiểu "một số trọng số không được dùng / một số được khởi tạo mới": đọc cảnh báo đó, đừng bỏ qua, vì nó nghĩa là một phần mô hình đang là số ngẫu nhiên.
+
+**`safetensors` và `pickle`.** File `.bin` kiểu cũ là `pickle` của PyTorch, và `pickle` có thể chứa code chạy khi nạp — tức là nạp một file lạ là chạy code của người lạ. `.safetensors` sinh ra để chữa đúng chỗ đó: chỉ chứa số, không chứa code. Ưu tiên repo có `.safetensors`.
+
+**Số lượt tải nói lên điều gì.** Nó nói mô hình này được nhiều người **thử**, không nói nó tốt. Nhiều lượt tải cũng đến từ các script tự động. Tín hiệu đáng tin hơn: model card viết cẩn thận, có kết quả đánh giá kèm cách đo, có tác giả rõ ràng, và có thảo luận trong tab `Community`.
+
+**Token của Hugging Face.** Cần khi tải mô hình gated hoặc khi đẩy nội dung lên. Đăng nhập bằng `hf auth login` trong terminal, hoặc `notebook_login()` trong notebook. Trên Colab/Kaggle thì đặt vào Secrets — đừng dán vào ô code, vì notebook lưu cả output.
+
+**Cache lớn nhanh hơn bạn tưởng.** Mỗi mô hình dịch cỡ vừa là vài trăm MB tới vài GB. Thử năm mô hình là hết đĩa Colab. `hf cache ls` một lần mỗi phiên dài là thói quen rẻ.
+
+## Sai lầm hay gặp, kèm triệu chứng
+
+| Sai lầm | Triệu chứng nhìn thấy | Cách sửa |
+|---|---|---|
+| Tokenizer và mô hình khác tên | Không lỗi gì; đầu ra là chữ nhưng vô nghĩa, hoặc lặp từ lạ | Đặt tên vào một biến, `from_pretrained` cả hai từ biến đó |
+| Kích thước từ vựng lệch nhau | `IndexError: index out of range in self` ngay lần chạy đầu | Kiểm `len(tok)` so với `model.config.vocab_size`; lấy lại đúng cặp |
+| Dùng mô hình dịch sai chiều | Đầu ra vẫn là một câu, nhưng sai ngôn ngữ hoặc lộn xộn | Đọc tên: `vi-en` là Việt → Anh; `en-vi` là chiều ngược lại |
+| Quên `src_lang`/`tgt_lang` với mô hình đa ngữ | Ra kết quả nhưng dịch sang ngôn ngữ không mong muốn | Khai mã ngôn ngữ đúng chuẩn mô hình yêu cầu (NLLB dùng `vie_Latn`, `eng_Latn`) |
+| Nạp `AutoModel` thay vì lớp có đầu ra tác vụ | Cảnh báo "newly initialized"; dự đoán như ngẫu nhiên | Dùng `AutoModelFor<Tác vụ>` đúng với việc cần làm |
+| Không truyền `attention_mask` | Kết quả tệ đi khi batch có câu dài ngắn lệch nhau | Truyền `**inputs`, đừng chỉ truyền `input_ids` |
+| Không đọc license | Phát hiện muộn là mô hình chỉ cho phi thương mại | Đọc license **trước** khi thử; kiểm bằng API nếu cần |
+| Tưởng `from_pretrained` tải vào thư mục dự án | Xoá dự án mà ổ đĩa vẫn đầy | Cache nằm ở `~/.cache/huggingface/hub`; dọn bằng `hf cache rm` |
+| Không tải trước khi chạy offline | `ConnectionError` / `OfflineModeIsEnabled` đúng lúc nộp bài | `snapshot_download` từ trước, rồi `local_files_only=True` |
+| Không ghim `revision` | Kết quả đổi giữa hai lần chạy cách nhau vài tuần | Truyền `revision="<commit hash>"` cho thí nghiệm cần lặp lại |
+| Dán token vào ô code | Token nằm trong notebook đã lưu và mọi bản fork | Dùng Secrets; lỡ lộ thì thu hồi token, không chỉ xoá ô |
+| Chọn mô hình theo số lượt tải | Mô hình phổ biến nhưng không hợp dữ liệu của bạn | Tự thử trên vài chục mẫu thật của bạn trước khi quyết |
+| Dùng mô hình tiếng Anh cho tiếng Việt | Vẫn ra nhãn kèm điểm số cao, nhưng sai hệ thống | Lọc theo thẻ ngôn ngữ trên Hub; kiểm `convert_ids_to_tokens` xem chữ có bị vỡ không |
+
+## Tra nhanh
+
+| Cần gì | Cách làm |
+|---|---|
+| Thử nhanh một tác vụ | `pipeline("<tác vụ>", model="<tên>")` |
+| Chạy pipeline trên GPU | thêm `device=0` (hoặc `device="cpu"` để ép CPU) |
+| Nạp đúng cặp | `TEN = "<tên>"` rồi `AutoTokenizer.from_pretrained(TEN)` và `AutoModelFor...from_pretrained(TEN)` |
+| Mã hoá một batch | `tok(danh_sach_cau, return_tensors="pt", padding=True)` |
+| Giải mã kết quả | `tok.batch_decode(ids, skip_special_tokens=True)` |
+| Xem token thật sự | `tok.convert_ids_to_tokens(ids)` |
+| Ghim phiên bản mô hình | `from_pretrained(TEN, revision="<commit hash>")` |
+| Thư mục cache mặc định | `~/.cache/huggingface/hub` |
+| Đổi chỗ cache | `os.environ["HF_HOME"] = "..."` **trước** khi import |
+| Liệt kê / dọn cache | `hf cache ls`, `hf cache rm <repo>`, `hf cache prune` |
+| Tải trước cả repo | `snapshot_download("<tên>")` |
+| Chạy offline | `HF_HUB_OFFLINE=1`, hoặc `local_files_only=True` |
+| Nạp bộ dữ liệu | `load_dataset("<tên>")`, xem nhanh với `split="train[:1%]"` |
+| Kiểm license bằng API | `GET https://huggingface.co/api/models/<tên>` rồi đọc thẻ `license:` |
+| Đăng nhập | `hf auth login` (terminal) hoặc `notebook_login()` (notebook) |
+
+## Tóm tắt
+
+- Hub là kho mở chứa **model, dataset và space**, mỗi cái là một repo Git có phiên bản; `from_pretrained` là lệnh lấy chúng về.
+- **Không ai kiểm duyệt chất lượng hộ bạn.** Model card và vài chục mẫu thử của chính bạn mới là căn cứ, không phải số lượt tải.
+- **Đọc license trước.** Bốn mô hình dịch Việt–Anh nằm cạnh nhau trên Hub mang bốn license khác hẳn nhau, từ `apache-2.0` thoải mái tới `cc-by-nc-4.0` cấm thương mại.
+- `pipeline` cho bạn chạy thử trong ba dòng, nhưng nó giấu tokenizer và hậu xử lý — biết nó giấu gì thì mới gỡ được lỗi.
+- **Mô hình và tokenizer là một cặp.** Ghép lệch không báo lỗi, chỉ cho kết quả vô nghĩa; đặt tên vào một biến duy nhất là cách phòng rẻ nhất.
+- `from_pretrained` tải vào cache dùng chung ở `~/.cache/huggingface/hub`; biết cấu trúc đó thì dọn được đĩa, đổi được chỗ, và chạy được offline.

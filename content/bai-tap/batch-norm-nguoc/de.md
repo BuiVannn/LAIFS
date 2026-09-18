@@ -2,7 +2,8 @@
 tieu_de: Batch norm lượt ngược, kiểm bằng gradient số
 khai_niem: batch-norm
 do_kho: 3
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Viết `batch_norm_nguoc(dY, X, gamma, eps=1e-5)` trả về tuple `(dX, dgamma, dbeta)`.

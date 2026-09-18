@@ -2,7 +2,8 @@
 tieu_de: Chia train/val/test và kiểm rò rỉ
 khai_niem: train-val-test
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Chia dữ liệu thì dễ; kiểm xem có rò rỉ không mới là phần hay bị bỏ qua. Bài này cài cả hai.

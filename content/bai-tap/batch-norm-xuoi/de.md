@@ -2,7 +2,8 @@
 tieu_de: Batch norm lượt xuôi, train và eval
 khai_niem: batch-norm
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Viết `batch_norm_xuoi(X, gamma, beta, tb_chay, ps_chay, huan_luyen, momentum=0.9, eps=1e-5)`.

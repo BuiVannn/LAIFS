@@ -4,7 +4,8 @@ ten_en: Expectation and Variance
 tang: 1
 thu_tu: 7
 tien_quyet: ["xac-suat-co-ban"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Kỳ vọng E[X] là trung bình có trọng số của các giá trị, mỗi giá trị nặng đúng bằng xác suất
   của nó — "trung bình dài hạn". Phương sai Var(X) = E[(X − E[X])²] là trung bình của bình
@@ -66,7 +67,7 @@ import CauHoi from '../../src/components/CauHoi.astro';
 
 Bạn dựng một mạng 8 lớp, mỗi lớp 100 neuron, khởi tạo trọng số bằng `np.random.randn(...)` (tức là lấy ngẫu nhiên với độ lệch chuẩn 1). Chạy một lượt xuôi, chưa học gì cả, và giá trị ở lớp cuối đã là $10^8$. Vài bước sau, loss là `nan`.
 
-Bạn sửa bằng cách nhân trọng số cho 0.01 cho chắc ăn. Lần này lớp cuối toàn số cỡ $10^{-16}$, gradient bằng 0 sạch, mạng không học gì hết.
+Bạn sửa bằng cách nhân trọng số cho 0.01 cho chắc ăn. Lần này lớp cuối toàn số cỡ $10^{-8}$, gradient bằng 0 sạch, mạng không học gì hết.
 
 Hai tai nạn đó không phải lỗi code. Chúng là hệ quả trực tiếp của một công thức về **phương sai của tổng**, và có một con số duy nhất chữa được cả hai: $1/\sqrt{d}$. Bài này đi từ định nghĩa tới con số đó.
 

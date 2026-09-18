@@ -28,6 +28,8 @@ DOT_BIEN = [
     ("bỏ nhân learning rate", r"\blr\s*\*\s*", ""),
     ("bỏ hệ số 2", r"\b2\s*\*\s*", ""),
     ("max → min", r"\bnp\.max\(", "np.min("),
+    ("đổi < thành >", r"(?<![<>=!-])<(?!=)", ">"),
+    ("chia → nhân", r"(?<![/*])\s/\s(?![/*])", " * "),
     ("bỏ keepdims", r",\s*keepdims=True", ""),
     ("đổi hằng số (×1.1)", r"(?<![\w.])(\d+\.\d+)(?![\w.])", None),  # xử lý riêng
 ]
