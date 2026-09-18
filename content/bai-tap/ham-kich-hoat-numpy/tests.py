@@ -1,3 +1,4 @@
+# dot-bien-bo-qua: đổi >= thành > — tại x = 0 hai nhánh sigmoid cho cùng 0.5
 import numpy as np
 
 X = np.array([-2.0, 0.0, 2.0, 5.0])

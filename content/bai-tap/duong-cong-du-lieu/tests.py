@@ -1,3 +1,4 @@
+# dot-bien-bo-qua: đổi >= thành >, đổi <= thành < — tại đúng đầu mút, nội suy cho cùng kết quả
 import math
 
 # Số thật: Koehn & Knowles 2017 (arXiv:1706.03872), Figure 3, Anh->Tay Ban Nha, he NMT.

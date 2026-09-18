@@ -1,3 +1,4 @@
+# dot-bien-bo-qua: đổi hằng số — độ lệch chuẩn khởi tạo 0.1 hay 0.11 đều hợp lệ
 import numpy as np
 
 

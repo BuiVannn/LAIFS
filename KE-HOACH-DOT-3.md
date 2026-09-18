@@ -157,9 +157,17 @@ Mỗi đợt vẫn theo quy trình cũ: agent soạn → tự kiểm chứng m�
 4. **Chất lượng**: càng nhiều bài càng khó giữ mức kiểm chứng như hiện nay. Đề xuất giữ nguyên quy trình, chấp nhận chậm hơn.
 5. **Trùng lặp với AIO**: sách AIO đã có bài tập rất sát. Cần tự viết bài khác hẳn, đồng thời link tới AIO như nguồn luyện thêm.
 
-## 7. Câu hỏi cho bạn
+## 7. Quyết định đã chốt (2026-09-18)
 
-1. Web cam kết **phi thương mại** lâu dài chứ? (quyết định việc dùng nlp-book)
-2. Bài PyTorch chạy trên **Colab** có ổn không, hay bạn muốn đợi tới khi có server chấm riêng?
-3. Thứ tự ưu tiên: làm **PyTorch trước** hay **điền nốt các khái niệm nền (overfitting, regularization, optimizer…) trước**?
-4. Các bài "đọc hiểu code" nên lấy code từ đâu: tự viết, hay đọc code thật của Hugging Face/PyTorch?
+1. **Web phi thương mại lâu dài** → được dùng nlp-book (CC BY-NC 4.0) để dịch và biên soạn lại. Ghi rõ trong README; nếu sau này đổi ý thì phải gỡ toàn bộ phần dẫn xuất.
+2. **Bài PyTorch chạy trên Colab**, có ô `assert` tự kiểm trong notebook.
+3. **Điền hết khái niệm nền trước**, PyTorch làm sau.
+4. **Bài đọc hiểu code dùng cả hai nguồn, phân vai rõ**: bài nhập môn dùng code tự viết (ngắn, sạch, không vướng bản quyền); bài nâng cao trích đoạn ngắn từ dự án license mở (PyTorch BSD-3, Hugging Face Apache-2.0, micrograd/minGPT MIT), luôn ghi nguồn và link tới file gốc. Không trích code từ sách thương mại.
+
+## 8. Đã làm xong (đợt 3.0)
+
+- `kiem_tra_gradient()` trong `runner.py`: so gradient giải tích với sai phân trung tâm, mọi bài DL dùng chung.
+- **Gợi ý lỗi tiếng Việt**: 12 lỗi Python hay gặp (chưa viết code, sai tên biến, lệch shape, tràn số, quên `return`…) hiện kèm cách sửa.
+- **Tự dừng sau 10 giây** khi code chạy quá lâu, kèm gợi ý về vòng lặp vô hạn; sau đó vẫn chạy lại được.
+- `npm run dot-bien`: tự động cài 13 lỗi kinh điển vào từng `solution.py` và báo lỗi nào test không bắt được. Có cơ chế khai báo bỏ qua cho đột biến tương đương về toán (`# dot-bien-bo-qua: … — lý do`).
+- Nhờ script này đã bịt 2 lỗ hổng thật: test ổn định số của softmax trong `chu-y-dot-product` và `attention-co-mask` quá dễ, trừ min hay cộng max đều lọt.

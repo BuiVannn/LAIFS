@@ -11,6 +11,10 @@ def test_softmax_co_ban():
 
 
 def test_softmax_on_dinh_so():
+    # Khoảng cách lớn: chỉ trừ ĐÚNG max mới không tràn (trừ min hay cộng max đều hỏng)
+    rong = softmax(np.array([0.0, 900.0, 1000.0]))
+    assert np.all(np.isfinite(rong)), f"tràn số: nhận {rong} — phải trừ np.max theo axis trước khi exp"
+    assert np.isclose(rong[2], 1.0) and rong[0] < 1e-300, f"nhận {rong}"
     p = softmax(np.array([1000.0, 1001.0, 1002.0]))
     assert np.all(np.isfinite(p)), f"tràn số: nhận {p} — hãy trừ max theo axis trước khi exp"
     assert np.allclose(p, [0.09003057, 0.24472847, 0.66524096]), (

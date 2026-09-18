@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { ghiBaiTapDat } from '../tien-do';
 
-type Test = { ten: string; dat: boolean; loi?: string };
-type KetQua = { loi: string | null; stdout: string; tests: Test[] };
+type Test = { ten: string; dat: boolean; loi?: string; goi_y?: string | null };
+type KetQua = { loi: string | null; goi_y?: string | null; stdout: string; tests: Test[] };
+
+const GIOI_HAN_GIAY = 10; // chạy quá lâu thì dừng, thường là lặp vô hạn
 
 export default function CodeRunner({ id, starter, tests }: { id: string; starter: string; tests: string }) {
   const khoa = `code:${id}`;
@@ -10,6 +12,7 @@ export default function CodeRunner({ id, starter, tests }: { id: string; starter
   const [trangThai, setTrangThai] = useState<'dang-tai' | 'san-sang' | 'dang-chay'>('dang-tai');
   const [kq, setKq] = useState<KetQua | null>(null);
   const worker = useRef<Worker | null>(null);
+  const hetGio = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const taoWorker = () => {
     worker.current?.terminate();
@@ -19,7 +22,8 @@ export default function CodeRunner({ id, starter, tests }: { id: string; starter
       if (e.data.sanSang) return setTrangThai('san-sang');
       if (e.data.dangTai) return;
       setTrangThai('san-sang');
-      const moi: KetQua = { loi: e.data.loi ?? null, stdout: e.data.stdout ?? '', tests: e.data.tests ?? [] };
+      clearTimeout(hetGio.current);
+      const moi: KetQua = { loi: e.data.loi ?? null, goi_y: e.data.goi_y ?? null, stdout: e.data.stdout ?? '', tests: e.data.tests ?? [] };
       setKq(moi);
       if (!moi.loi && moi.tests.length && moi.tests.every((t) => t.dat)) {
         ghiBaiTapDat(id);
@@ -31,7 +35,7 @@ export default function CodeRunner({ id, starter, tests }: { id: string; starter
   useEffect(() => {
     try { const luu = localStorage.getItem(khoa); if (luu) setCode(luu); } catch {}
     taoWorker();
-    return () => worker.current?.terminate();
+    return () => { clearTimeout(hetGio.current); worker.current?.terminate(); };
   }, []);
 
   const doiCode = (v: string) => {
@@ -43,6 +47,10 @@ export default function CodeRunner({ id, starter, tests }: { id: string; starter
     setKq(null);
     setTrangThai('dang-chay');
     worker.current!.postMessage({ code, tests });
+    hetGio.current = setTimeout(() => {
+      taoWorker(); // dừng hẳn worker đang kẹt
+      setKq({ loi: `Đã chạy quá ${GIOI_HAN_GIAY} giây nên bị dừng.`, goi_y: 'Thường là vòng lặp không có điều kiện dừng, hoặc mảng quá lớn. Kiểm tra lại điều kiện `while`.', stdout: '', tests: [] });
+    }, GIOI_HAN_GIAY * 1000);
   };
 
   // ponytail: textarea thường, đổi sang CodeMirror khi cần tô màu cú pháp / tự thụt lề
@@ -69,7 +77,10 @@ export default function CodeRunner({ id, starter, tests }: { id: string; starter
       {kq && (
         <div className="ket-qua" aria-live="polite">
           {kq.loi ? (
-            <pre className="loi">{kq.loi}</pre>
+            <>
+              <pre className="loi">{kq.loi}</pre>
+              {kq.goi_y && <p className="goi-y">💡 {kq.goi_y}</p>}
+            </>
           ) : (
             <>
               <p><b className={soDat === kq.tests.length ? 'ok' : 'canh-bao'}>{soDat}/{kq.tests.length} test đạt</b>{soDat === kq.tests.length && ' 🎉'}</p>
@@ -77,6 +88,7 @@ export default function CodeRunner({ id, starter, tests }: { id: string; starter
                 {kq.tests.map((t) => (
                   <li key={t.ten} className={t.dat ? 'ok' : 'canh-bao'}>
                     {t.dat ? '✓' : '✗'} <code>{t.ten}</code>{t.loi && <> — {t.loi}</>}
+                    {!t.dat && t.goi_y && <div className="goi-y" style={{ marginTop: 6 }}>💡 {t.goi_y}</div>}
                   </li>
                 ))}
               </ul>

@@ -8,8 +8,13 @@ npm run dev            # http://localhost:4321 — hiện cả bản nháp
 npm run build          # bản build chỉ chứa nội dung trang_thai: da_duyet
 npm run check:bai-tap  # kiểm tra lời giải mẫu đạt hết test (cần python3 + numpy)
 npm run check:tien-do  # kiểm tra logic lịch ôn tập và mức thành thạo
+npm run dot-bien       # cài lỗi vào lời giải mẫu, xem bộ test có bắt được không
 npm run build:xem-truoc # build KÈM bản nháp, dùng cho bản deploy nội bộ (tự thêm thẻ noindex)
 ```
+
+## Giấy phép nội dung
+
+Web này **phi thương mại**. Cam kết đó là điều kiện để dùng lại nội dung theo license CC BY-NC (ví dụ sách *NLP: Neural Networks and Large Language Models*). Bài nào dẫn xuất từ nguồn CC phải ghi nguồn và giữ đúng license trong frontmatter.
 
 ## Deploy
 

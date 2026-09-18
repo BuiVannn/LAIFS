@@ -9,7 +9,8 @@
     "check:bai-tap": "python3 scripts/kiem_tra_bai_tap.py",
     "check:tien-do": "node scripts/kiem_tra_tien_do.ts",
     "build:xem-truoc": "HIEN_NHAP=1 astro build",
-    "quet-pdf": "python3 scripts/quet_pdf.py"
+    "quet-pdf": "python3 scripts/quet_pdf.py",
+    "dot-bien": "python3 scripts/dot_bien.py"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^7.3.1",

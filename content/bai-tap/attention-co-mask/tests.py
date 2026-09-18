@@ -71,3 +71,15 @@ def test_ma_hoa_vi_tri_nam_trong_khoang():
     assert np.shape(PE) == (50, 16)
     assert PE.min() >= -1 and PE.max() <= 1, "sin/cos luôn nằm trong [-1, 1]"
     assert abs(PE[:, 0] - PE[:, 2]).max() > 0.5, "các cặp chiều phải dùng tần số KHÁC nhau"
+
+
+def test_on_dinh_so_voi_diem_lon():
+    # Điểm rất lớn: chỉ TRỪ max mới an toàn; cộng max hay trừ min đều làm exp tràn
+    Q = np.array([[0.0, 0.0], [300.0, 300.0]])
+    K = np.array([[0.0, 0.0], [300.0, 300.0]])
+    V = np.array([[1.0, 0.0], [0.0, 1.0]])
+    ra, A = attention(Q, K, V)
+    assert np.all(np.isfinite(ra)) and np.all(np.isfinite(A)), (
+        f"tràn số với điểm lớn: A = {A} — hãy trừ điểm lớn nhất theo hàng trước khi exp"
+    )
+    assert np.allclose(A.sum(axis=1), 1), f"mỗi hàng vẫn phải cộng lại bằng 1, nhận {A.sum(axis=1)}"
