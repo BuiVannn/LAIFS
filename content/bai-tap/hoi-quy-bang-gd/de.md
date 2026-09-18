@@ -2,7 +2,8 @@
 tieu_de: Hồi quy tuyến tính bằng gradient descent
 khai_niem: gradient-descent
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Cho dữ liệu `x`, `y` (mảng numpy 1 chiều). Tìm `w`, `b` để đường thẳng $\hat{y} = wx + b$ khớp dữ liệu nhất, bằng cách tối thiểu hoá hàm mất mát MSE:

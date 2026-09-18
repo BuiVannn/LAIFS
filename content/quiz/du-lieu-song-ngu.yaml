@@ -1,4 +1,5 @@
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 cau_hoi:
   - id: q1
     loai: mot
@@ -108,15 +109,15 @@ cau_hoi:
     do_kho: 2
     de: "Bộ dữ liệu PhoMT (EMNLP 2021) cho cặp Việt–Anh có bao nhiêu cặp câu?"
     lua_chon:
-      - Khoảng 0.12 triệu
+      - Khoảng 133 nghìn
       - Khoảng 3.02 triệu
       - Khoảng 10.8 tỉ
       - Khoảng 300 nghìn
     dap_an: 1
     giai_thich: >-
-      PhoMT có 3.02 triệu cặp câu, lớn hơn benchmark IWSLT15 En–Vi đúng 2.9 triệu cặp (vậy IWSLT15
-      khoảng 0.12 triệu). Con số 10.8 tỉ là của CCMatrix — tổng số cặp khai thác được cho 90 ngôn ngữ,
-      không phải riêng Việt–Anh.
+      PhoMT có 3.02 triệu cặp câu, lớn hơn benchmark IWSLT15 En–Vi 2.9 triệu cặp. 133 nghìn chính là
+      kích thước của IWSLT15 En–Vi (theo mục 1 của bài PhoMT). Con số 10.8 tỉ là của CCMatrix — tổng
+      số cặp khai thác được cho 90 ngôn ngữ, không phải riêng Việt–Anh.
 
   - id: q9
     loai: nhieu

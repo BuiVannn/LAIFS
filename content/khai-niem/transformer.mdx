@@ -4,7 +4,8 @@ ten_en: Transformer
 tang: 5
 thu_tu: 37
 tien_quyet: ["attention", "lan-truyen-nguoc"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Kiến trúc mạng neuron cho chuỗi, bỏ hẳn phần đệ quy của RNN và chỉ dùng attention: mỗi token
   tự sinh ra ba vector Q (truy vấn), K (khoá), V (giá trị), rồi trộn thông tin từ MỌI token khác
@@ -60,7 +61,7 @@ import CauHoi from '../../src/components/CauHoi.astro';
 
 Mô hình [seq2seq](/khai-niem/seq2seq) dùng RNN đọc câu nguồn từng từ một. Muốn tính trạng thái ở từ thứ 30 thì phải tính xong từ thứ 29, nên **không song song hoá được** theo chiều dài câu, và thông tin từ đầu câu phải đi qua 29 bước mới tới cuối.
 
-[Attention](/khai-niem/attention) đã gỡ được nút thắt thứ hai: decoder nhìn thẳng vào mọi trạng thái của encoder thay vì chỉ một vector tóm tắt. Bài này lấy ý tưởng đó đẩy đến tận cùng: **vứt luôn phần đệ quy, chỉ giữ attention**. Đó là Transformer.
+[Attention](/khai-niem/attention) đã gỡ được nút thắt thứ hai: decoder (bộ giải mã) nhìn thẳng vào mọi trạng thái của encoder (bộ mã hoá) thay vì chỉ một vector tóm tắt. Bài này lấy ý tưởng đó đẩy đến tận cùng: **vứt luôn phần đệ quy, chỉ giữ attention**. Đó là Transformer.
 
 Ví dụ xuyên suốt: dịch **"Tôi ăn cơm" → "I eat rice"**.
 
@@ -98,8 +99,9 @@ Lấy chuỗi đích ba token **I · eat · rice**, giả sử sau khi chiếu t
 
 $$
 Q = K = V = \begin{pmatrix} 1 & 0 \\ 0 & 1 \\ 1 & 1 \end{pmatrix}
-\quad \text{(hàng 1 = I, hàng 2 = eat, hàng 3 = rice)}
 $$
+
+Hàng 1 là *I*, hàng 2 là *eat*, hàng 3 là *rice*.
 
 **Bước 1. Điểm thô.** $QK^\top$ rồi chia $\sqrt{d_k} = \sqrt{2} \approx 1.4142$:
 
@@ -125,6 +127,8 @@ $$
 0.2483 \cdot (1, 0) + 0.2483 \cdot (0, 1) + 0.5035 \cdot (1, 1) = (0.7517,\; 0.7517)
 $$
 
+(Cộng tay các số đã làm tròn ra 0.7518; 0.7517 là kết quả tính từ giá trị chưa làm tròn — đó cũng là con số bảng dưới hiện ra.)
+
 Làm cho cả ba hàng cùng lúc là xong một lớp self-attention. Để ý: không có vòng lặp theo thời gian nào cả, chỉ là hai phép nhân ma trận.
 
 ### Vì sao phải chia $\sqrt{d_k}$
@@ -142,12 +146,14 @@ $$
 0 & 0 & 0
 \end{pmatrix}
 \;\Longrightarrow\;
-\text{trọng số} = \begin{pmatrix}
+A = \begin{pmatrix}
 1 & 0 & 0 \\
 0.3302 & 0.6698 & 0 \\
 0.2483 & 0.2483 & 0.5035
 \end{pmatrix}
 $$
+
+($A$ là bảng trọng số sau softmax.)
 
 $e^{-\infty} = 0$ nên ô bị che nhận trọng số đúng bằng 0, và các ô còn lại **vẫn cộng thành 1** (softmax chỉ chuẩn hoá trên phần không bị che). Hàng 1 chỉ còn chính nó nên trọng số bằng 1.
 
@@ -244,7 +250,7 @@ Khoảng **3,15 triệu** — nhớ nhanh bằng công thức $12 d_{model}^2$ (
 Khối **decoder** có ba tầng con, theo thứ tự:
 
 1. **Self-attention có mask nhân quả** trên câu đích đã sinh — nhìn lại những gì mình vừa viết.
-2. **Cross-attention**: $Q$ lấy từ decoder, còn $K$ và $V$ lấy từ **đầu ra encoder**. Đây đúng là attention của seq2seq, và cũng là chỗ câu tiếng Việt đi vào câu tiếng Anh. Bảng chú ý ở đây có shape $(n_{\text{đích}}, n_{\text{nguồn}})$, không vuông.
+2. **Cross-attention**: $Q$ lấy từ decoder, còn $K$ và $V$ lấy từ **đầu ra encoder**. Đây đúng là attention của seq2seq, và cũng là chỗ câu tiếng Việt đi vào câu tiếng Anh. Bảng chú ý ở đây có shape (số token đích × số token nguồn), không vuông.
 3. **FFN** giống encoder.
 
 Cuối cùng, một ma trận chiếu ra kích thước từ điển + softmax cho phân phối xác suất của token kế tiếp. Cách huấn luyện và cách dùng phân phối đó để sinh câu là nội dung bài [Dịch máy neural: huấn luyện & giải mã](/khai-niem/dich-may-nmt).

@@ -1,0 +1,35 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import { hienThi } from '../../lib';
+
+const tatCa = (await getCollection('taiLieu')).filter(hienThi).sort((a, b) => a.data.tieu_de.localeCompare(b.data.tieu_de, 'vi'));
+const khaiNiem = new Map((await getCollection('khaiNiem')).map((k) => [k.id, k.data.ten_vi]));
+const LOAI = { sach: 'Sách', paper: 'Paper', 'khoa-hoc': 'Khoá học', 'bai-viet': 'Bài viết' };
+const QUYEN = { mo: 'License mở', 'thuong-mai': 'Sách thương mại', 'khong-ro': 'Chưa rõ quyền' };
+---
+<Layout tieuDe="Thư viện" trang="thu-vien">
+  <div class="trang-hep">
+    <p class="nhan-muc">Thư viện</p>
+    <h1>Sách &amp; tài liệu</h1>
+    <p class="mo">
+      Đây là <b>phiếu tra cứu</b>: thông tin sách, chương nào ứng với khái niệm nào, và ghi chú của bạn. Web không chứa nội dung
+      sách và không có file tải về — file PDF nằm ở máy bạn.
+    </p>
+    <ul class="danh-sach-bai">
+      {tatCa.map((t) => (
+        <li>
+          <div>
+            <a href={`/thu-vien/${t.id}`}><b>{t.data.tieu_de}</b></a>
+            <div class="mo" style="font-size: 14px">
+              {t.data.tac_gia.join(', ')}{t.data.nam && ` · ${t.data.nam}`} · {LOAI[t.data.loai]}
+              {t.data.khai_niem.length > 0 && ` · ${t.data.khai_niem.map((k) => khaiNiem.get(k) ?? k).slice(0, 3).join(', ')}`}
+            </div>
+          </div>
+          <span class="muc-do">{QUYEN[t.data.quyen]}</span>
+        </li>
+      ))}
+    </ul>
+    {tatCa.length === 0 && <p>Chưa có tài liệu nào. Chạy <code>npm run quet-pdf -- thư-mục-pdf</code> để tạo phiếu.</p>}
+  </div>
+</Layout>

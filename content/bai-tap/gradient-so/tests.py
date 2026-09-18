@@ -23,6 +23,14 @@ def test_ma_tran_cung_shape():
     assert np.allclose(g, 2 * W, atol=1e-4), f"cần ≈ 2W = {2 * W}, nhận {g}"
 
 
+def test_tra_bien_ve_gia_tri_cu_sau_moi_lan_nhich():
+    # f = 100·x·y. Tại (0, 3): ∂f/∂y = 100·x = 0 đúng bằng 0.
+    # Nếu nhích x rồi quên trả x về giá trị cũ, đạo hàm theo y sẽ tính ở x sai và lệch khỏi 0.
+    g = gradient_so(lambda v: 100 * v[0] * v[1], np.array([0.0, 3.0]))
+    assert np.allclose(g, [300.0, 0.0], atol=1e-6), \
+        f"cần ≈ [300, 0], nhận {g}. Sau khi nhích một biến phải trả nó về giá trị cũ rồi mới sang biến sau"
+
+
 def test_khong_sua_dau_vao():
     x = np.array([1.0, -2.0, 0.5])
     ban_sao = x.copy()

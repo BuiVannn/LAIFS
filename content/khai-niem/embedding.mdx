@@ -4,7 +4,8 @@ ten_en: "Word Embedding"
 tang: 5
 thu_tu: 34
 tien_quyet: ["vector-ma-tran", "tokenization"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Cách biểu diễn mỗi token bằng một vector số thực vài trăm chiều, lấy từ một bảng tra
   shape (V, d) trong đó V là kích thước vocab. Bảng này là tham số của mô hình: nó được
@@ -88,7 +89,7 @@ mèo = (0.21, −1.04, 0.88, …, 0.13)     ← 512 số thực
 
 Toàn bộ vocab xếp thành một ma trận $E$ shape $(V, d)$: **mỗi hàng là vector của một token**. "Tra embedding của token id 203" chỉ là lấy hàng thứ 203 — một phép tra bảng, không phải nhân ma trận.
 
-Với $V = 32000$, $d = 512$, bảng này có $32000 \times 512 = 16{,}384{,}000$ tham số. Khoảng 16 triệu số, thường là một trong những khối tham số lớn nhất của mô hình dịch.
+Với $V = 32000$, $d = 512$, bảng này có $32000 \times 512 = 16{.}384{.}000$ tham số. Khoảng 16 triệu số, thường là một trong những khối tham số lớn nhất của mô hình dịch.
 
 **Shape khi chạy thật.** Batch 8 câu, mỗi câu 20 token:
 

@@ -15,6 +15,8 @@ def test_du_doan_shape_va_nguong():
 def test_mot_epoch_cong_and():
     w, b = huan_luyen_perceptron(X_CONG, np.array([0, 0, 0, 1]), lr=1.0, so_epoch=1)
     assert np.allclose(w, [1, 1]) and np.isclose(b, 0), f"sau 1 epoch cần w = [1, 1], b = 0; nhận w = {w}, b = {b}. Nhớ khởi tạo bằng 0 và duyệt đúng thứ tự"
+    w, b = huan_luyen_perceptron(X_CONG, np.array([0, 0, 0, 1]), lr=0.5, so_epoch=1)
+    assert np.allclose(w, [0.5, 0.5]) and np.isclose(b, 0), f"với lr = 0.5, sau 1 epoch cần w = [0.5, 0.5], b = 0; nhận w = {w}, b = {b}. Nhớ nhân lr vào mức cập nhật"
 
 
 def test_hoc_duoc_and_va_or():

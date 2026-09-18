@@ -4,7 +4,8 @@ ten_en: Attention Mechanism
 tang: 5
 thu_tu: 36
 tien_quyet: ["seq2seq", "nhan-ma-tran", "softmax"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Cơ chế cho phép bộ giải mã, ở MỖI bước sinh từ, nhìn lại toàn bộ các trạng thái của câu nguồn
   và tự tính một vector ngữ cảnh riêng cho bước đó: chấm điểm độ hợp giữa trạng thái giải mã hiện
@@ -98,53 +99,51 @@ Khác biệt nằm ở chỉ số $t$: seq2seq có **một** $c$ cho cả câu, 
 
 ## Tính tay: dịch "con mèo đen" → "the black cat"
 
-Giả sử bộ mã hoá đã học xong và cho ba trạng thái (2 chiều cho dễ tính):
+Giả sử bộ mã hoá đã học xong và cho ba trạng thái (2 chiều cho dễ tính), đánh số theo thứ tự `con` · `mèo` · `đen`:
 
 $$
-h_{\text{con}} = (2;\ 0), \qquad h_{\text{mèo}} = (0;\ 2), \qquad h_{\text{đen}} = (-1{,}5;\ -1{,}5)
+h_1 = (2;\ 0), \qquad h_2 = (0;\ 2), \qquad h_3 = (-1.5;\ -1.5)
 $$
 
-**Bước 1: sinh từ `the`.** Trạng thái giải mã lúc này là $s_1 = (1{,}5;\ 0)$.
+**Bước 1: sinh từ `the`.** Trạng thái giải mã lúc này là $s_1 = (1.5;\ 0)$.
 
 Chấm điểm bằng tích vô hướng:
 
 $$
-e_{\text{con}} = 2 \times 1{,}5 + 0 \times 0 = 3
-$$
-$$
-e_{\text{mèo}} = 0 \times 1{,}5 + 2 \times 0 = 0
-$$
-$$
-e_{\text{đen}} = (-1{,}5) \times 1{,}5 + (-1{,}5) \times 0 = -2{,}25
+e_1 = 2 \times 1.5 + 0 \times 0 = 3
+\qquad
+e_2 = 0 \times 1.5 + 2 \times 0 = 0
+\qquad
+e_3 = (-1.5) \times 1.5 + (-1.5) \times 0 = -2.25
 $$
 
-Softmax: $e^{3} = 20{,}0855$, $e^{0} = 1$, $e^{-2{,}25} = 0{,}1054$, tổng $= 21{,}1909$.
+Softmax: $e^{3} = 20.0855$, $e^{0} = 1$, $e^{-2.25} = 0.1054$, tổng $= 21.1909$.
 
 $$
-\alpha = \left(\frac{20{,}0855}{21{,}1909};\ \frac{1}{21{,}1909};\ \frac{0{,}1054}{21{,}1909}\right) = (0{,}9478;\ 0{,}0472;\ 0{,}0050)
+\alpha = \left(\frac{20.0855}{21.1909};\ \frac{1}{21.1909};\ \frac{0.1054}{21.1909}\right) = (0.9478;\ 0.0472;\ 0.0050)
 $$
 
-Cộng lại đúng $1{,}0000$ — luôn phải kiểm tra điều này khi tự code.
+Cộng lại đúng $1.0000$ — luôn phải kiểm tra điều này khi tự code.
 
 Trộn:
 
 $$
-c_1 = 0{,}9478 \cdot (2;\,0) + 0{,}0472 \cdot (0;\,2) + 0{,}0050 \cdot (-1{,}5;\,-1{,}5) = (1{,}8882;\ 0{,}0869)
+c_1 = 0.9478 \cdot (2;\,0) + 0.0472 \cdot (0;\,2) + 0.0050 \cdot (-1.5;\,-1.5) = (1.8882;\ 0.0869)
 $$
 
-$c_1$ gần như trùng $h_{\text{con}} = (2; 0)$: bộ giải mã gần như chỉ đọc một từ nguồn duy nhất, đúng cái nó cần.
+$c_1$ gần như trùng $h_1 = (2; 0)$, tức trạng thái của từ `con`: bộ giải mã gần như chỉ đọc một từ nguồn duy nhất, đúng cái nó cần.
 
-**Hai bước còn lại.** Làm y hệt với $s_2 = (-1; -1)$ và $s_3 = (0; 1{,}5)$:
+**Hai bước còn lại.** Làm y hệt với $s_2 = (-1; -1)$ và $s_3 = (0; 1.5)$:
 
-| Bước | Từ đích | $s_t$ | Điểm $(e_{\text{con}}, e_{\text{mèo}}, e_{\text{đen}})$ | Trọng số $\alpha$ | $c_t$ |
+| Bước | Từ đích | $s_t$ | Điểm $(e_1, e_2, e_3)$ cho `con` · `mèo` · `đen` | Trọng số $\alpha$ | $c_t$ |
 |---|---|---|---|---|---|
-| 1 | the | (1,5; 0) | (3; 0; −2,25) | **(0,9478; 0,0472; 0,0050)** | (1,8882; 0,0869) |
-| 2 | black | (−1; −1) | (−2; −2; 3) | **(0,0066; 0,0066; 0,9867)** | (−1,4668; −1,4668) |
-| 3 | cat | (0; 1,5) | (0; 3; −2,25) | **(0,0472; 0,9478; 0,0050)** | (0,0869; 1,8882) |
+| 1 | the | (1.5; 0) | (3; 0; −2.25) | **(0.9478; 0.0472; 0.0050)** | (1.8882; 0.0869) |
+| 2 | black | (−1; −1) | (−2; −2; 3) | **(0.0066; 0.0066; 0.9867)** | (−1.4668; −1.4668) |
+| 3 | cat | (0; 1.5) | (0; 3; −2.25) | **(0.0472; 0.9478; 0.0050)** | (0.0869; 1.8882) |
 
 Đọc cột trọng số theo hàng: `the` → `con`, `black` → `đen`, `cat` → `mèo`. **Đường căn chỉnh bắt chéo**, vì tiếng Việt đặt tính từ sau danh từ còn tiếng Anh đặt trước. Không ai dạy mô hình luật ngữ pháp này; nó rơi ra từ việc huấn luyện dịch.
 
-(Các số làm tròn 4 chữ số, nên cộng tay ba trọng số ở hàng 2 ra 0,9999 thay vì đúng 1.)
+(Các số làm tròn 4 chữ số, nên cộng tay ba trọng số ở hàng 2 ra 0.9999 thay vì đúng 1.)
 
 <CauHoi cau="attention/q5" />
 
@@ -160,7 +159,7 @@ Bấm từng bước để mô hình sinh lần lượt `the`, `black`, `cat`. M
     de: "Nguồn: con · mèo · đen. Khi mô hình sinh từ tiếng Anh thứ hai là `black`, nó sẽ dồn trọng số vào từ nguồn nào nhiều nhất?",
     lua_chon: ["con", "mèo", "đen"],
     dap_an: 2,
-    giai_thich: "`black` dịch từ `đen`, và `đen` là từ nguồn CUỐI cùng — trọng số 0,987 nằm ở cột thứ ba, không phải cột thứ hai. Đường căn chỉnh của cặp câu này bắt chéo (the→con, black→đen, cat→mèo) vì tiếng Việt đặt tính từ sau danh từ. Attention không hề ép trọng số nằm trên đường chéo."
+    giai_thich: "`black` dịch từ `đen`, và `đen` là từ nguồn CUỐI cùng — trọng số 0.987 nằm ở cột thứ ba, không phải cột thứ hai. Đường căn chỉnh của cặp câu này bắt chéo (the→con, black→đen, cat→mèo) vì tiếng Việt đặt tính từ sau danh từ. Attention không hề ép trọng số nằm trên đường chéo."
   }}
 />
 
@@ -205,5 +204,5 @@ Một lợi ích phụ rất được việc: ma trận chú ý **nhìn được
 - Attention cho bộ giải mã nhìn lại **toàn bộ** trạng thái câu nguồn ở mỗi bước, thay vì một vector nén duy nhất.
 - Ba bước lặp lại ở mọi bước giải mã: **điểm** $e_j = h_j \cdot s_t$ → **softmax** $\alpha = \text{softmax}(e)$ → **trộn** $c_t = \sum_j \alpha_j h_j$.
 - Trọng số không âm và tổng bằng 1 trên mỗi bước; $c_t$ có cùng shape $(k,)$ với một trạng thái nguồn; cả ma trận trọng số có shape (số từ đích, số từ nguồn).
-- Trên `con mèo đen` → `the black cat`, trọng số bắt chéo (`black` dồn 0,9867 vào `đen`) mà không cần dạy luật ngữ pháp nào.
+- Trên `con mèo đen` → `the black cat`, trọng số bắt chéo (`black` dồn 0.9867 vào `đen`) mà không cần dạy luật ngữ pháp nào.
 - Bước tiếp theo của câu chuyện: nếu attention đã hữu ích đến thế, có cần giữ RNN nữa không? Câu trả lời "không" chính là [Transformer](/khai-niem/transformer).

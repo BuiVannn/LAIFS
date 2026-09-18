@@ -2,7 +2,8 @@
 tieu_de: Self-attention có mask nhân quả
 khai_niem: transformer
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Cài lõi của một khối Transformer bằng NumPy thuần.
@@ -10,8 +11,10 @@ Cài lõi của một khối Transformer bằng NumPy thuần.
 **1.** `attention(Q, K, V, mask_nhan_qua=True)` với `Q`, `K` shape `(n, d_k)` và `V` shape `(n, d_v)`. Trả về cặp `(ra, trong_so)`:
 
 $$
-\text{trọng số} = \mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right) \qquad \text{ra} = \text{trọng số} \cdot V
+A = \mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right) \qquad \mathrm{ra} = A \cdot V
 $$
+
+($A$ chính là `trong_so` trả về.)
 
 - `trong_so` shape `(n, n)`, softmax theo **từng hàng** (mỗi hàng cộng lại bằng 1), `ra` shape `(n, d_v)`.
 - Khi `mask_nhan_qua=True`: trước khi softmax, đặt các ô **phía trên đường chéo** (token $i$ nhìn token $j > i$, tức là nhìn tương lai) thành `-np.inf`. Vì $e^{-\infty} = 0$, các ô đó nhận trọng số đúng bằng 0 còn các ô còn lại trong hàng **vẫn cộng thành 1**.

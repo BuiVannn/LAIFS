@@ -2,7 +2,8 @@
 tieu_de: Thử nhiều learning rate
 khai_niem: learning-rate
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Viết hàm `chon_learning_rate(ham_loss, gradient, w0, cac_lr, so_buoc)`:

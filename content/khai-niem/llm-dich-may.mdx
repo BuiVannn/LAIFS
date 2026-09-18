@@ -4,7 +4,8 @@ ten_en: "LLMs for Machine Translation"
 tang: 5
 thu_tu: 43
 tien_quyet: ["transformer", "danh-gia-dich", "dich-may-it-tai-nguyen"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Dùng một mô hình ngôn ngữ lớn đa năng để dịch, bằng cách mô tả nhiệm vụ trong prompt thay
   vì huấn luyện riêng cho cặp ngôn ngữ đó. Chất lượng điều khiển chủ yếu qua prompt: hướng
@@ -124,7 +125,7 @@ Cùng một mô hình, cùng một giao thức chấm (ESA), chênh nhau gần m
 WMT25 đánh giá 60 hệ thống: 36 hệ do người dự thi nộp và 24 hệ là bản dịch thu từ các LLM lớn và các dịch vụ dịch trực tuyến phổ biến. Đánh giá của người cho kết quả:
 
 - **Gemini 2.5 Pro đứng đầu tổng thể**, vào cụm dẫn đầu ở **14 trên 16** cặp ngôn ngữ được chấm bởi người, và ngang bằng hoặc vượt bản dịch của người ở **10** trong số đó.
-- **Đánh giá tự động cho kết quả khác hẳn:** theo chỉ số tự động (AutoRank), hệ Shy-hunyuan-MT xếp nhất ở tất cả các cặp trừ một. Nhưng khi người chấm, hệ này tụt hẳn — ở cặp Anh → Bhojpuri nó chỉ được 1.7 điểm và xếp cuối. Bài học: đừng tin bảng xếp hạng tự động một mình.
+- **Đánh giá tự động cho kết quả khác hẳn:** theo thước đo tự động (AutoRank), hệ Shy-hunyuan-MT xếp nhất ở tất cả các cặp trừ một. Nhưng khi người chấm, hệ này tụt hẳn — ở cặp Anh → Bhojpuri nó chỉ được 1.7 điểm và xếp cuối. Bài học: đừng tin bảng xếp hạng tự động một mình.
 - **Ở ngôn ngữ hiếm, mô hình chuyên dụng vẫn cạnh tranh:** cũng ở Anh → Bhojpuri, **NLLB** (75.6) xếp trên CommandA (72.6), ONLINE-B (67.2) và Gemma-3-27B (56.0), và cùng cụm với Llama-4-Maverick (76.4).
 
 Vậy chọn cái nào?

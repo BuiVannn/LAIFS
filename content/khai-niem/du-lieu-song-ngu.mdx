@@ -4,7 +4,8 @@ ten_en: "Parallel Corpora / Bitext"
 tang: 5
 thu_tu: 40
 tien_quyet: ["dich-may-nmt"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Corpus song ngữ (bitext) là tập hợp các cặp câu đã được ghép đôi: một câu ở ngôn ngữ nguồn và
   bản dịch của nó ở ngôn ngữ đích. Đây là dữ liệu huấn luyện của mọi hệ dịch máy; chất lượng và
@@ -186,8 +187,8 @@ Dữ liệu đơn ngữ (chỉ tiếng Việt, hoặc chỉ tiếng Anh) nhiều
 
 Với cặp **Anh–Việt**, vài mốc có nguồn kiểm được:
 
-- **IWSLT15 En–Vi**: bộ benchmark kinh điển, khoảng 0.12 triệu cặp (từ phụ đề TED).
-- **[PhoMT](https://aclanthology.org/2021.emnlp-main.369/)** (EMNLP 2021): 3.02 triệu cặp câu — theo bài báo, lớn hơn IWSLT15 đúng 2.9 triệu cặp.
+- **IWSLT15 En–Vi**: bộ benchmark kinh điển, **133 nghìn** cặp câu lấy từ bản ghi TED Talks (con số do chính bài PhoMT ghi, mục 1).
+- **[PhoMT](https://aclanthology.org/2021.emnlp-main.369/)** (EMNLP 2021): 3.02 triệu cặp câu — theo tóm tắt bài báo, lớn hơn IWSLT15 2.9 triệu cặp.
 - **[MTet](https://arxiv.org/abs/2210.05610)** (2022): 4.2 triệu cặp chất lượng cao, và khi gộp với các công trình trước thì tổng kho Anh–Việt lên khoảng 6.2 triệu cặp.
 
 Vậy Anh–Việt **không phải** ngôn ngữ ít tài nguyên theo nghĩa khắt khe, nhưng cũng kém xa Anh–Đức. Con số chính xác trên OPUS thay đổi theo phiên bản, nên khi cần trích dẫn thì vào tra trực tiếp chứ đừng nhớ áng chừng.
@@ -211,5 +212,5 @@ Phần này hay bị bỏ qua, nhưng nó có hậu quả thật.
 - Căn chỉnh câu không phải lúc nào cũng 1–1; lệch một chỗ là hỏng cả tài liệu. Cách hiện đại dùng embedding đa ngữ.
 - Lọc là phần việc lớn nhất: câu rỗng, tỉ lệ độ dài, trùng lặp, sai ngôn ngữ, lệch nội dung, dịch máy sẵn, và rò rỉ tập test.
 - Dữ liệu đơn ngữ dùng qua back-translation (dịch ngược kho đơn ngữ phía đích) và tiền huấn luyện.
-- Anh–Việt ở mức vài triệu cặp: IWSLT15 ~0.12M, PhoMT 3.02M, MTet 4.2M (gộp lại ~6.2M).
+- Anh–Việt ở mức vài triệu cặp: IWSLT15 133K, PhoMT 3.02M, MTet 4.2M (gộp lại ~6.2M).
 - Giấy phép, thông tin cá nhân, sự đồng thuận của cộng đồng ngôn ngữ và thiên lệch miền văn bản đều là vấn đề thật, phải xử lý trước khi huấn luyện.

@@ -1,0 +1,70 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection, render } from 'astro:content';
+import { hienThi } from '../../lib';
+
+export async function getStaticPaths() {
+  const ds = (await getCollection('taiLieu')).filter(hienThi);
+  return ds.map((t) => ({ params: { id: t.id }, props: { t } }));
+}
+
+const { t } = Astro.props;
+const d = t.data;
+const { Content } = await render(t);
+const khaiNiem = new Map((await getCollection('khaiNiem')).map((k) => [k.id, k]));
+const ten = (id: string) => khaiNiem.get(id)?.data.ten_vi ?? id;
+const coTrang = (id: string) => !!khaiNiem.get(id)?.body?.trim();
+const LOAI = { sach: 'Sách', paper: 'Paper', 'khoa-hoc': 'Khoá học', 'bai-viet': 'Bài viết' };
+const QUYEN = {
+  mo: 'License mở — được trích dẫn rộng rãi, dịch được nếu license cho phép (giữ đúng điều khoản).',
+  'thuong-mai': 'Sách thương mại — chỉ trích ngắn có ghi nguồn, không đăng lại nội dung, không đăng file.',
+  'khong-ro': 'Chưa rõ quyền — coi như thương mại cho tới khi kiểm tra được.',
+};
+---
+<Layout tieuDe={d.tieu_de} trang="thu-vien">
+  <div class="trang-hep">
+    <p class="duong-dan"><a href="/thu-vien">Thư viện</a></p>
+    <h1>{d.tieu_de}</h1>
+    <p class="mo">{d.tac_gia.join(', ')}{d.nam && ` · ${d.nam}`}{d.nha_xb && ` · ${d.nha_xb}`} · {LOAI[d.loai]}</p>
+    {d.trang_thai === 'nhap' && <p class="nhan-nhap">Phiếu nháp — chưa soát lại</p>}
+
+    <div class="the" style="margin: 16px 0">
+      <p class="nhan-muc">Quyền sử dụng</p>
+      <p style="margin: 6px 0">{QUYEN[d.quyen]}{d.license && ` (${d.license})`}</p>
+      {d.nguon && <p style="margin: 6px 0"><a href={d.nguon} target="_blank" rel="noopener">Trang chính thức của tài liệu</a></p>}
+      {d.file_may && <p class="mo" style="margin: 6px 0; font-size: 14px">Bản của bạn: <code>{d.file_may}</code> (chỉ có trên máy bạn)</p>}
+    </div>
+
+    {d.khai_niem.length > 0 && (
+      <section>
+        <h2>Khái niệm liên quan</h2>
+        <div class="hang-the">
+          {d.khai_niem.map((id) => (coTrang(id) ? <a class="muc-do" href={`/khai-niem/${id}`}>{ten(id)}</a> : <span class="muc-do">{ten(id)}</span>))}
+        </div>
+      </section>
+    )}
+
+    {d.chuong.length > 0 && (
+      <section>
+        <h2>Chương</h2>
+        <table>
+          <thead><tr><th>Chương</th><th>Tên</th><th>Khái niệm</th></tr></thead>
+          <tbody>
+            {d.chuong.map((c) => (
+              <tr>
+                <td>{c.so}</td>
+                <td>{c.ten}</td>
+                <td>{c.khai_niem.map((id, i) => <>{i > 0 && ', '}{coTrang(id) ? <a href={`/khai-niem/${id}`}>{ten(id)}</a> : ten(id)}</>)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+    )}
+
+    <section>
+      <h2>Ghi chú</h2>
+      <article><Content /></article>
+    </section>
+  </div>
+</Layout>

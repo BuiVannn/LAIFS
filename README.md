@@ -16,12 +16,12 @@ npm run build:xem-truoc # build KÈM bản nháp, dùng cho bản deploy nội b
 Trang tĩnh, không cần server. Khuyến nghị **Cloudflare Pages** nối thẳng với repo GitHub: mỗi lần push là tự build lại.
 
 1. dash.cloudflare.com → **Workers & Pages** → **Create** → **Pages** → **Connect to Git** → chọn repo `BuiVannn/LAIFS`.
-2. Framework preset: **Astro**. Build command: `npm run build:xem-truoc` (đổi thành `npm run build` khi nội dung đã được duyệt hết). Output directory: `dist`.
+2. Framework preset: **Astro**. Build command: `npm run build`. Output directory: `dist`. (Dùng `npm run build:xem-truoc` nếu muốn bản deploy hiện cả nội dung đang soạn dở.)
 3. Deploy. Địa chỉ sẽ dạng `laifs.pages.dev`.
 4. Muốn giới hạn người xem: **Zero Trust → Access → Applications**, thêm ứng dụng self-hosted trỏ vào domain đó, policy cho phép theo danh sách email. Miễn phí tới 50 người.
 
 Lưu ý:
-- `npm run build` chỉ xuất nội dung `trang_thai: da_duyet`. Khi tất cả còn là nháp thì bản build chỉ có vài trang — dùng `build:xem-truoc` cho tới khi duyệt xong.
+- `npm run build` chỉ xuất nội dung `trang_thai: da_duyet` (hiện 79 trang). Nội dung mới soạn còn `nhap` sẽ không lên bản chính thức cho tới khi được duyệt.
 - Bản build có nháp tự thêm `<meta name="robots" content="noindex">`, nên không bị Google lập chỉ mục.
 - Tiến độ học lưu trên trình duyệt từng người, deploy không làm mất, nhưng mỗi thiết bị là một bản riêng cho tới khi có tài khoản (xem mục 9 KHUNG-Y-TUONG.md).
 
@@ -44,6 +44,12 @@ Mọi thứ gắn với một **khái niệm** qua id (tên file).
 | Ý chính | `y_chinh` trong frontmatter khái niệm | Hiện ra sau khi người học viết "giải thích lại bằng lời của bạn" để tự đối chiếu |
 
 Cấu trúc frontmatter đầy đủ: `src/content.config.ts` (sai định dạng thì `npm run dev` báo lỗi ngay).
+
+## Thư viện tài liệu
+
+`npm run quet-pdf -- <thư-mục-pdf>` quét PDF ở máy (cần `poppler`) và tạo phiếu trong `content/tai-lieu/`: tên sách, tác giả, mục lục, đường dẫn file. Sau đó điền `nguon` (link chính thức), `quyen`, `khai_niem`, map chương → khái niệm, và viết ghi chú.
+
+**Web chỉ chứa metadata, chỉ dẫn chương và ghi chú tự viết.** Không đăng nội dung sách, không đăng file, không link tới bản lậu. File PDF nằm trong `.gitignore`.
 
 ## Tiến độ người học
 

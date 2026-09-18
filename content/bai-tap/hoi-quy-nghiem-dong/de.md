@@ -2,7 +2,8 @@
 tieu_de: Hồi quy tuyến tính bằng nghiệm đóng
 khai_niem: hoi-quy-tuyen-tinh
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Dữ liệu gồm ma trận `X` shape `(n, d)` (n mẫu, d đặc trưng) và vector `y` shape `(n,)`.

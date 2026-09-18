@@ -2,7 +2,8 @@
 tieu_de: Cosine similarity và láng giềng gần nhất
 khai_niem: embedding
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Cho một **bảng embedding** nhỏ: `E` shape `(V, d)` (mỗi **hàng** là vector của một từ) và `tu` là danh sách `V` từ, `tu[i]` ứng với hàng `E[i]`.

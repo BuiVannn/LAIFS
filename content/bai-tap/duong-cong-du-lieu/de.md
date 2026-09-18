@@ -2,7 +2,8 @@
 tieu_de: Đường cong dữ liệu — chất lượng
 khai_niem: tai-nguyen-ngon-ngu
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Bạn có bảng đo thật từ Koehn & Knowles 2017 (arXiv:1706.03872, Figure 3): hệ dịch Anh→Tây Ban Nha huấn luyện trên các phần 1/1024, 1/512, ..., toàn bộ của kho 385.7 triệu từ, mỗi mốc gấp đôi mốc trước.

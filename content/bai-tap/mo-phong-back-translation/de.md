@@ -2,7 +2,8 @@
 tieu_de: Mô phỏng back-translation
 khai_niem: dich-may-it-tai-nguyen
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Bạn có 20 nghìn cặp câu Việt–Mường thật và 200 nghìn câu tiếng Mường **đơn ngữ**. Hãy dựng đúng quy trình back-translation và đo xem dữ liệu phình ra bao nhiêu, và bao nhiêu phần trong đó là rác.

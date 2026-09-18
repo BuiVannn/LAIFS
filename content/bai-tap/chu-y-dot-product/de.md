@@ -2,7 +2,8 @@
 tieu_de: Chú ý dot-product bằng NumPy
 khai_niem: attention
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Cài cơ chế **chú ý dot-product**: điểm tương hợp → softmax → vector ngữ cảnh.

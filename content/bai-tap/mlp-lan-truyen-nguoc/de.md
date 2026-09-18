@@ -2,7 +2,8 @@
 tieu_de: Lan truyền ngược và kiểm tra bằng gradient số
 khai_niem: lan-truyen-nguoc
 do_kho: 3
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Mạng giống bài lan truyền xuôi: lớp ẩn sigmoid, lớp ra tuyến tính. Hàm `lan_truyen_xuoi` đã được viết sẵn trong starter. Loss là bình phương sai số **trung bình trên batch**:

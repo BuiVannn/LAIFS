@@ -2,7 +2,8 @@
 tieu_de: Cài hàm kích hoạt và đạo hàm
 khai_niem: ham-kich-hoat
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Cài các hàm kích hoạt và đạo hàm của chúng. Mọi hàm nhận một **mảng numpy** `x` (shape bất kỳ) và trả về mảng **cùng shape**, tính từng phần tử.
@@ -11,7 +12,7 @@ Cài các hàm kích hoạt và đạo hàm của chúng. Mọi hàm nhận mộ
 |---|---|
 | `sigmoid(x)` | $\sigma(x) = \dfrac{1}{1 + e^{-x}}$ |
 | `dao_ham_sigmoid(x)` | $\sigma(x)\,(1 - \sigma(x))$ |
-| `tanh(x)` | được dùng `np.tanh` |
+| `tanh(x)` | $\tanh(x)$ — được phép dùng thẳng `np.tanh` |
 | `dao_ham_tanh(x)` | $1 - \tanh^2(x)$ |
 | `relu(x)` | $\max(0, x)$ |
 | `dao_ham_relu(x)` | `1.0` nếu $x > 0$, ngược lại `0.0` (quy ước tại 0 lấy 0) |

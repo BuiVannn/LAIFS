@@ -4,7 +4,8 @@ ten_en: "High-resource and Low-resource Languages"
 tang: 5
 thu_tu: 41
 tien_quyet: ["du-lieu-song-ngu", "danh-gia-dich"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Cách xếp một ngôn ngữ theo lượng "nguyên liệu" mà máy có thể học được: dữ liệu song ngữ,
   dữ liệu đơn ngữ, từ điển và công cụ xử lý, bộ dữ liệu đánh giá, và cả người bản ngữ có thể
@@ -84,7 +85,7 @@ Joshi và cộng sự (ACL 2020) đo hai trục — lượng dữ liệu **có n
 | 4 | The Underdogs | Nga, Hungary, **Việt**, Hà Lan, Hàn | 18 | 1.07% |
 | 5 | The Winners | Anh, Tây Ban Nha, Đức, Nhật, Pháp | 7 | 0.28% |
 
-*(Joshi et al. 2020, Table 1)*
+*(Joshi et al. 2020, Table 1 — số ngôn ngữ và phần trăm chép nguyên từ bảng gốc. Cột phần trăm của chính bài báo không tự nhất quán: 28 ngôn ngữ ở lớp 3 mà lại ghi 4.42%, cao hơn 222 ngôn ngữ ở lớp 1. Dùng cột **số ngôn ngữ** để suy luận, đừng dùng cột phần trăm.)*
 
 Hai con số đáng nhớ: **lớp 0 chiếm 88.38% số ngôn ngữ**, còn **lớp 5 chỉ có 7 ngôn ngữ**. Nghĩa là gần chín phần mười ngôn ngữ trên hành tinh gần như không có gì để máy học.
 
@@ -111,7 +112,7 @@ Koehn & Knowles (2017) huấn luyện hệ Anh→Tây Ban Nha trên các phần 
     de: "Ở mốc dữ liệu nhỏ nhất (≈0.38 triệu từ), hệ NMT đạt 1.6 BLEU còn hệ thống kê SMT đạt 16.4. Khi kéo lên toàn bộ 385.7 triệu từ, hệ nào cao hơn?",
     lua_chon: ["SMT vẫn dẫn trước, vì đã dẫn từ đầu", "NMT vượt lên và cao nhất (31.1 BLEU)", "Hai hệ gặp nhau và bằng nhau"],
     dap_an: 1,
-    giai_thich: "NMT xuất phát tệ hơn nhiều nhưng dốc hơn hẳn: vượt SMT ở khoảng 24 triệu từ (25.7 so với 24.7) rồi đạt 31.1 BLEU với toàn bộ dữ liệu. Bài học: xếp hạng các phương pháp ở vùng NHIỀU dữ liệu không nói được gì về vùng ÍT dữ liệu."
+    giai_thich: "NMT xuất phát tệ hơn nhiều nhưng dốc hơn hẳn: vượt SMT ở mốc 24.1 triệu từ (25.7 so với 24.7) rồi đạt 31.1 BLEU với toàn bộ dữ liệu. Bài học: xếp hạng các phương pháp ở vùng NHIỀU dữ liệu không nói được gì về vùng ÍT dữ liệu."
   }}
 />
 
@@ -130,7 +131,7 @@ Khó không chỉ vì "ít dữ liệu". Bốn vấn đề cộng dồn vào nha
 
 **2. Miền quá hẹp.** Rất nhiều corpus của ngôn ngữ hiếm đến từ một nguồn duy nhất — thường là văn bản tôn giáo, vì đó là thứ được dịch ra nhiều thứ tiếng nhất. Koehn & Knowles đo chuyện này: hệ NMT huấn luyện trên corpus Kinh Coran đạt 15.9 BLEU **trong miền đó**, nhưng chỉ **0.4 BLEU** trên văn bản luật và **0.0** trên văn bản y tế (Figure 1). Hệ SMT cùng điều kiện được 1.8 và 2.1 — cũng tệ, nhưng tệ ít hơn.
 
-**3. Đánh giá kém tin cậy.** Khi ít dữ liệu, bộ test nhỏ, mà bộ test nhỏ thì chênh lệch điểm giữa hai hệ thống dễ là ngẫu nhiên. Tệ hơn: các thước đo neural hiện đại được huấn luyện trên dữ liệu chấm điểm của các ngôn ngữ nhiều tài nguyên, nên chưa chắc đúng ở ngôn ngữ hiếm. Ban tổ chức WMT25 phải **bỏ toàn bộ các thước đo neural** và chỉ dùng chrF++ cho tiếng Bhojpuri và tiếng Maasai, vì độ tin cậy của các thước đo chính ở hai ngôn ngữ này chưa được xác lập (Kocmi et al. 2025, mục 4.1).
+**3. Đánh giá kém tin cậy.** Khi ít dữ liệu, bộ test nhỏ, mà bộ test nhỏ thì chênh lệch điểm giữa hai hệ thống dễ là ngẫu nhiên. Tệ hơn: các thước đo neural hiện đại được huấn luyện trên dữ liệu chấm điểm của các ngôn ngữ nhiều tài nguyên, nên chưa chắc đúng ở ngôn ngữ hiếm. Ban tổ chức WMT25 phải **bỏ toàn bộ các thước đo neural** và chỉ dùng chrF++ cho tiếng Bhojpuri và tiếng Maasai, vì độ tin cậy của các thước đo chính ở hai ngôn ngữ này chưa được xác lập (Kocmi et al. 2025, mục 5, đoạn "Low-resource exception").
 
 **4. Tokenizer thiên lệch.** Bộ tách token của các mô hình lớn được học chủ yếu trên văn bản tiếng Anh, nên văn bản ngôn ngữ hiếm bị cắt vụn thành nhiều mảnh hơn. Petrov et al. (2023) đo được cùng một đoạn văn dịch sang các ngôn ngữ khác nhau có độ dài token chênh nhau **tới 15 lần**. Cắt vụn nghĩa là: câu dài hơn, chi phí cao hơn, nhét được ít ngữ cảnh hơn, và mô hình phải học ghép nhiều mảnh vô nghĩa lại thành từ.
 

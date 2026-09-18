@@ -2,7 +2,8 @@
 tieu_de: Bộ lọc corpus song ngữ
 khai_niem: du-lieu-song-ngu
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Viết bộ lọc rẻ tiền cho một corpus song ngữ crawl về — đúng những luật chạy đầu tiên trong thực tế.

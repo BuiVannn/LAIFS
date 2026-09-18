@@ -1,4 +1,5 @@
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 cau_hoi:
   - id: q1
     loai: mot
@@ -59,14 +60,14 @@ cau_hoi:
     sai_so: 0.5
     giai_thich: >-
       14 trên 16 cặp, và ở 10 trong số đó nó ngang bằng hoặc vượt bản dịch của người. Đây là
-      kết quả theo đánh giá của NGƯỜI (giao thức ESA), khác hẳn bảng xếp hạng theo chỉ số tự
+      kết quả theo đánh giá của NGƯỜI (giao thức ESA), khác hẳn bảng xếp hạng theo thước đo tự
       động của cùng cuộc thi.
 
   - id: q5
     loai: mot
     do_kho: 2
     de: >-
-      Ở WMT25, theo chỉ số tự động (AutoRank) hệ Shy-hunyuan-MT xếp nhất ở gần như mọi cặp,
+      Ở WMT25, theo thước đo tự động (AutoRank) hệ Shy-hunyuan-MT xếp nhất ở gần như mọi cặp,
       nhưng khi người chấm thì ở cặp Anh → Bhojpuri nó chỉ được 1.7 điểm và xếp cuối. Bài học
       chính là gì?
     lua_chon:
@@ -76,8 +77,8 @@ cau_hoi:
       - Hệ Shy-hunyuan-MT bị lỗi kỹ thuật
     dap_an: 1
     giai_thich: >-
-      Ban tổ chức nêu khả năng hệ này được tối ưu trực tiếp theo tín hiệu của các chỉ số tự
-      động, nên ăn điểm cao ở đúng những chỉ số đó. Đây là lý do WMT vẫn coi đánh giá của
+      Ban tổ chức nêu khả năng hệ này được tối ưu trực tiếp theo tín hiệu của các thước đo tự
+      động, nên ăn điểm cao ở đúng những thước đo đó. Đây là lý do WMT vẫn coi đánh giá của
       người là kết quả chính thức, và là lý do bạn nên luôn kèm một vòng chấm tay.
 
   - id: q6

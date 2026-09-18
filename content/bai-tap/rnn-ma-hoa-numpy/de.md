@@ -2,7 +2,8 @@
 tieu_de: Bộ mã hoá RNN cho seq2seq
 khai_niem: seq2seq
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Viết bộ **mã hoá** (encoder) của một mô hình seq2seq bằng NumPy thuần: chạy một RNN tanh qua chuỗi embedding của câu nguồn, lấy trạng thái ẩn cuối cùng làm **vector ngữ cảnh**.

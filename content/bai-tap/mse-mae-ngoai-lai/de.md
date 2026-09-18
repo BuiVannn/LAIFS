@@ -2,7 +2,8 @@
 tieu_de: MSE, MAE và điểm ngoại lai
 khai_niem: ham-mat-mat
 do_kho: 1
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Viết ba hàm, đầu vào là các mảng numpy 1 chiều cùng độ dài. Không dùng vòng lặp.

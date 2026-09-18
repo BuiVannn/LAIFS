@@ -4,7 +4,8 @@ ten_en: "Neural machine translation: training and decoding"
 tang: 5
 thu_tu: 38
 tien_quyet: ["transformer", "cross-entropy"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Cách biến một mô hình encoder–decoder thành máy dịch: huấn luyện bằng cross-entropy trên TỪNG
   token của câu đích với teacher forcing (luôn cho mô hình xem đáp án của các token trước), rồi
@@ -86,10 +87,10 @@ Câu đích được ghép thêm hai token đặc biệt: `<s>` mở đầu và 
 | 3 | `<s> I eat` | rice |
 | 4 | `<s> I eat rice` | `</s>` |
 
-Mỗi hàng là một bài phân loại nhiều lớp với số lớp bằng kích thước từ điển (khoảng 32.000 token BPE). Dùng [cross-entropy](/khai-niem/cross-entropy), và vì nhãn đúng chỉ là một token, loss mỗi vị trí rút gọn thành $-\log p(\text{token đúng})$:
+Mỗi hàng là một bài phân loại nhiều lớp với số lớp bằng kích thước từ điển (khoảng 32.000 token BPE). Dùng [cross-entropy](/khai-niem/cross-entropy), và vì nhãn đúng chỉ là một token, loss mỗi vị trí rút gọn thành $-\log p(y_t^{\star})$, trong đó $y_t^{\star}$ là token đúng ở vị trí $t$ của câu tham chiếu:
 
 $$
-L = -\frac{1}{m}\sum_{t=1}^{m} \log p(y_t^{\text{đúng}} \mid y^{\text{đúng}}_{<t}, X)
+L = -\frac{1}{m}\sum_{t=1}^{m} \log p(y_t^{\star} \mid y^{\star}_{<t}, X)
 $$
 
 Giả sử mô hình gán cho bốn token đúng các xác suất $0.5,\; 0.4,\; 0.9,\; 0.8$:
@@ -237,7 +238,7 @@ Không phạt thì câu ngắn thắng ($-1.7148 > -2.0100$); phạt với $\alp
 
 ## Cỡ thực tế
 
-Số liệu lấy từ paper Transformer (2017) để có mốc so sánh:
+Số liệu lấy từ [paper Transformer](https://arxiv.org/abs/1706.03762) (Vaswani et al., 2017 — bảng 3 và mục 5) để có mốc so sánh:
 
 | | Base | Big |
 |---|---|---|
@@ -249,7 +250,7 @@ Số liệu lấy từ paper Transformer (2017) để có mốc so sánh:
 
 Dữ liệu: WMT 2014 Anh–Đức khoảng **4,5 triệu cặp câu**, từ điển BPE dùng chung 37.000 token; bản Anh–Pháp là **36 triệu cặp câu**. Khi giải mã: beam $k = 4$, length penalty $\alpha = 0.6$. Lúc huấn luyện còn hai thứ nhỏ mà quan trọng: dropout 0.1 và label smoothing 0.1 (đẩy 10% khối lượng xác suất ra khỏi token đúng để mô hình bớt quá tự tin — perplexity xấu đi nhưng BLEU tốt lên).
 
-Đối chiếu với tiếng Việt: bộ song ngữ Anh–Việt quen dùng của IWSLT'15 chỉ có khoảng **133 nghìn cặp câu** — ít hơn WMT En–De hơn 30 lần. Cùng một kiến trúc nhưng ít dữ liệu hơn hai bậc độ lớn thì phải đổi cách làm: mô hình nhỏ lại, regularization mạnh hơn, và tận dụng dữ liệu đơn ngữ. Đó là nội dung bài [dịch máy cho ngôn ngữ ít tài nguyên](/khai-niem/dich-may-it-tai-nguyen).
+Đối chiếu với tiếng Việt: bộ song ngữ Anh–Việt quen dùng của IWSLT'15 chỉ có khoảng **133 nghìn cặp câu** ([PhoMT, Doan et al., 2021](https://aclanthology.org/2021.emnlp-main.369/)) — ít hơn WMT En–De hơn 30 lần. Cùng một kiến trúc nhưng dữ liệu chỉ bằng khoảng 3% thì phải đổi cách làm: mô hình nhỏ lại, regularization mạnh hơn, và tận dụng dữ liệu đơn ngữ. Đó là nội dung bài [dịch máy cho ngôn ngữ ít tài nguyên](/khai-niem/dich-may-it-tai-nguyen).
 
 ## Tóm tắt
 

@@ -2,7 +2,8 @@
 tieu_de: Lan truyền xuôi cho cả batch
 khai_niem: lan-truyen-xuoi
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Viết lượt xuôi cho mạng 1 lớp ẩn (sigmoid) và lớp ra tuyến tính, tính **cả batch cùng lúc** bằng numpy.

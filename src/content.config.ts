@@ -74,4 +74,24 @@ const baiTap = defineCollection({
   }),
 });
 
-export const collections = { khaiNiem, quiz, baiTap };
+const taiLieu = defineCollection({
+  loader: glob({ pattern: '*.md', base: './content/tai-lieu' }),
+  schema: z.object({
+    tieu_de: z.string(),
+    tac_gia: z.array(z.string()).default([]),
+    nam: z.number().int().optional(),
+    loai: z.enum(['sach', 'paper', 'khoa-hoc', 'bai-viet']),
+    nha_xb: z.string().optional(),
+    nguon: z.url().optional(), // trang chính thức / DOI / arXiv — KHÔNG đăng lại file
+    // Quyền dùng lại: quyết định được phép trích dẫn tới đâu
+    quyen: z.enum(['mo', 'thuong-mai', 'khong-ro']),
+    license: z.string().optional(),
+    khai_niem: z.array(z.string()).default([]),
+    chuong: z.array(z.object({ so: z.string(), ten: z.string(), khai_niem: z.array(z.string()).default([]) })).default([]),
+    file_may: z.string().optional(), // đường dẫn ở máy người dùng, không đưa lên web
+    trang_thai: trangThai,
+    nguoi_duyet: z.string().optional(),
+  }),
+});
+
+export const collections = { khaiNiem, quiz, baiTap, taiLieu };

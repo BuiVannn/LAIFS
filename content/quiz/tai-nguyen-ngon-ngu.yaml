@@ -1,4 +1,5 @@
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 cau_hoi:
   - id: q1
     loai: mot
@@ -150,7 +151,7 @@ cau_hoi:
     loai: mot
     do_kho: 2
     de: >-
-      Bạn muốn so sánh hai hệ dịch Việt → Mường bằng một chỉ số tự động "hiện đại" (thước đo
+      Bạn muốn so sánh hai hệ dịch Việt → Mường bằng một thước đo tự động "hiện đại" (loại
       neural như COMET). Vấn đề gì cần cảnh giác?
     lua_chon:
       - Thước đo neural chạy quá chậm nên không dùng được

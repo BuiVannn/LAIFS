@@ -2,7 +2,8 @@
 tieu_de: Đếm tham số và shape của MLP
 khai_niem: mlp
 do_kho: 1
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Kiến trúc MLP được cho bằng danh sách số neuron mỗi lớp, ví dụ `[2, 3, 1]` (2 đầu vào, 3 neuron ẩn, 1 đầu ra).

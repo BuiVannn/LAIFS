@@ -2,7 +2,8 @@
 tieu_de: Gradient số của hàm nhiều biến
 khai_niem: dao-ham-rieng-gradient
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Viết hàm `gradient_so(f, x, h=1e-5)` xấp xỉ gradient $\nabla f(x)$ bằng cách nhích **từng phần tử** của `x`:

@@ -2,7 +2,8 @@
 tieu_de: Chọn ví dụ few-shot và bảng thuật ngữ cho prompt
 khai_niem: llm-dich-may
 do_kho: 3
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Bạn có kho 40 nghìn cặp câu đã dịch và một bảng thuật ngữ nhiều nghìn mục. Không nhét hết vào prompt được, nên phải **truy xuất**: với mỗi câu cần dịch, chọn ra vài ví dụ giống nó nhất và những mục thuật ngữ thật sự xuất hiện trong câu. Đây chính là "RAG thuật ngữ".
@@ -17,8 +18,10 @@ Nhận danh sách câu, trả về tuple `(vecto, idf)`:
 - `vecto`: danh sách dict, mỗi dict là một câu; trọng số của từ $w$ trong câu là
 
 $$
-\text{tf}(w) \cdot \text{idf}(w), \qquad \text{tf}(w) = \frac{\text{số lần } w \text{ xuất hiện}}{\text{tổng số từ của câu}}
+\text{tf}(w) \cdot \text{idf}(w), \qquad \text{tf}(w) = \frac{n_w}{L}
 $$
+
+với $n_w$ là số lần $w$ xuất hiện trong câu và $L$ là tổng số từ của câu.
 
 Chỉ đưa vào dict những từ có mặt trong câu. Kho rỗng thì trả về `([], {})`.
 

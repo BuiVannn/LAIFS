@@ -26,6 +26,8 @@ const giuaBai = new Set([...(k.body ?? '').matchAll(/<CauHoi\s+cau="[^"/]+\/([^"
 const cauCuoiBai = cauHoi.filter((c) => !giuaBai.has(c.id));
 const baiTap = (await getCollection('baiTap')).filter((b) => b.data.khai_niem === k.id && hienThi(b));
 const mucLuc = headings.filter((h) => h.depth === 2);
+const taiLieu = (await getCollection('taiLieu'))
+  .filter((t) => hienThi(t) && (t.data.khai_niem.includes(k.id) || t.data.chuong.some((c) => c.khai_niem.includes(k.id))));
 const ytId = (url: string) => new URL(url).searchParams.get('v');
 const MUC_DO = { nhap_mon: 'Nhập môn', sau: 'Đào sâu', toan_nang: 'Toán nặng' };
 ---
@@ -84,6 +86,28 @@ const MUC_DO = { nhap_mon: 'Nhập môn', sau: 'Đào sâu', toan_nang: 'Toán n
                 </span>
               </li>
             ))}
+          </ul>
+        </section>
+      )}
+
+      {taiLieu.length > 0 && (
+        <section>
+          <h2 id="sach">Sách nói về khái niệm này</h2>
+          <ul class="danh-sach-bai">
+            {taiLieu.map((t) => {
+              const chuong = t.data.chuong.filter((c) => c.khai_niem.includes(k.id));
+              return (
+                <li>
+                  <div>
+                    <a href={`/thu-vien/${t.id}`}><b>{t.data.tieu_de}</b></a>
+                    <div class="mo" style="font-size: 14px">
+                      {t.data.tac_gia.join(', ')}
+                      {chuong.length > 0 && ` · chương ${chuong.map((c) => c.so).join(', ')}`}
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}

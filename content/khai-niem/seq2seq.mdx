@@ -4,7 +4,8 @@ ten_en: "Sequence-to-Sequence (Encoder–Decoder)"
 tang: 5
 thu_tu: 35
 tien_quyet: ["embedding", "mlp"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Kiến trúc mạng neuron nhận vào một chuỗi và sinh ra một chuỗi khác, có thể khác độ dài, gồm hai
   phần: bộ mã hoá (encoder) đọc hết câu nguồn rồi nén thành một vector ngữ cảnh cố định, và bộ
@@ -61,8 +62,8 @@ Các mô hình đã học cho tới giờ nhận **một vector** rồi trả **
 
 Đầu vào là một chuỗi, đầu ra cũng là một chuỗi, và **hai chuỗi không nhất thiết bằng nhau về độ dài**:
 
-> `tôi ăn cơm rồi` (4 từ) → `I have already eaten` (4 từ)
-> `nhà tôi` (2 từ) → `my house` (2 từ) nhưng `nhà tôi ở Hà Nội` (5 từ) → `I live in Hanoi` (4 từ)
+> `nhà tôi` (2 từ) → `my house` (2 từ), nhưng `nhà tôi ở Hà Nội` (5 từ) → `I live in Hanoi` (4 từ)
+> `tôi ăn cơm rồi` (4 từ) → `I have already eaten` (4 từ) — bằng độ dài, nhưng vẫn không khớp từ với từ
 
 Một MLP có số đầu vào và số đầu ra cố định, không xử lý được việc này. **Seq2seq** là kiến trúc đầu tiên giải quyết trọn vẹn: *chuỗi vào, chuỗi ra, độ dài tuỳ ý*.
 
@@ -93,28 +94,28 @@ $$
 
 ## Chạy tay bộ mã hoá trên "con mèo đen"
 
-Lấy một mô hình đồ chơi: embedding 2 chiều, trạng thái ẩn 2 chiều, $W_h = 0{,}9 I$, $W_x = I$, $b = 0$, $h_0 = (0, 0)$.
+Lấy một mô hình đồ chơi: embedding 2 chiều, trạng thái ẩn 2 chiều, $W_h = 0.9 I$, $W_x = I$, $b = 0$, $h_0 = (0, 0)$.
 
-Embedding ba từ nguồn (giả sử đã học được):
+Embedding ba từ nguồn (giả sử đã học được), đánh số theo thứ tự `con` · `mèo` · `đen`:
 
 $$
-x_{\text{con}} = (1,\, 0), \qquad x_{\text{mèo}} = (0,\, 1), \qquad x_{\text{đen}} = (1,\, 1)
+x_1 = (1,\, 0), \qquad x_2 = (0,\, 1), \qquad x_3 = (1,\, 1)
 $$
 
-Mỗi bước làm đúng một việc: nhân trạng thái cũ với $0{,}9$, cộng embedding, lấy $\tanh$.
+Mỗi bước làm đúng một việc: nhân trạng thái cũ với $0.9$, cộng embedding, lấy $\tanh$.
 
-| $t$ | từ | $x_t$ | $0{,}9\,h_{t-1} + x_t$ | $h_t = \tanh(\cdot)$ |
+| $t$ | từ | $x_t$ | $0.9\,h_{t-1} + x_t$ | $h_t = \tanh(\cdot)$ |
 |---|---|---|---|---|
-| 1 | con | (1, 0) | (1; 0) | **(0,7616; 0,0000)** |
-| 2 | mèo | (0, 1) | (0,6854; 1,0000) | **(0,5950; 0,7616)** |
-| 3 | đen | (1, 1) | (1,5355; 1,6854) | **(0,9114; 0,9336)** |
+| 1 | con | (1, 0) | (1; 0) | **(0.7616; 0.0000)** |
+| 2 | mèo | (0, 1) | (0.6854; 1.0000) | **(0.5950; 0.7616)** |
+| 3 | đen | (1, 1) | (1.5355; 1.6854) | **(0.9114; 0.9336)** |
 
-Kiểm lại bước 2 cho chắc: $0{,}9 \times 0{,}7616 = 0{,}6854$, cộng $x_1 = 0$ vẫn là $0{,}6854$, và $\tanh(0{,}6854) = 0{,}5950$. Thành phần thứ hai: $0{,}9 \times 0 + 1 = 1$, $\tanh(1) = 0{,}7616$.
+Kiểm lại bước 2 cho chắc: $0.9 \times 0.7616 = 0.6854$, cộng $x_1 = 0$ vẫn là $0.6854$, và $\tanh(0.6854) = 0.5950$. Thành phần thứ hai: $0.9 \times 0 + 1 = 1$, $\tanh(1) = 0.7616$.
 
 Vậy vector ngữ cảnh của cả câu là
 
 $$
-c = h_3 = (0{,}9114;\ 0{,}9336)
+c = h_3 = (0.9114;\ 0.9336)
 $$
 
 **Hai con số này là tất cả những gì bộ giải mã được biết về câu tiếng Việt.**
@@ -124,7 +125,7 @@ $$
 Bộ giải mã là một RNN khác, khởi động từ $c$. Ở bước đầu nó chưa sinh được từ nào nên đầu vào là token bắt đầu `<bos>` với embedding $(0, 0)$. Lấy $W_s = I$ cho gọn:
 
 $$
-s_1 = \tanh(W_s\, c + W_y\, y_0) = \tanh(0{,}9114;\ 0{,}9336) = (0{,}7218;\ 0{,}7323)
+s_1 = \tanh(W_s\, c + W_y\, y_0) = \tanh(0.9114;\ 0.9336) = (0.7218;\ 0.7323)
 $$
 
 Giờ biến trạng thái $s_1$ thành **xác suất của từng từ trong từ vựng đích**. Từ vựng đồ chơi có 4 mục, mỗi mục một hàng của ma trận $V$ shape $(4, 2)$:
@@ -137,17 +138,17 @@ $$
 Điểm thô (logit) của mỗi từ là tích vô hướng hàng đó với $s_1$:
 
 $$
-z = V s_1 = (1{,}4436;\ 0{,}7323;\ -0{,}7218;\ -1{,}4645)
+z = V s_1 = (1.4436;\ 0.7323;\ -0.7218;\ -1.4645)
 $$
 
-Rồi [softmax](/khai-niem/softmax) biến điểm thành xác suất. $e^{1{,}4436} = 4{,}2358$, $e^{0{,}7323} = 2{,}0798$, $e^{-0{,}7218} = 0{,}4859$, $e^{-1{,}4645} = 0{,}2312$; tổng $= 7{,}0326$:
+Rồi [softmax](/khai-niem/softmax) biến điểm thành xác suất. $e^{1.4436} = 4.2358$, $e^{0.7323} = 2.0798$, $e^{-0.7218} = 0.4859$, $e^{-1.4645} = 0.2312$; tổng $= 7.0326$:
 
 | từ | logit | $e^{\text{logit}}$ | xác suất |
 |---|---|---|---|
-| the | 1,4436 | 4,2358 | **0,6023** |
-| black | 0,7323 | 2,0798 | 0,2957 |
-| cat | −0,7218 | 0,4859 | 0,0691 |
-| `<eos>` | −1,4645 | 0,2312 | 0,0329 |
+| the | 1.4436 | 4.2358 | **0.6023** |
+| black | 0.7323 | 2.0798 | 0.2957 |
+| cat | −0.7218 | 0.4859 | 0.0691 |
+| `<eos>` | −1.4645 | 0.2312 | 0.0329 |
 
 Mô hình chọn từ có xác suất cao nhất: **the**. Bước sau, `the` được đưa ngược trở lại làm đầu vào của bộ giải mã, cho $s_2$, lại softmax, ra `black`, rồi `cat`, rồi `<eos>` thì dừng.
 
@@ -172,7 +173,7 @@ Ta đo được điều này: chạy bộ mã hoá hai lần trên cùng một c
     de: "Câu nguồn dài dần từ 2 lên 20 từ. Dấu vết của từ ĐẦU câu trong vector ngữ cảnh c sẽ thế nào?",
     lua_chon: ["Giữ gần như nguyên, vì c luôn có đủ chỗ", "Tăng lên, vì câu chứa nhiều thông tin hơn", "Giảm rất nhanh, gần như về 0"],
     dap_an: 2,
-    giai_thich: "Mỗi bước, phần đóng góp của trạng thái cũ bị nhân với 0,9 rồi ép qua tanh (đạo hàm tanh luôn ≤ 1), nên ảnh hưởng của từ đầu câu co lại theo cấp số nhân. Ở n = 2 độ lệch còn 1,153; tới n = 10 chỉ còn 0,046; tới n = 20 còn 0,002 — tức là dưới 0,2% so với lúc câu chỉ có 1 từ. Câu tiếng Việt thật thường 20–30 từ, nên phần đầu câu coi như đã mất."
+    giai_thich: "Mỗi bước, phần đóng góp của trạng thái cũ bị nhân với 0.9 rồi ép qua tanh (đạo hàm tanh luôn ≤ 1), nên ảnh hưởng của từ đầu câu co lại theo cấp số nhân. Ở n = 2 độ lệch còn 1.1534; tới n = 10 chỉ còn 0.0462; tới n = 20 còn 0.0021 — khoảng 0.1% so với lúc câu chỉ có 1 từ. Câu tiếng Việt thật thường 20–30 từ, nên phần đầu câu coi như đã mất."
   }}
 />
 
@@ -212,7 +213,7 @@ Mỗi bước cho một phân bố xác suất, và có nhiều cách chọn:
 ## Tóm tắt
 
 - Seq2seq gồm **bộ mã hoá** nén câu nguồn thành một vector ngữ cảnh $c$, và **bộ giải mã** sinh câu đích từng từ từ $c$.
-- Bộ mã hoá RNN: $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$, và $c = h_T$. Trên ví dụ `con mèo đen`: $c = (0{,}9114;\ 0{,}9336)$.
+- Bộ mã hoá RNN: $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$, và $c = h_T$. Trên ví dụ `con mèo đen`: $c = (0.9114;\ 0.9336)$.
 - Bộ giải mã mỗi bước cho một softmax trên toàn bộ từ vựng đích, chọn một từ, đưa lại vào bước sau, dừng khi gặp `<eos>`. Nhờ vậy câu đích được **tự do về độ dài**.
 - Huấn luyện bằng teacher forcing + cross-entropy; lúc dịch dùng greedy hoặc beam search.
 - **Nút thắt**: $c$ có kích thước cố định nên câu càng dài, thông tin đầu câu càng mất. Lời giải cho đúng vấn đề này là [cơ chế chú ý](/khai-niem/attention) — cho bộ giải mã nhìn lại toàn bộ câu nguồn ở mỗi bước, thay vì chỉ một vector.

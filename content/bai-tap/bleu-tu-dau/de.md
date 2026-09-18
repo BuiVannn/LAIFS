@@ -2,7 +2,8 @@
 tieu_de: Cài BLEU từ đầu
 khai_niem: danh-gia-dich
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Cài BLEU đúng như công thức trong bài học. Câu đã tách từ sẵn bằng khoảng trắng, dùng `.split()` là đủ.
@@ -21,7 +22,7 @@ precision_ngram("trên trên trên trên trên trên trên",
 **2.** `brevity_penalty(do_dai_ban_dich, do_dai_tham_chieu)`
 
 $$
-\text{BP} = \begin{cases} 1 & \text{nếu } c > r \\[4pt] e^{\,1 - r/c} & \text{nếu } c \le r \end{cases}
+\text{BP} = \begin{cases} 1 & c > r \\[4pt] e^{\,1 - r/c} & c \le r \end{cases}
 $$
 
 Trường hợp $c = 0$ trả về `0.0`.

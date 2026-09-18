@@ -4,6 +4,8 @@ import DuDoan, { useDuDoan, type DuDoanCauHoi } from '../components/DuDoan';
 // Số đo THẬT, đọc từ Figure 3 của Koehn & Knowles 2017, "Six Challenges for Neural Machine
 // Translation" (arXiv:1706.03872): hệ Anh→Tây Ban Nha huấn luyện trên 1/1024, 1/512, ..., 1
 // của kho 385.7 triệu từ tiếng Anh. Ba hệ thống, cùng dữ liệu, chấm bằng BLEU.
+// Lưu ý: ở mốc dữ liệu đầy đủ, nhãn trong Figure 3 in 28.6 cho SMT, còn phần chữ của mục 3.2
+// ghi "(31.1 for NMT, 28.4 for SMT, 30.4 for SMT+BigLM)". Ở đây dùng 28.4 theo phần chữ.
 const TONG_TU = 385.7e6;
 const CO: number[] = [];
 for (let k = 10; k >= 0; k--) CO.push(TONG_TU / 2 ** k);
@@ -120,7 +122,9 @@ export default function DuongCongDuLieu(props: Props) {
         })}
         <span className="mo">
           Số thật, đọc từ Figure 3 của Koehn &amp; Knowles 2017 (arXiv:1706.03872), cặp Anh→Tây Ban Nha,
-          hệ thống của năm 2017. Đây <b>không</b> phải số đo cho tiếng Việt hay tiếng dân tộc thiểu số, và
+          hệ thống của năm 2017. (Một chỗ vênh trong chính bài báo: ở mốc dữ liệu đầy đủ, nhãn trong
+          Figure 3 in 28.6 cho SMT còn phần chữ mục 3.2 ghi 28.4 — ở đây lấy 28.4 theo phần chữ.)
+          Đây <b>không</b> phải số đo cho tiếng Việt hay tiếng dân tộc thiểu số, và
           mô hình đa ngữ ngày nay bắt đầu từ mức cao hơn nhiều ở vùng ít dữ liệu. Hình dạng chung — dốc
           đứng lúc đầu rồi thoải dần — mới là điều cần nhớ.
         </span>

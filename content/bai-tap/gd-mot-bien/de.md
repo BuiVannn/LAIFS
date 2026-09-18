@@ -2,7 +2,8 @@
 tieu_de: Gradient descent một biến
 khai_niem: gradient-descent
 do_kho: 1
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Viết hàm `gradient_descent(dao_ham, w0, lr, so_buoc)` chạy gradient descent cho hàm một biến.

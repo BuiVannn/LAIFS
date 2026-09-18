@@ -4,7 +4,8 @@ ten_en: "Tokenization & Byte Pair Encoding"
 tang: 5
 thu_tu: 33
 tien_quyet: []
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Bước biến một chuỗi văn bản thành dãy số nguyên mà mô hình đọc được: cắt câu thành các
   mảnh gọi là token, rồi tra mỗi mảnh ra một id trong từ điển cố định. BPE (Byte Pair
@@ -172,7 +173,7 @@ Phần dưới dùng một tokenizer BPE **thật, chạy ngay trong trang này*
     de: "«Nhà vua và hoàng hậu sống trong lâu đài.» so với «The king and the queen live in a castle.» Tỉ lệ token Việt / Anh so với câu trước (hơn 3 lần) sẽ thế nào?",
     lua_chon: ["Tốt hơn hẳn", "Y như cũ", "Tệ hơn nữa"],
     dap_an: 0,
-    giai_thich: "23 so với 17, tỉ lệ chỉ còn 1.35. Hai lý do, và cả hai đều đáng nhớ. Một: corpus tí hon có câu «nhà vua và hoàng hậu sống trong lâu đài cũ», nên «▁và», «▁trong» đã thành token trọn vẹn — thêm tiếng Việt vào corpus là ăn ngay. Hai: câu tiếng Anh lần này chứa từ hiếm («castle», «queen») cũng bị vỡ vụn — với corpus 56 câu thì tiếng Anh cũng chưa được phủ hết."
+    giai_thich: "23 so với 17, tỉ lệ chỉ còn 1.35. Hai lý do, và cả hai đều đáng nhớ. Một: corpus tí hon có câu «nhà vua và hoàng hậu sống trong lâu đài cũ», nên «▁và», «▁trong» đã thành token trọn vẹn — thêm tiếng Việt vào corpus là ăn ngay. Hai: câu tiếng Anh lần này chứa từ hiếm («castle», «queen») cũng bị vỡ vụn — với corpus chỉ 56 câu tiếng Anh thì tiếng Anh cũng chưa được phủ hết."
   }}
 />
 

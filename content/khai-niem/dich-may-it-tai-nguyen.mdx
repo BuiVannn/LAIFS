@@ -4,7 +4,8 @@ ten_en: "Low-resource Machine Translation"
 tang: 5
 thu_tu: 42
 tien_quyet: ["tai-nguyen-ngon-ngu"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
   Tập hợp các kỹ thuật để xây hệ dịch cho cặp ngôn ngữ chỉ có ít dữ liệu song ngữ, bằng cách
   mượn nguyên liệu từ chỗ khác: dữ liệu đơn ngữ (back-translation), một cặp ngôn ngữ giàu
@@ -59,6 +60,8 @@ import CauHoi from '../../src/components/CauHoi.astro';
 Bạn có **20 nghìn cặp câu Việt–Mường** (lấy từ sách song ngữ và văn bản hành chính), khoảng **200 nghìn câu tiếng Mường đơn ngữ** thu được từ báo địa phương và ghi chép, và một máy có GPU. Sếp muốn một hệ dịch Việt → Mường dùng được. Làm gì trước?
 
 Huấn luyện một Transformer từ đầu trên 20 nghìn cặp câu gần như chắc chắn thất bại — Koehn & Knowles (2017) đã đo: ở mốc dữ liệu nhỏ nhất, NMT huấn luyện từ đầu chỉ đạt 1.6 BLEU trong khi hệ thống kê cũ đạt 16.4. Bạn cần mượn nguyên liệu.
+
+Sáu mục dưới đây đi theo thứ tự lịch sử để bạn hiểu từng kỹ thuật, **không** phải thứ tự nên thử. Thứ tự ưu tiên thực dụng nằm ở mục *Trả lời câu hỏi mở đầu* cuối bài: fine-tune mô hình đa ngữ trước, rồi dựng bộ test, rồi mới tới back-translation và lọc dữ liệu.
 
 ## 1. Back-translation — biến văn bản đơn ngữ thành cặp câu
 

@@ -1,4 +1,5 @@
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 cau_hoi:
   - id: q1
     loai: mot
@@ -15,15 +16,15 @@ cau_hoi:
   - id: q2
     loai: so
     do_kho: 1
-    de: "Bảng merge học được (theo thứ tự): (l, o) → (lo, w) → (e, s) → (es, t). Tách từ «lowest» ra được bao nhiêu token?"
+    de: "Bảng merge học được (theo thứ tự): (e, s) → (es, t) → (l, o) → (lo, w). Tách từ «lowest» ra được bao nhiêu token?"
     dap_an: 2
     sai_so: 0.001
-    giai_thich: "Bắt đầu: l o w e s t. Áp dụng theo thứ hạng: (l,o) → lo w e s t; (lo,w) → low e s t; (e,s) → low es t; (es,t) → low est. Còn 2 token: «low» và «est». Từ «lowest» chưa hề có trong corpus mà vẫn ghép được từ hai mảnh."
+    giai_thich: "Bắt đầu: l o w e s t. Áp dụng theo thứ hạng: (e,s) → l o w es t; (es,t) → l o w est; (l,o) → lo w est; (lo,w) → low est. Còn 2 token: «low» và «est». Từ «lowest» chưa hề có trong corpus mà vẫn ghép được từ hai mảnh."
 
   - id: q3
     loai: so
     do_kho: 2
-    de: "Vẫn bảng merge đó — (l, o), (lo, w), (e, s), (es, t) — tách từ «slowest» ra được bao nhiêu token?"
+    de: "Vẫn bảng merge đó — (e, s), (es, t), (l, o), (lo, w) — tách từ «slowest» ra được bao nhiêu token?"
     dap_an: 3
     sai_so: 0.001
     giai_thich: "s l o w e s t → sau các merge còn «s» + «low» + «est» = 3 token. Chữ «s» đứng đầu không ghép được với «low» vì cặp (s, low) không có trong bảng merge."

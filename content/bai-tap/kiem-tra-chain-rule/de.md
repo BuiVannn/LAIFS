@@ -2,7 +2,8 @@
 tieu_de: Tính đạo hàm bằng quy tắc chuỗi (xuôi rồi ngược)
 khai_niem: chain-rule
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Cho chuỗi phép tính:

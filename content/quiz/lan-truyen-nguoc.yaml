@@ -1,4 +1,5 @@
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 cau_hoi:
   - id: q1
     loai: mot

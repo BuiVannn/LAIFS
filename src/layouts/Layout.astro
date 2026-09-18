@@ -3,7 +3,7 @@ import 'katex/dist/katex.min.css';
 import '../styles.css';
 import { hienNhap } from '../lib';
 
-type Props = { tieuDe?: string; trang?: 'hom-nay' | 'lo-trinh' | 'on-tap' | 'luyen-code' | 'ke-hoach' | 'khac'; tapTrung?: boolean };
+type Props = { tieuDe?: string; trang?: 'hom-nay' | 'lo-trinh' | 'on-tap' | 'luyen-code' | 'ke-hoach' | 'thu-vien' | 'khac'; tapTrung?: boolean };
 const { tieuDe, trang = 'khac', tapTrung = false } = Astro.props as Props;
 const hienTai = (t: Props['trang']) => (t === trang ? 'page' : undefined);
 ---
@@ -34,6 +34,7 @@ const hienTai = (t: Props['trang']) => (t === trang ? 'page' : undefined);
           <a class="muc-nav" href="/lo-trinh" aria-current={hienTai('lo-trinh')}>Lộ trình</a>
           <a class="muc-nav" href="/on-tap" aria-current={hienTai('on-tap')}>Ôn tập <span class="huy-hieu" data-so-on hidden></span></a>
           <a class="muc-nav" href="/luyen-code" aria-current={hienTai('luyen-code')}>Luyện code</a>
+          <a class="muc-nav" href="/thu-vien" aria-current={hienTai('thu-vien')}>Thư viện</a>
         </div>
         <div class="nhom-nav">
           <div class="nhan-nhom">Khám phá</div>

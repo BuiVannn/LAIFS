@@ -2,7 +2,8 @@
 tieu_de: Đạo hàm số bằng sai phân trung tâm
 khai_niem: dao-ham
 do_kho: 1
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Viết hàm `dao_ham_so(f, x, h=1e-5)` xấp xỉ đạo hàm $f'(x)$ bằng **sai phân trung tâm**:

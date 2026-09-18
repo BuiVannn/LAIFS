@@ -2,7 +2,8 @@
 tieu_de: Giải mã greedy và beam search
 khai_niem: dich-may-nmt
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Mô hình dịch được thay bằng một **bảng xác suất cho sẵn**: `bang` là dict, khoá là tiền tố đã sinh (một `tuple` token, tiền tố rỗng là `()`), giá trị là dict `{token kế tiếp: xác suất}`.

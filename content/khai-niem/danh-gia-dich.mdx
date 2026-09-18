@@ -4,9 +4,10 @@ ten_en: "Machine Translation Evaluation: BLEU, chrF, COMET"
 tang: 5
 thu_tu: 39
 tien_quyet: ["dich-may-nmt"]
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 dinh_nghia: >-
-  Cách chấm điểm chất lượng bản dịch máy. Nhóm metric đếm n-gram (BLEU, chrF) so bản dịch với một
+  Cách chấm điểm chất lượng bản dịch máy. Ở đây "metric" và "thước đo" là một: nhóm metric đếm n-gram (BLEU, chrF) so bản dịch với một
   hoặc nhiều bản tham chiếu do người dịch; nhóm metric học máy (COMET, MetricX) dùng mô hình đã
   học từ điểm người chấm; chuẩn vàng vẫn là người đánh giá theo khung MQM.
 truc_giac: >-
@@ -94,8 +95,10 @@ chính phủ đã công bố kế hoạch mới vào sáng thứ hai
 Với mỗi bậc $n$ từ 1 đến 4, đếm số $n$-gram của bản dịch máy có mặt trong bản tham chiếu, chia cho tổng số $n$-gram của bản dịch máy.
 
 $$
-p_n = \frac{\text{số } n\text{-gram khớp (đã clip)}}{\text{tổng số } n\text{-gram của bản dịch}}
+p_n = \frac{c_n}{t_n}
 $$
+
+trong đó $c_n$ là số $n$-gram của bản dịch khớp với tham chiếu **sau khi clip**, còn $t_n$ là tổng số $n$-gram của bản dịch.
 
 Câu 12 từ có 12 unigram, 11 bigram, 10 trigram, 9 four-gram.
 
@@ -116,7 +119,7 @@ Precision có một lỗ hổng thứ hai: **dịch càng ngắn càng dễ gi�
 Vì thế BLEU nhân thêm **brevity penalty** (BP), phạt bản dịch ngắn hơn tham chiếu. Gọi $c$ là độ dài bản dịch, $r$ là độ dài bản tham chiếu:
 
 $$
-\text{BP} = \begin{cases} 1 & \text{nếu } c > r \\[4pt] e^{\,1 - r/c} & \text{nếu } c \le r \end{cases}
+\text{BP} = \begin{cases} 1 & c > r \\[4pt] e^{\,1 - r/c} & c \le r \end{cases}
 $$
 
 Với $c = 8$, $r = 12$: $\text{BP} = e^{1 - 12/8} = e^{-0.5} \approx 0.6065$.
@@ -204,10 +207,12 @@ $\beta = 2$ nghĩa là recall được coi trọng gấp đôi precision — b�
 $\text{chrP} = (0.8 + 0.5 + 0.3333)/3 = 0.5444$, $\text{chrR} = (0.6667 + 0.4 + 0.25)/3 = 0.4389$.
 
 $$
-\text{chrF}_2 = \frac{5 \times 0.5444 \times 0.4389}{4 \times 0.5444 + 0.4389} = \frac{1.1948}{2.6165} \approx 0.4566 \;\to\; 45.66
+\text{chrF}_2 = \frac{5 \times 0.5444 \times 0.4389}{4 \times 0.5444 + 0.4389} = \frac{1.1947}{2.6165} \approx 0.4566 \;\to\; 45.66
 $$
 
-BLEU của cặp này bằng 0 (không có bigram từ nào khớp). chrF cho 45.66 — nó thấy `thứ` vẫn đúng. Đó là ưu điểm của chrF: **cho điểm từng phần**, nên ổn định hơn hẳn trên câu ngắn và trên ngôn ngữ mà một "từ" bị cắt vụn hay dính liền tuỳ công cụ.
+(Đây là con số của **ba** bậc ký tự, tính cho gọn bằng tay. Với mặc định sáu bậc thì `thứ ba` chỉ được 22.83, vì hai chuỗi quá ngắn nên các bậc 4–6 không khớp gì. Cột `chrF2` trong bảng bốn bản dịch ở trên dùng mặc định sáu bậc.)
+
+BLEU của cặp này bằng 0 (không có bigram từ nào khớp). chrF vẫn cho điểm dương — nó thấy `thứ` đúng. Đó là ưu điểm của chrF: **cho điểm từng phần**, nên ổn định hơn hẳn trên câu ngắn và trên ngôn ngữ mà một "từ" bị cắt vụn hay dính liền tuỳ công cụ.
 
 Nhưng nhìn lại bảng bốn bản dịch: chrF xếp A (92.92) trên C (92.70) — đúng thứ tự, nhưng chỉ hơn 0.22 điểm. chrF **cũng không phát hiện được** lỗi sai ngày. Nó vẫn chỉ là đếm ký tự.
 

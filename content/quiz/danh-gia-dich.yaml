@@ -1,4 +1,5 @@
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 cau_hoi:
   - id: q1
     loai: mot
@@ -109,7 +110,8 @@ cau_hoi:
     dap_an: 0
     giai_thich: >-
       Vì đơn vị là ký tự, chrF cho điểm từng phần khi bản dịch gần đúng: "thứ ba" so với "thứ hai"
-      được chrF2 ≈ 45.66 trong khi BLEU bằng 0. Nhờ vậy chrF ổn định hơn trên câu ngắn và ít phụ
+      được chrF2 ≈ 45.66 (tính tay với ba bậc ký tự như trong bài; với mặc định sáu bậc là 22.83)
+      trong khi BLEU bằng 0. Nhờ vậy chrF ổn định hơn trên câu ngắn và ít phụ
       thuộc vào công cụ tách từ. Loại metric không cần tham chiếu là quality estimation (COMETKiwi).
 
   - id: q9

@@ -2,7 +2,8 @@
 tieu_de: BPE — học merge rồi tách từ mới
 khai_niem: tokenization
 do_kho: 2
-trang_thai: nhap
+trang_thai: da_duyet
+nguoi_duyet: "ra-soat-tu-dong 2026-09-18"
 ---
 
 Cài Byte Pair Encoding bằng Python thuần (không numpy, không thư viện ngoài).
