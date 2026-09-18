@@ -1,6 +1,9 @@
-// Bản nháp chỉ hiện khi chạy local (npm run dev); bản build chỉ có nội dung đã duyệt.
-export const hienThi = (d: { data: { trang_thai: string } }) =>
-  import.meta.env.DEV || d.data.trang_thai === 'da_duyet';
+// Bản nháp hiện khi chạy local (npm run dev) hoặc khi build với HIEN_NHAP=1 (bản xem trước cho nhóm).
+// Build thường chỉ chứa nội dung đã duyệt.
+export const hienNhap =
+  import.meta.env.DEV || (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.HIEN_NHAP === '1';
+
+export const hienThi = (d: { data: { trang_thai: string } }) => hienNhap || d.data.trang_thai === 'da_duyet';
 
 export const TEN_TANG: Record<number, string> = {
   1: 'Toán nền',

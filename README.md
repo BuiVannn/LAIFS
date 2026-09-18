@@ -8,7 +8,22 @@ npm run dev            # http://localhost:4321 — hiện cả bản nháp
 npm run build          # bản build chỉ chứa nội dung trang_thai: da_duyet
 npm run check:bai-tap  # kiểm tra lời giải mẫu đạt hết test (cần python3 + numpy)
 npm run check:tien-do  # kiểm tra logic lịch ôn tập và mức thành thạo
+npm run build:xem-truoc # build KÈM bản nháp, dùng cho bản deploy nội bộ (tự thêm thẻ noindex)
 ```
+
+## Deploy
+
+Trang tĩnh, không cần server. Khuyến nghị **Cloudflare Pages** nối thẳng với repo GitHub: mỗi lần push là tự build lại.
+
+1. dash.cloudflare.com → **Workers & Pages** → **Create** → **Pages** → **Connect to Git** → chọn repo `BuiVannn/LAIFS`.
+2. Framework preset: **Astro**. Build command: `npm run build:xem-truoc` (đổi thành `npm run build` khi nội dung đã được duyệt hết). Output directory: `dist`.
+3. Deploy. Địa chỉ sẽ dạng `laifs.pages.dev`.
+4. Muốn giới hạn người xem: **Zero Trust → Access → Applications**, thêm ứng dụng self-hosted trỏ vào domain đó, policy cho phép theo danh sách email. Miễn phí tới 50 người.
+
+Lưu ý:
+- `npm run build` chỉ xuất nội dung `trang_thai: da_duyet`. Khi tất cả còn là nháp thì bản build chỉ có vài trang — dùng `build:xem-truoc` cho tới khi duyệt xong.
+- Bản build có nháp tự thêm `<meta name="robots" content="noindex">`, nên không bị Google lập chỉ mục.
+- Tiến độ học lưu trên trình duyệt từng người, deploy không làm mất, nhưng mỗi thiết bị là một bản riêng cho tới khi có tài khoản (xem mục 9 KHUNG-Y-TUONG.md).
 
 ## Các trang
 

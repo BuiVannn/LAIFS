@@ -3,3 +3,8 @@ dist/
 .astro/
 .DS_Store
 __pycache__/
+
+# Tài liệu PDF cá nhân: giữ ở máy, không đưa lên repo (dung lượng + bản quyền)
+resources/
+content/pdf/
+*.pdf

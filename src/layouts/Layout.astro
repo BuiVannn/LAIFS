@@ -1,6 +1,7 @@
 ---
 import 'katex/dist/katex.min.css';
 import '../styles.css';
+import { hienNhap } from '../lib';
 
 type Props = { tieuDe?: string; trang?: 'hom-nay' | 'lo-trinh' | 'on-tap' | 'luyen-code' | 'ke-hoach' | 'khac'; tapTrung?: boolean };
 const { tieuDe, trang = 'khac', tapTrung = false } = Astro.props as Props;
@@ -16,6 +17,8 @@ const hienTai = (t: Props['trang']) => (t === trang ? 'page' : undefined);
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet" />
     <title>{tieuDe ? `${tieuDe} · LAIFS` : 'LAIFS · Học AI'}</title>
+    {/* Còn bản nháp thì không cho công cụ tìm kiếm lập chỉ mục */}
+    {hienNhap && <meta name="robots" content="noindex, nofollow" />}
   </head>
   <body class={tapTrung ? 'tap-trung' : undefined}>
     <slot name="tren-cung" />
@@ -45,7 +48,7 @@ const hienTai = (t: Props['trang']) => (t === trang ? 'page' : undefined);
       </nav>
       <main class="noi-dung">
         <slot />
-        {import.meta.env.DEV && <p class="chan-trang">Chế độ dev: đang hiện cả bản nháp.</p>}
+        {hienNhap && <p class="chan-trang">Bản xem trước: đang hiện cả nội dung nháp, chưa được duyệt.</p>}
       </main>
     </div>
     <script>
