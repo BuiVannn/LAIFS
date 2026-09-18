@@ -1,0 +1,361 @@
+---
+ten_vi: "Ổn định số trong tính toán"
+ten_en: "Numerical Stability"
+tang: 2
+thu_tu: 27
+tien_quyet: ["softmax", "ham-kich-hoat"]
+trang_thai: nhap
+dinh_nghia: >-
+  Tập hợp kỹ thuật viết lại công thức sao cho máy tính ra đúng kết quả dù chỉ có
+  dấu phẩy động với dải giá trị hữu hạn: trừ max trước khi lấy exp, dùng log-sum-exp,
+  gộp softmax với cross-entropy thành log_softmax, thêm epsilon vào mẫu số.
+  Cùng một công thức toán, nhiều cách viết code, và chỉ vài cách trong đó không cho ra inf hay NaN.
+truc_giac: >-
+  Số thực trong máy giống một cái thước có vạch thưa dần về hai đầu: quanh 1 các vạch
+  cực dày, nhưng qua 10^308 thì hết thước (thành inf) và dưới 10^-308 thì mọi thứ dồn về 0.
+  Toán học không biết cái thước đó tồn tại. Ổn định số là nghệ thuật chọn con đường tính
+  toán đi qua vùng có vạch, dù điểm đầu và điểm cuối đều nằm gọn trong thước.
+hieu_nham:
+  - "NaN không phải 'số rất lớn': nó là kết quả của phép toán vô nghĩa như inf − inf, 0 × inf hay 0/0, và nó lây lan — mọi phép tính chạm vào NaN đều ra NaN."
+  - "Trừ max trong softmax KHÔNG phải xấp xỉ hay đánh đổi độ chính xác lấy an toàn: kết quả đúng y hệt về mặt toán học, nhờ tính bất biến softmax(z + c) = softmax(z)."
+  - "Tràn số không chỉ xảy ra ở đầu lớn: exp(−1000) ra đúng 0 (tràn dưới), rồi log(0) ra −inf — cũng hỏng, nhưng ở đầu kia."
+  - "Cộng epsilon vào mẫu số không phải liều thuốc chữa bách bệnh: nếu mẫu số đáng ra không bao giờ bằng 0 thì epsilon chỉ giấu một lỗi khác đi."
+  - "float32 không phải 'float64 chậm hơn một nửa độ chính xác': nó chỉ còn khoảng 7 chữ số có nghĩa, exp tràn ngay từ x > 88.7, và tổng nhiều số gần nhau có thể ra kết quả âm cho phương sai."
+y_chinh:
+  - "float64 chứa được tới ~1.8×10^308: exp(x) tràn thành inf khi x > 709.78; với float32 ngưỡng chỉ là 88.72"
+  - "exp(z − max z) không bao giờ tràn trên, và softmax không đổi giá trị vì bất biến với phép cộng hằng số"
+  - "log-sum-exp: LSE(z) = max z + ln Σ e^(z_i − max z) — tính được tổng của các số khổng lồ mà không tràn"
+  - "log_softmax(z) = z − LSE(z): tính thẳng, không đi qua p rồi mới lấy log, nên không bao giờ ra −inf giả"
+  - "Thư viện gộp softmax vào hàm loss (CrossEntropyLoss nhận logit thô) chính vì lý do này — đừng tự ghép softmax rồi log"
+  - "NaN lây lan: truy vết bằng cách tìm batch đầu tiên sinh NaN, kiểm tra theo thứ tự dữ liệu → loss → gradient → learning rate"
+tai_lieu:
+  - url: https://gregorygundersen.com/blog/2020/02/09/log-sum-exp/
+    tieu_de: The Log-Sum-Exp Trick
+    tac_gia: Gregory Gundersen
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Bài viết ngắn, dẫn đúng mẹo trừ max và chứng minh nó không đổi kết quả. Đọc đầu tiên.
+  - url: https://www.youtube.com/watch?v=PZRI1IfStY0
+    tieu_de: Floating Point Numbers - Computerphile
+    tac_gia: Computerphile
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Vì sao số thực trong máy có vạch thưa dần, giải thích bằng hình. Xem nếu chưa rõ khái niệm dấu phẩy động.
+  - url: https://docs.python.org/3/tutorial/floatingpoint.html
+    tieu_de: "Floating Point Arithmetic: Issues and Limitations"
+    tac_gia: Python documentation
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Tài liệu chính thức giải thích vì sao 0.1 + 0.2 khác 0.3. Ngắn, tra lại được.
+  - url: https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html
+    tieu_de: torch.nn.CrossEntropyLoss
+    tac_gia: PyTorch documentation
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: "Đọc kỹ dòng 'expects unnormalized logits': đây là bằng chứng thư viện thật sự gộp softmax vào loss vì ổn định số."
+---
+
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Tình huống: loss thành NaN ở epoch 3
+
+Một mô hình phân loại đang chạy ngon lành:
+
+```
+epoch 1  loss 2.3012
+epoch 2  loss 1.8447
+epoch 3  loss nan
+epoch 4  loss nan
+```
+
+Từ đây trở đi mọi thứ chết: loss `nan`, accuracy đứng im, trọng số toàn `nan`. Không có dòng nào báo lỗi, chương trình vẫn chạy tới hết.
+
+Công thức thì đúng. Toán thì đúng. Cái sai nằm ở chỗ **máy tính không có số thực**, nó chỉ có một tập hữu hạn các số dấu phẩy động, và có những đường tính toán đi lạc ra ngoài tập đó dù điểm đầu lẫn điểm cuối đều nằm trong.
+
+## Trực giác: cái thước có vạch thưa dần
+
+Kiểu `float64` (mặc định của NumPy) dùng 64 bit, chia ra dấu, số mũ và phần định trị. Hệ quả là một cái thước kỳ lạ:
+
+| Ngưỡng | float64 | float32 |
+|---|---|---|
+| Số lớn nhất | $1.80 \times 10^{308}$ | $3.40 \times 10^{38}$ |
+| Vượt qua thì thành | `inf` | `inf` |
+| $x$ lớn nhất mà $e^x$ chưa tràn | 709.78 | 88.72 |
+| Epsilon máy (số nhỏ nhất cộng vào 1 mà thấy được) | $2.22 \times 10^{-16}$ | $1.19 \times 10^{-7}$ |
+| Số chữ số thập phân tin được | ~15–16 | ~7 |
+
+Hai dòng cuối nói điều quan trọng nhất: độ phân giải là **tương đối**, không tuyệt đối. Quanh số 1, float64 phân biệt được chênh lệch $10^{-16}$. Quanh số $10^{8}$, nó chỉ phân biệt được chênh lệch cỡ $10^{-8}$. Trong float32, `np.float32(1e8) + np.float32(1)` cho ra đúng `1e8`: cộng 1 vào một trăm triệu mà không xi nhê gì.
+
+Ba cách một phép tính có thể hỏng:
+
+- **Tràn trên** (overflow): kết quả vượt số lớn nhất, thành `inf`. `np.exp(1000)` là ví dụ.
+- **Tràn dưới** (underflow): kết quả nhỏ hơn số nhỏ nhất, dồn về `0`. `np.exp(-1000)` cho đúng `0.0`.
+- **Triệt tiêu tai hại** (catastrophic cancellation): trừ hai số gần bằng nhau, mọi chữ số đúng triệt tiêu hết, chỉ còn rác.
+
+## NaN: cái gì và từ đâu
+
+`NaN` (Not a Number) là giá trị đặc biệt cho kết quả **vô nghĩa**, khác hẳn `inf` vốn chỉ là "quá lớn". Bốn lò sản xuất NaN chính:
+
+$$
+\infty - \infty, \qquad 0 \times \infty, \qquad \frac{0}{0}, \qquad \frac{\infty}{\infty}
+$$
+
+Cộng thêm các phép ngoài miền xác định: $\ln(-1)$, $\sqrt{-1}$.
+
+Hai đặc tính khiến NaN khó chịu đặc biệt:
+
+1. **Nó lây.** Mọi phép tính có NaN đều ra NaN. Một phần tử NaN trong gradient, sau một bước cập nhật, làm toàn bộ tham số của lớp đó thành NaN, rồi lan ra cả mạng.
+2. **Nó không bằng chính nó.** `np.nan == np.nan` là `False`. Muốn kiểm tra phải dùng `np.isnan(x)`, và `np.isfinite(x)` để bắt cả `inf` lẫn `nan` một lượt.
+
+Trong deep learning, NaN gần như luôn ra đời từ một trong ba con đường: `exp` của số quá lớn (ra `inf`, rồi `inf - inf`), `log` của số 0 (ra `-inf`, rồi `0 × inf`), hoặc chia cho 0.
+
+## Ổ hỏng số 1: softmax không trừ max
+
+Công thức trực tiếp:
+
+```python
+e = np.exp(z)
+p = e / e.sum()
+```
+
+Với `z = [1000., 1001., 1002.]` thì `np.exp(z)` ra `[inf, inf, inf]`, rồi `inf/inf` ra `[nan, nan, nan]`. Mà logit cỡ 1000 chẳng có gì lạ trong một mạng chưa chuẩn hoá tốt.
+
+Bài [Softmax](/khai-niem/softmax) đã chứng minh $\text{softmax}(\mathbf{z} + c) = \text{softmax}(\mathbf{z})$ với mọi $c$. Chọn $c = -\max_k z_k$:
+
+$$
+\text{softmax}(\mathbf{z})_i = \frac{e^{z_i - m}}{\sum_k e^{z_k - m}}, \qquad m = \max_k z_k
+$$
+
+Giờ số mũ lớn nhất đúng bằng 0, nên $e^{0} = 1$: **không bao giờ tràn trên**. Các số hạng khác có thể tràn dưới về 0, nhưng mẫu số luôn $\ge 1$ nên không bao giờ chia cho 0. Với `z = [1000., 1001., 1002.]` kết quả ra đúng `[0.0900, 0.2447, 0.6652]`, y hệt `softmax([0., 1., 2.])`.
+
+Nhấn lại cho rõ, vì đây là chỗ hay hiểu nhầm: **trừ max không phải xấp xỉ**. Nó là phép biến đổi chính xác tuyệt đối, chỉ đổi đường đi chứ không đổi đích.
+
+<CauHoi cau="on-dinh-so/q4" />
+
+## Ổ hỏng số 2: log của tổng các số mũ
+
+Rất nhiều công thức cần $\ln \sum_k e^{z_k}$ — chuẩn hoá phân phối, tính hợp lý, cộng xác suất trong không gian log. Viết thẳng `np.log(np.sum(np.exp(z)))` hỏng ở **cả hai** đầu:
+
+- `z = [1000, 1001, 1002]`: `exp` ra `inf`, kết quả `inf`.
+- `z = [-1000, -1001, -1002]`: `exp` ra `0`, tổng `0`, `log(0)` ra `-inf`.
+
+Cách chữa là **log-sum-exp** (LSE). Đặt $m = \max_k z_k$ và tách $e^{z_k} = e^{m}\,e^{z_k - m}$:
+
+$$
+\operatorname{LSE}(\mathbf{z}) = \ln\sum_k e^{z_k}
+= \ln\left(e^{m}\sum_k e^{z_k - m}\right)
+= m + \ln\sum_k e^{z_k - m}
+$$
+
+Bên trong logarit, mọi số mũ đều $\le 0$ nên $e^{z_k - m} \in (0, 1]$: không tràn trên. Và ít nhất một số hạng bằng đúng 1 (số hạng $k$ đạt max), nên tổng $\ge 1$ và logarit không bao giờ nhận 0.
+
+Kiểm bằng tay với $\mathbf{z} = (1000, 1001, 1002)$, $m = 1002$:
+
+$$
+\operatorname{LSE} = 1002 + \ln\left(e^{-2} + e^{-1} + e^{0}\right) = 1002 + \ln(1.503214) = 1002 + 0.407606 = 1002.407606
+$$
+
+Với $\mathbf{z} = (-1000, -1001, -1002)$, $m = -1000$, phần trong logarit đúng bằng $1 + e^{-1} + e^{-2}$ như trên, nên $\operatorname{LSE} = -1000 + 0.407606 = -999.592394$. Cả hai đều là số bình thường.
+
+## Ổ hỏng số 3: softmax rồi mới log
+
+Cross-entropy cần $\ln p_i$. Cách ngây thơ là tính $p$ rồi lấy logarit:
+
+```python
+p = softmax(z)          # da tru max, khong tran
+loss = -np.log(p[nhan])  # van co the ra inf
+```
+
+Vẫn hỏng, chỉ là ở chỗ khác. Với `z = [0., -1000.]`, softmax (đã trừ max) cho `p = [1.0, 0.0]` — số hạng thứ hai tràn dưới về đúng 0. Nếu nhãn đúng lại là lớp 2 thì `-np.log(0.0)` ra `inf`, và gradient sau đó ra `nan`.
+
+Lời giải là **không bao giờ đi qua $p$**. Tính thẳng logarit:
+
+$$
+\ln p_i = \ln\frac{e^{z_i}}{\sum_k e^{z_k}} = z_i - \ln\sum_k e^{z_k} = z_i - \operatorname{LSE}(\mathbf{z})
+$$
+
+Hàm này gọi là **log_softmax**. Với `z = [0., -1000.]` nó cho ra đúng `[0., -1000.]`: giá trị thật, không phải `-inf`. Thông tin "lớp 2 rất khó xảy ra, log-xác suất là −1000" được giữ nguyên, và gradient tính từ nó vẫn hữu hạn.
+
+Đây chính là câu trả lời cho câu hỏi "vì sao thư viện gộp softmax với cross-entropy":
+
+| Cách viết | An toàn? | Ghi chú |
+|---|---|---|
+| `log(softmax(z))` | Không | Tràn dưới ở $p$ rồi `log(0)` ra `-inf` |
+| `log_softmax(z)` = `z - LSE(z)` | Có | Một bước, không đi qua $p$ |
+| `CrossEntropyLoss(logits, y)` | Có | Bên trong là `log_softmax` + `nll_loss` |
+| `BCEWithLogitsLoss(z, y)` | Có | Bản nhị phân, dùng cùng mẹo |
+
+Vì vậy `torch.nn.CrossEntropyLoss` ghi rõ trong tài liệu là nhận **logit chưa chuẩn hoá**, không nhận xác suất. Ai thêm `Softmax()` vào lớp ra rồi vẫn dùng `CrossEntropyLoss` là đang áp softmax **hai lần**: mô hình vẫn học được chút ít nhưng loss chững rất sớm, vì logit đưa vào lần hai đã bị nén hết vào khoảng $(0, 1)$.
+
+<CauHoi cau="on-dinh-so/q6" />
+
+## Ổ hỏng số 4: triệt tiêu tai hại
+
+Khi trừ hai số gần bằng nhau, các chữ số đúng triệt tiêu hết và phần sai số tương đối phình lên. Ví dụ rõ nhất là công thức phương sai $\text{Var}(x) = E[x^2] - (E[x])^2$ với dữ liệu $x = (10^8{+}1,\ 10^8{+}2,\ 10^8{+}3,\ 10^8{+}4)$, phương sai thật là 1.25:
+
+| Cách tính | float64 | float32 |
+|---|---|---|
+| $E[x^2] - (E[x])^2$ | 2.0 | **−8.0** |
+| Hai lượt: $E\big[(x - \bar{x})^2\big]$ | 1.25 | 1.25 |
+
+Công thức "một lượt" cho ra phương sai **âm** trong float32 — một đại lượng không thể âm. Cả hai công thức đều đúng về mặt đại số; chỉ một trong hai đúng về mặt tính toán.
+
+Cùng loại bệnh xuất hiện ở sigmoid. Với $z = 37$, `sigmoid(z)` làm tròn thành đúng `1.0` trong float64, nên `1 - sigmoid(z)` ra `0.0` và `log(1 - sigmoid(z))` ra `-inf`. Cách đúng là rút gọn trước khi tính:
+
+$$
+\ln\big(1 - \sigma(z)\big) = \ln\frac{1}{1 + e^{z}} = -\ln(1 + e^{z})
+$$
+
+Vế phải cho đúng $-40.0$ tại $z = 40$ (vì $\ln(1 + e^{40}) \approx 40$). Trong NumPy, `np.logaddexp(0, z)` tính $\ln(1 + e^{z})$ một cách ổn định.
+
+## Ổ hỏng số 5: chia cho số gần 0
+
+Chuẩn hoá thường có dạng $\dfrac{x - \mu}{\sigma}$, và $\sigma$ có thể bằng 0 (một đặc trưng hằng số) hoặc rất nhỏ. Cách chữa quen thuộc là cộng một **epsilon**:
+
+$$
+\frac{x - \mu}{\sigma + \varepsilon}
+\qquad \text{hay} \qquad
+\frac{x - \mu}{\sqrt{\sigma^2 + \varepsilon}}
+$$
+
+Giá trị quen dùng là $\varepsilon = 10^{-8}$ (float64) hay $10^{-5}$ (batch norm trong PyTorch). Ba điều cần cẩn thận:
+
+- **Đặt epsilon đúng chỗ.** $\sqrt{\sigma^2 + \varepsilon}$ tốt hơn $\sqrt{\sigma^2} + \varepsilon$: cách sau vẫn tính căn của số có thể âm do sai số.
+- **Epsilon quá nhỏ thì vô dụng.** Trong float32, cộng $10^{-12}$ vào một số cỡ 1 chẳng thay đổi gì, vì epsilon máy đã là $1.19\times10^{-7}$.
+- **Đừng dùng epsilon để giấu lỗi.** Nếu mẫu số đáng ra không bao giờ bằng 0 mà nó bằng 0, thì epsilon chỉ che đi một bug ở chỗ khác.
+
+Kẹp giá trị trước khi lấy logarit (`np.clip(p, 1e-12, 1.0)`) là mẹo cùng họ, nhưng nó **bóp méo** kết quả: $-\ln(10^{-12}) = 27.63$ trở thành trần cứng cho loss. Chỉ nên dùng khi không có cách nào tính thẳng trong không gian log — với softmax thì luôn có, nên hãy dùng `log_softmax`.
+
+## Ví dụ tính tay: `log_softmax` trên logit khổng lồ
+
+Cho $\mathbf{z} = (1000,\ 1001,\ 1002)$, nhãn đúng là lớp 3.
+
+**Bước 1 — max:** $m = 1002$, nên $\mathbf{z} - m = (-2,\ -1,\ 0)$.
+
+**Bước 2 — mũ và tổng:** $e^{-2} = 0.135335$, $e^{-1} = 0.367879$, $e^{0} = 1$. Tổng $= 1.503214$.
+
+**Bước 3 — LSE:** $\ln(1.503214) = 0.407606$, nên $\operatorname{LSE}(\mathbf{z}) = 1002 + 0.407606 = 1002.407606$.
+
+**Bước 4 — log_softmax:** $\ln \mathbf{p} = \mathbf{z} - 1002.407606 = (-2.407606,\ -1.407606,\ -0.407606)$.
+
+**Bước 5 — loss:** nhãn đúng là lớp 3, nên $L = -\ln p_3 = 0.407606$.
+
+**Kiểm tra chéo:** lấy $e$ mũ của bước 4 phải ra $(0.090031,\ 0.244728,\ 0.665241)$ — đúng bằng $\text{softmax}(0, 1, 2)$, vì cộng hằng số không đổi gì.
+
+<CauHoi cau="on-dinh-so/q3" />
+
+## Code: bốn hàm ổn định số
+
+```python
+import numpy as np
+
+def logsumexp(z, axis=-1):
+    m = np.max(z, axis=axis, keepdims=True)
+    return (m + np.log(np.sum(np.exp(z - m), axis=axis, keepdims=True))).squeeze(axis)
+
+def log_softmax(z, axis=-1):
+    m = np.max(z, axis=axis, keepdims=True)
+    s = z - m                                   # khong bao gio duong -> khong tran tren
+    return s - np.log(np.sum(np.exp(s), axis=axis, keepdims=True))
+
+def cross_entropy_tu_logits(z, nhan):           # z: (N, K) logit tho, nhan: (N,) chi so lop
+    lp = log_softmax(z, axis=-1)
+    return -np.mean(lp[np.arange(len(nhan)), nhan])
+
+z = np.array([[1000.0, 1001.0, 1002.0]])
+print("logsumexp   :", logsumexp(z[0]))                  # 1002.4076...
+print("log_softmax :", np.round(log_softmax(z[0]), 6))   # [-2.4076 -1.4076 -0.4076]
+print("loss lop 3  :", round(float(cross_entropy_tu_logits(z, [2])), 6))
+print("exp lai     :", np.round(np.exp(log_softmax(z[0])), 6))
+
+nguy = np.array([[0.0, -1000.0]])
+print("ngay tho    :", np.log(np.exp(nguy[0]) / np.exp(nguy[0]).sum()))  # [0. -inf]
+print("on dinh     :", log_softmax(nguy[0]))                             # [0. -1000.]
+```
+
+Kết quả:
+
+```
+logsumexp   : 1002.4076059644444
+log_softmax : [-2.407606 -1.407606 -0.407606]
+loss lop 3  : 0.407606
+exp lai     : [0.090031 0.244728 0.665241]
+ngay tho    : [  0. -inf]
+on dinh     : [    0. -1000.]
+```
+
+Khớp từng con số với bảng tính tay. Dòng cuối là điểm mấu chốt: cách ngây thơ mất sạch thông tin về lớp 2, còn `log_softmax` giữ nguyên `-1000`.
+
+## Truy vết NaN khi huấn luyện
+
+NaN lây lan, nên lúc bạn **nhìn thấy** nó thì nguồn gốc đã trôi mất vài bước. Trình tự truy vết theo thứ tự xác suất giảm dần:
+
+**1. Kiểm tra dữ liệu trước.** Rẻ nhất, và là thủ phạm thường gặp nhất. Một `nan` lẻ trong cột dữ liệu, một mẫu chia cho 0 lúc chuẩn hoá, một ảnh hỏng. `assert np.isfinite(X).all()` ngay sau khi nạp dữ liệu. Nếu NaN xuất hiện đúng epoch 3 mà không phải epoch 1, hãy tìm batch đầu tiên gây ra nó — rất có thể trong đó có mẫu bẩn.
+
+**2. Kiểm tra loss, trước khi kiểm tra gradient.** Loss thành `inf` trước rồi mới thành `nan`? Đó là dấu hiệu `log(0)`: bạn đang tự ghép `softmax` rồi `log`, hoặc đưa xác suất vào hàm loss vốn cần logit. Đổi sang bản `*WithLogits` / `log_softmax`.
+
+**3. Xem loss ở các epoch trước.** Loss **tăng dần** rồi mới NaN thì gần như chắc chắn là learning rate quá lớn: tham số phân kỳ, logit phình to, `exp` tràn. Thử chia learning rate cho 10. Loss đang giảm bình thường rồi đột ngột NaN thì nghiêng về dữ liệu bẩn hoặc một phép chia cho 0.
+
+**4. Kiểm tra gradient.** In `np.abs(grad).max()` mỗi bước. Thấy nó leo thang theo cấp số nhân trước khi NaN thì là **bùng nổ gradient** (hay gặp ở RNN): chữa bằng gradient clipping.
+
+**5. Thu hẹp chỗ hỏng.** Chạy một batch duy nhất, in `np.isfinite(...)` sau từng lớp, tìm lớp đầu tiên cho `False`. Trong PyTorch có `torch.autograd.set_detect_anomaly(True)` để nó dừng ngay tại phép toán sinh NaN, đổi lại chạy chậm hơn nhiều.
+
+Một thói quen rẻ tiền mà cứu rất nhiều thời gian: thêm một dòng kiểm tra `assert np.isfinite(loss)` trong vòng lặp huấn luyện. Nó biến "chạy xong 4 tiếng mới biết hỏng" thành "dừng ngay tại batch có vấn đề".
+
+## Nâng cao
+
+**float32 hay float64?** Huấn luyện mạng neuron gần như luôn dùng float32 (hoặc thấp hơn nữa: bfloat16, float16) vì nhanh hơn và tốn nửa bộ nhớ. Ngưỡng tràn của `exp` khi đó chỉ là 88.72, nên các mẹo trên còn quan trọng hơn. Huấn luyện hỗn hợp (mixed precision) giữ phần nhân ma trận ở float16 nhưng cộng dồn ở float32, và nhân loss với một hệ số lớn (loss scaling) để gradient nhỏ không tràn dưới về 0. Ngược lại, kiểm tra gradient bằng sai phân (bài [Lan truyền ngược](/khai-niem/lan-truyen-nguoc)) phải dùng float64, vì công thức $(L(x+\varepsilon) - L(x-\varepsilon))/2\varepsilon$ là một phép trừ hai số gần bằng nhau — đúng bài triệt tiêu tai hại.
+
+**Phép cộng không kết hợp.** Trong dấu phẩy động, $(a + b) + c$ có thể khác $a + (b + c)$. Vì vậy tổng của một mảng lớn phụ thuộc thứ tự cộng, và chạy cùng một code trên GPU khác nhau có thể cho kết quả lệch ở chữ số cuối. NumPy dùng cộng theo cặp (pairwise summation) để giảm sai số; thuật toán Kahan còn chính xác hơn nhưng chậm hơn.
+
+**Không so sánh số thực bằng `==`.** `0.1 + 0.2 == 0.3` là `False` (vế trái bằng `0.30000000000000004`). Dùng `np.isclose(a, b)` hoặc `abs(a - b) < tol`. Bộ test trong các bài code ở web này đều dùng `np.allclose` chính vì lý do đó.
+
+**Các hàm có sẵn cho vùng nguy hiểm.** `np.log1p(x)` tính $\ln(1+x)$ chính xác khi $x$ rất nhỏ; `np.expm1(x)` tính $e^x - 1$; `np.logaddexp(a, b)` tính $\ln(e^a + e^b)$; `scipy.special.logsumexp` là bản đầy đủ có cả trọng số. Có sẵn thì dùng, đừng tự viết lại.
+
+## Sai lầm hay gặp, kèm triệu chứng
+
+| Sai lầm | Triệu chứng nhìn thấy | Cách sửa |
+|---|---|---|
+| `np.exp` trên logit chưa trừ max | `RuntimeWarning: overflow encountered in exp`, kết quả `nan`, loss `nan` ngay batch đầu | Trừ `np.max(..., axis, keepdims=True)` trước khi lấy exp |
+| `np.log(softmax(z))` | Loss ra `inf` rồi thành `nan` ở bước sau; hay xảy ra khi một lớp có xác suất cực nhỏ | Dùng `log_softmax(z) = z - LSE(z)`, đừng đi qua $p$ |
+| Tự ghép `Softmax()` + `CrossEntropyLoss` | Không báo lỗi; loss giảm rồi chững rất sớm ở mức cao; xác suất đầu ra co cụm trong khoảng hẹp | Bỏ `Softmax()` ở lớp ra — loss đã tự làm bên trong |
+| Learning rate quá lớn | Loss **tăng dần** vài epoch rồi mới NaN; trọng số phình lên rất nhanh | Chia learning rate cho 10; thêm `assert np.isfinite(loss)` để dừng sớm |
+| Dữ liệu có `nan` hoặc `inf` | Loss NaN ngay lần gặp batch đó, thường không phải epoch 1; chạy lại với seed khác thì NaN ở epoch khác | `assert np.isfinite(X).all()` sau khi nạp dữ liệu |
+| Chia cho độ lệch chuẩn bằng 0 | `RuntimeWarning: invalid value encountered in divide`, một cột đặc trưng toàn `nan` | `(x - mu) / np.sqrt(var + 1e-8)`; kiểm tra cột hằng số |
+| Dùng `==` với số thực | Test lúc đạt lúc trượt, hoặc vòng lặp không bao giờ dừng | `np.isclose` / `np.allclose` với dung sai rõ ràng |
+| Kẹp `p` bằng epsilon quá to | Loss có trần cứng (ví dụ không bao giờ vượt 27.63 với `eps = 1e-12`); mô hình học chậm ở các mẫu sai nặng | Tính trong không gian log ngay từ đầu thay vì kẹp |
+| Kiểm tra gradient số bằng float32 | Chênh lệch tương đối cỡ $10^{-3}$ dù code backprop hoàn toàn đúng | Chuyển sang float64 khi kiểm tra gradient |
+
+<CauHoi cau="on-dinh-so/q5" />
+
+## Tra nhanh
+
+| Cần gì | Cách viết an toàn |
+|---|---|
+| Ngưỡng tràn `exp` | float64: $x > 709.78$; float32: $x > 88.72$ |
+| Epsilon máy | float64: $2.22\times10^{-16}$; float32: $1.19\times10^{-7}$ |
+| Softmax | $\dfrac{e^{z_i - m}}{\sum_k e^{z_k - m}}$ với $m = \max_k z_k$ |
+| Log-sum-exp | $\operatorname{LSE}(\mathbf{z}) = m + \ln\sum_k e^{z_k - m}$ |
+| Log-softmax | $\ln p_i = z_i - \operatorname{LSE}(\mathbf{z})$ |
+| Cross-entropy | Nhận **logit thô**, bên trong là `log_softmax` + lấy phần tử của nhãn đúng |
+| $\ln(1-\sigma(z))$ | $-\ln(1 + e^{z})$, tức `-np.logaddexp(0, z)` |
+| $\ln(1+x)$ với $x$ nhỏ | `np.log1p(x)` |
+| $\ln(e^a + e^b)$ | `np.logaddexp(a, b)` |
+| Chuẩn hoá | $\dfrac{x-\mu}{\sqrt{\sigma^2 + \varepsilon}}$, $\varepsilon \approx 10^{-8}$ (đặt epsilon **trong** căn) |
+| Phương sai | Hai lượt $E[(x-\bar{x})^2]$, không dùng $E[x^2] - (E[x])^2$ |
+| So sánh số thực | `np.isclose` / `np.allclose`, không dùng `==` |
+| Bắt `nan` và `inf` | `np.isfinite(x).all()` (`np.nan == np.nan` là `False`) |
+
+Nguyên tắc một câu: **ở đâu có `exp` thì trừ max; ở đâu có `log` của kết quả `exp` thì gộp hai bước lại làm một.**
+
+## Tóm tắt
+
+- Máy tính không có số thực, chỉ có dấu phẩy động với dải hữu hạn; cùng một công thức toán có cách viết code hỏng và cách viết an toàn.
+- `exp(1000)` ra `inf`, `exp(-1000)` ra `0`, `log(0)` ra `-inf`, và `inf - inf` ra `nan` rồi lây khắp mạng.
+- Mẹo trừ max là phép biến đổi **chính xác**, không phải xấp xỉ; log-sum-exp và `log_softmax` là hai hệ quả trực tiếp.
+- Thư viện gộp softmax vào hàm loss vì lý do này, nên đừng đặt softmax ở lớp ra khi loss đã nhận logit.
+- Gặp NaN thì truy theo thứ tự: dữ liệu → loss → learning rate → gradient, và thêm `assert np.isfinite(loss)` để dừng sớm.

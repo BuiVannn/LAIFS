@@ -1,0 +1,351 @@
+---
+ten_vi: "Khởi tạo trọng số & vanishing/exploding gradient"
+ten_en: "Weight Initialization (Xavier/Glorot, He)"
+tang: 3
+thu_tu: 31
+tien_quyet: ["lan-truyen-nguoc"]
+trang_thai: nhap
+dinh_nghia: >-
+  Cách chọn giá trị ban đầu cho trọng số trước khi huấn luyện. Mục tiêu là giữ phương sai của
+  tín hiệu gần như không đổi khi đi xuôi qua từng lớp và khi gradient đi ngược trở lại, để mạng
+  sâu không bị tín hiệu tắt dần (vanishing) hay bùng nổ (exploding) ngay từ bước đầu tiên.
+truc_giac: >-
+  Mỗi lớp là một bộ khuếch đại nhân tín hiệu với một hệ số k. Hai mươi lớp nối tiếp nhân k hai
+  mươi lần. k = 0.5 thì còn một phần triệu, k = 1.5 thì gấp 3300 lần. Chỉ có k rất sát 1 mới
+  sống sót. Khởi tạo trọng số chính là chỉnh cho k bằng 1, và độ lớn phải phụ thuộc số đầu vào
+  của lớp vì cộng càng nhiều số thì tổng càng lớn.
+hieu_nham:
+  - "Khởi tạo bằng 0 KHÔNG phải là 'khởi tạo trung lập'. Mọi neuron trong một lớp sẽ tính ra cùng một giá trị, nhận cùng một gradient và cập nhật giống hệt nhau mãi mãi: lớp 512 neuron chỉ còn tác dụng như 1 neuron."
+  - "Bias khởi tạo bằng 0 thì KHÔNG sao. Đối xứng đã bị phá bởi ma trận trọng số ngẫu nhiên rồi, không cần phá thêm lần nữa."
+  - "Xavier và He không phải hai lựa chọn tuỳ thích. Chúng ứng với hai hàm kích hoạt khác nhau: Xavier cho tanh/sigmoid (gần tuyến tính quanh 0), He cho ReLU (vứt bỏ đúng một nửa tín hiệu)."
+  - "Hệ số 1/√n không phải con số kinh nghiệm. Nó suy trực tiếp ra từ Var(z) = n·Var(w)·Var(x): muốn Var(z) = Var(x) thì bắt buộc Var(w) = 1/n."
+  - "Khởi tạo sai trông y như learning rate sai: loss nằm im hoặc ra NaN. Đổi learning rate mãi không ăn thua thì phải nghi tới khởi tạo."
+  - "LayerNorm/BatchNorm làm mạng bớt nhạy với khởi tạo chứ không xoá bỏ vấn đề; Transformer sâu vẫn cần chia tỉ lệ riêng cho các lớp trong nhánh residual."
+y_chinh:
+  - "Khởi tạo bằng 0 (hay mọi trọng số bằng nhau) gây đối xứng: các neuron cùng lớp không bao giờ tách ra khỏi nhau. Phải dùng số ngẫu nhiên"
+  - "Khởi tạo quá lớn: tanh/sigmoid bão hoà (đạo hàm ≈ 0) hoặc ReLU làm kích hoạt bùng nổ theo luỹ thừa số lớp, ra inf/NaN"
+  - "Với z = Σ wᵢxᵢ, nếu w và x độc lập và kỳ vọng 0 thì Var(z) = n_in·Var(w)·Var(x). Muốn giữ phương sai thì Var(w) = 1/n_in"
+  - "Xavier/Glorot cân bằng cả lượt xuôi (1/n_in) lẫn lượt ngược (1/n_out): Var(w) = 2/(n_in + n_out); bản đều là U(−a, a) với a = √(6/(n_in+n_out))"
+  - "He cho ReLU: ReLU vứt một nửa tín hiệu nên E[a²] = ½Var(z), phải bù lại bằng hệ số 2 → Var(w) = 2/n_in"
+  - "Transformer dùng N(0, 0.02) cùng LayerNorm, và chia thêm các lớp chiếu trong nhánh residual cho √(2L) để residual stream không phình theo số lớp"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=s2coXdufOzE
+    tieu_de: Weight Initialization in a Deep Network (C2W1L11)
+    tac_gia: Andrew Ng (DeepLearningAI)
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: "6 phút, đi thẳng vào lý do hệ số 1/n và 2/n. Xem trước khi đọc phần dẫn công thức của bài."
+  - url: https://d2l.ai/chapter_multilayer-perceptrons/numerical-stability-and-init.html
+    tieu_de: "Dive into Deep Learning — 5.4. Numerical Stability and Initialization"
+    tac_gia: Zhang, Lipton, Li, Smola
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: "Dẫn Xavier đúng theo mạch bài này (cả lượt xuôi lẫn lượt ngược), kèm ví dụ code đo gradient tắt dần qua sigmoid. Có nút chạy trực tiếp."
+  - url: https://proceedings.mlr.press/v9/glorot10a.html
+    tieu_de: Understanding the difficulty of training deep feedforward neural networks
+    tac_gia: Xavier Glorot, Yoshua Bengio (AISTATS 2010)
+    loai: bai_viet
+    muc_do: toan_nang
+    ngon_ngu: en
+    ghi_chu: "Paper gốc của Xavier/Glorot init. Mục 4.2 là phần dẫn công thức; các hình histogram kích hoạt theo lớp đáng xem ngay cả khi bỏ qua toán."
+  - url: https://arxiv.org/abs/1502.01852
+    tieu_de: "Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification"
+    tac_gia: Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun
+    loai: bai_viet
+    muc_do: toan_nang
+    ngon_ngu: en
+    ghi_chu: "Paper gốc của He init (và của PReLU). Mục 2.2 dẫn ra hệ số 2 từ đúng lập luận 'ReLU vứt một nửa' dùng trong bài."
+  - url: https://cs231n.github.io/neural-networks-2/
+    tieu_de: "CS231n — Neural Networks Part 2: Setting up the Data and the Loss"
+    tac_gia: Andrej Karpathy (Stanford CS231n)
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: "Mục Weight Initialization giải thích gọn cả ba sai lầm (0, quá nhỏ, quá lớn) và lý do dùng calibration 1/√n. Đọc như bản tóm tắt sau khi học bài."
+---
+
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Mạng 20 lớp không chịu học
+
+Bạn xếp 20 lớp ẩn ReLU, khởi tạo trọng số bằng `np.random.randn(n, n) * 0.01` — nghe có vẻ an toàn, số nhỏ mà. Chạy huấn luyện: loss đứng im ở 2.303 suốt 10.000 bước. Đúng $\ln 10$, tức mô hình đoán đều 10 lớp. Đổi learning rate lên, xuống, dùng Adam: không đổi gì.
+
+Bạn sửa `* 0.01` thành `* 1.0`. Lần này loss ra `nan` ở bước thứ ba.
+
+Không có bug trong code lan truyền xuôi, lan truyền ngược hay optimizer. Vấn đề nằm ở **những con số bạn đặt vào trước khi bắt đầu**.
+
+Đo thử phương sai của tổng đầu vào $z$ ở từng lớp (mạng 20 lớp, mỗi lớp 256 neuron, ReLU, đầu vào có phương sai 1):
+
+| Độ lệch chuẩn khởi tạo | Lớp 1 | Lớp 5 | Lớp 10 | Lớp 20 |
+|---|---|---|---|---|
+| 0.01 | 0.026 | $7 \times 10^{-10}$ | $3 \times 10^{-19}$ | $4 \times 10^{-38}$ |
+| $1/\sqrt{256}$ (Xavier) | 1.00 | 0.066 | 0.0029 | $2.8 \times 10^{-6}$ |
+| $\sqrt{2/256}$ (He) | 2.01 | 2.11 | 2.92 | **2.94** |
+| 1.0 | 257 | $7 \times 10^{10}$ | $3 \times 10^{21}$ | $4 \times 10^{42}$ |
+
+Ba dòng hỏng, một dòng sống. Bài này là về cách tìm ra dòng đó bằng giấy bút, không phải bằng thử mò.
+
+## Trực giác: 20 bộ khuếch đại nối tiếp
+
+Mỗi lớp nhân độ lớn tín hiệu với một hệ số $k$ nào đó. Hai mươi lớp nối tiếp thì nhân $k^{20}$:
+
+| $k$ | $k^{20}$ |
+|---|---|
+| 0.5 | $9.5 \times 10^{-7}$ |
+| 0.9 | 0.12 |
+| 1.0 | 1 |
+| 1.1 | 6.7 |
+| 1.5 | 3325 |
+
+Chỉ cần lệch 10% mỗi lớp là sau 20 lớp đã lệch gần 10 lần. Với mạng 96 lớp như các Transformer lớn, $0.9^{96} \approx 4\times10^{-5}$: tín hiệu biến mất.
+
+Và điều này xảy ra **hai chiều**. Lượt xuôi, kích hoạt đi từ lớp 1 tới lớp 20. Lượt ngược, gradient đi từ lớp 20 về lớp 1 qua đúng những ma trận đó (nhớ $\partial L/\partial \mathbf{x} = W^\top \delta$ ở bài [Lan truyền ngược](/khai-niem/lan-truyen-nguoc)). Nếu $k < 1$ thì gradient về tới lớp 1 gần bằng 0 — **vanishing gradient**, các lớp đầu không học gì. Nếu $k > 1$ thì gradient bùng nổ — **exploding gradient**, loss ra NaN.
+
+Vậy nhiệm vụ của khởi tạo: **chỉnh cho $k = 1$**, cả hai chiều.
+
+<CauHoi cau="khoi-tao-trong-so/q2" />
+
+## Vì sao không được khởi tạo bằng 0
+
+Câu trả lời không phải "vì gradient bằng 0". Nó tinh vi hơn và tệ hơn.
+
+Xét một lớp có $n$ neuron, tất cả trọng số bằng nhau (bằng 0 là trường hợp riêng). Neuron thứ $j$ tính:
+
+$$
+h_j = f\Big(\sum_i W_{ji} x_i + b_j\Big)
+$$
+
+Nếu hàng $j$ của $W$ giống hệt hàng $j'$ thì $h_j = h_{j'}$: **mọi neuron trong lớp tính ra cùng một số**. Lượt ngược, gradient rót về từng neuron cũng bằng nhau vì chúng có vai trò hoàn toàn đối xứng, nên $\Delta W_{ji} = \Delta W_{j'i}$. Sau cập nhật, hai hàng **vẫn** giống hệt nhau.
+
+Đây là **đối xứng** (symmetry), và gradient descent không bao giờ phá được nó: mọi thứ nó làm đều tôn trọng đối xứng có sẵn. Lớp 512 neuron mãi mãi chỉ có sức biểu diễn của 1 neuron. Mạng vẫn "học", loss vẫn giảm chút ít, nhưng nó là một mạng bé tí đội lốt mạng lớn.
+
+Thứ duy nhất phá được đối xứng là **sự ngẫu nhiên lúc khởi tạo**. Đó là công việc đầu tiên của khởi tạo trọng số, trước cả chuyện phương sai.
+
+Riêng $W = 0$ còn thêm một bệnh: $\partial L/\partial \mathbf{x} = W^\top \delta = 0$, nên gradient **không đi qua nổi** lớp đó về các lớp trước. Mạng nhiều lớp khởi tạo toàn 0 thì chỉ lớp cuối được học.
+
+**Bias thì khác.** Đặt $\mathbf{b} = 0$ hoàn toàn ổn: đối xứng giữa các neuron đã bị $W$ ngẫu nhiên phá rồi. Đây là mặc định trong mọi framework.
+
+## Vì sao không được khởi tạo quá lớn
+
+Hai cơ chế khác nhau, tuỳ hàm kích hoạt.
+
+**Với sigmoid/tanh — bão hoà.** Trọng số lớn → $z$ lớn → hàm kích hoạt bẹt ra ở hai đầu. Nhìn đạo hàm:
+
+$$
+\sigma'(0) = 0.25 \qquad \sigma'(10) = 4.5 \times 10^{-5}
+$$
+
+Chênh 5500 lần. Mà lượt ngược phải **nhân** với đạo hàm này ở mỗi lớp. Neuron bão hoà thì gradient qua nó gần như bằng 0 và nó gần như không bao giờ thoát ra được — nó chết. Đây chính là lý do lịch sử khiến mạng sâu trước 2010 huấn luyện được rất khó.
+
+**Với ReLU — bùng nổ.** ReLU không bão hoà, nên không có phanh. Nhìn lại bảng ở đầu bài, dòng $\sigma = 1.0$: phương sai nhân khoảng 128 lần mỗi lớp, tới lớp 20 là $4 \times 10^{42}$. Kiểu float32 chỉ chứa tới cỡ $3.4 \times 10^{38}$ — tràn thành `inf`, rồi `inf - inf` thành `nan`, và mọi trọng số biến thành `nan` trong một bước.
+
+Vậy: quá nhỏ thì tín hiệu tắt, quá lớn thì bão hoà hoặc nổ. Cần đúng một khoảng ở giữa, và khoảng đó **phụ thuộc số đầu vào của lớp**.
+
+## Dẫn công thức: giữ phương sai qua từng lớp
+
+Đây là phần cốt lõi. Toàn bộ Xavier và He rơi ra từ một dòng.
+
+Xét một neuron trước hàm kích hoạt:
+
+$$
+z = \sum_{i=1}^{n_{\text{in}}} w_i x_i
+$$
+
+(bỏ bias vì ta đặt nó bằng 0). Giả thiết:
+
+- các $w_i$ độc lập, cùng phân phối, $\mathbb{E}[w] = 0$, $\operatorname{Var}(w) = \sigma_w^2$;
+- các $x_i$ độc lập với $w$, $\mathbb{E}[x] = 0$, $\operatorname{Var}(x) = \sigma_x^2$.
+
+Vì hai biến độc lập và đều có kỳ vọng 0:
+
+$$
+\operatorname{Var}(w_i x_i) = \mathbb{E}[w_i^2 x_i^2] - \big(\mathbb{E}[w_i x_i]\big)^2
+= \mathbb{E}[w_i^2]\,\mathbb{E}[x_i^2] - 0 = \sigma_w^2 \sigma_x^2
+$$
+
+Phương sai của tổng $n_{\text{in}}$ số hạng độc lập là tổng các phương sai (xem bài Kỳ vọng, phương sai):
+
+$$
+\boxed{\;\operatorname{Var}(z) = n_{\text{in}}\, \sigma_w^2\, \sigma_x^2\;}
+$$
+
+Đây là toàn bộ câu chuyện. Hệ số khuếch đại của một lớp là $k^2 = n_{\text{in}} \sigma_w^2$. Đặt nó bằng 1:
+
+$$
+n_{\text{in}}\,\sigma_w^2 = 1
+\qquad\Longrightarrow\qquad
+\sigma_w = \frac{1}{\sqrt{n_{\text{in}}}}
+$$
+
+**Hệ số $1/\sqrt{n}$ không phải kinh nghiệm mà là hệ quả trực tiếp.** Trực giác đằng sau: cộng $n$ số ngẫu nhiên độc lập thì độ lệch chuẩn của tổng lớn gấp $\sqrt{n}$ lần, nên phải bóp mỗi số nhỏ đi $\sqrt{n}$ lần để bù lại. Lớp càng rộng thì trọng số phải càng nhỏ.
+
+<CauHoi cau="khoi-tao-trong-so/q4" />
+
+### Xavier/Glorot: cân bằng cả lượt ngược
+
+Lượt xuôi cho $\sigma_w^2 = 1/n_{\text{in}}$. Nhưng lượt ngược thì gradient đi qua $W^\top$:
+
+$$
+\frac{\partial L}{\partial \mathbf{x}} = W^\top \delta
+\qquad\Longrightarrow\qquad
+\operatorname{Var}\!\left(\frac{\partial L}{\partial x}\right) = n_{\text{out}}\,\sigma_w^2 \operatorname{Var}(\delta)
+$$
+
+Lần này mỗi phần tử của $\partial L/\partial \mathbf{x}$ là tổng của $n_{\text{out}}$ số hạng, nên điều kiện giữ phương sai gradient là $\sigma_w^2 = 1/n_{\text{out}}$.
+
+Hai yêu cầu mâu thuẫn trừ khi $n_{\text{in}} = n_{\text{out}}$. Glorot và Bengio (2010) chọn **thoả hiệp**: lấy trung bình hai mẫu số.
+
+$$
+\sigma_w^2 = \frac{2}{n_{\text{in}} + n_{\text{out}}}
+\qquad\text{(Xavier/Glorot, ban chuan)}
+$$
+
+Bản phân phối **đều**: nếu $w \sim U(-a, a)$ thì $\operatorname{Var}(w) = a^2/3$, nên $a = \sqrt{3\sigma_w^2}$:
+
+$$
+a = \sqrt{\frac{6}{n_{\text{in}} + n_{\text{out}}}}
+\qquad\text{(Xavier/Glorot, ban deu)}
+$$
+
+Số 6 trong công thức quen thuộc đó chính là $3 \times 2$ — nó đến từ phương sai của phân phối đều, không có gì bí ẩn.
+
+Xavier được dẫn ra với giả định hàm kích hoạt **gần tuyến tính quanh 0**, đúng cho $\tanh$ ($\tanh'(0) = 1$) và tạm được cho sigmoid. Với ReLU thì giả định này sai hẳn.
+
+### He: ReLU vứt mất một nửa
+
+ReLU đặt $a = \max(0, z)$. Nếu $z$ đối xứng quanh 0, thì đúng một nửa số $z$ bị đưa về 0, và:
+
+$$
+\mathbb{E}[a^2] = \mathbb{E}\big[\max(0,z)^2\big] = \tfrac{1}{2}\,\mathbb{E}[z^2] = \tfrac{1}{2}\operatorname{Var}(z)
+$$
+
+Thay $\mathbb{E}[a^2]$ (chứ không phải $\operatorname{Var}(x)$ nữa) vào công thức khung ở trên, cho lớp tiếp theo:
+
+$$
+\operatorname{Var}(z_{l+1}) = n_{\text{in}}\,\sigma_w^2\,\mathbb{E}[a_l^2]
+= n_{\text{in}}\,\sigma_w^2 \cdot \tfrac{1}{2}\operatorname{Var}(z_l)
+$$
+
+Muốn $\operatorname{Var}(z_{l+1}) = \operatorname{Var}(z_l)$:
+
+$$
+\frac{n_{\text{in}}\sigma_w^2}{2} = 1
+\qquad\Longrightarrow\qquad
+\boxed{\;\sigma_w = \sqrt{\frac{2}{n_{\text{in}}}}\;}
+\qquad\text{(He, 2015)}
+$$
+
+**Hệ số 2 chính là bù cho một nửa bị ReLU vứt đi.** Nhìn lại bảng đầu bài: Xavier + ReLU cho phương sai giảm đúng một nửa mỗi lớp ($1.00 \to 0.066 \to 0.0029$, xấp xỉ $0.5^{19} = 1.9\times10^{-6}$ sau 20 lớp), còn He giữ nguyên quanh 2–3. Chênh lệch giữa hai công thức chỉ là hệ số $\sqrt 2$, nhưng luỹ thừa 20 lần thì thành một triệu lần.
+
+### Bảng tra và ví dụ tính tay
+
+| Hàm kích hoạt | Khởi tạo | $\sigma_w$ | Bản đều |
+|---|---|---|---|
+| tanh, sigmoid | Xavier/Glorot | $\sqrt{2/(n_{\text{in}}+n_{\text{out}})}$ | $a = \sqrt{6/(n_{\text{in}}+n_{\text{out}})}$ |
+| ReLU, Leaky ReLU, GELU | He/Kaiming | $\sqrt{2/n_{\text{in}}}$ | $a = \sqrt{6/n_{\text{in}}}$ |
+
+Lớp $256 \to 256$ (các con số ra đẹp, kiểm được bằng đầu):
+
+- Xavier: $\sigma_w = \sqrt{2/512} = \sqrt{1/256} = 1/16 = 0.0625$
+- Xavier đều: $a = \sqrt{6/512} = \sqrt{3}/16 = 0.1083$
+- He: $\sigma_w = \sqrt{2/256} = 1/\sqrt{128} = 0.0884$
+
+Kiểm lại công thức khung với Xavier: $\operatorname{Var}(z) = 256 \times (1/16)^2 \times 1 = 256/256 = 1$. Đúng bằng phương sai đầu vào, khớp dòng "Lớp 1 = 1.00" trong bảng đầu bài.
+
+Lớp đầu của mạng MNIST, $784 \to 128$:
+
+- Xavier: $\sqrt{2/912} = 0.0468$
+- He: $\sqrt{2/784} = 0.0505$
+
+<CauHoi cau="khoi-tao-trong-so/q7" />
+
+## Code: đo phương sai qua 20 lớp
+
+Đây là bài kiểm tra nên chạy mỗi khi nghi ngờ khởi tạo. Không cần dữ liệu thật, không cần huấn luyện — chỉ một lượt xuôi.
+
+```python
+import numpy as np
+
+def do_phuong_sai(std, L=20, n=256, seed=0):
+    rng = np.random.default_rng(seed)
+    h = rng.normal(0, 1, (512, n))        # 512 mẫu, phương sai đầu vào = 1
+    ps = []
+    for _ in range(L):
+        W = rng.normal(0, std(n), (n, n))
+        z = h @ W                          # bias = 0
+        ps.append(z.var())
+        h = np.maximum(0, z)               # ReLU
+    return ps
+
+for ten, std in [("0.01      ", lambda n: 0.01),
+                 ("Xavier    ", lambda n: np.sqrt(1 / n)),
+                 ("He        ", lambda n: np.sqrt(2 / n)),
+                 ("1.0       ", lambda n: 1.0)]:
+    v = do_phuong_sai(std)
+    print(ten, " ".join(f"{v[i]:9.3g}" for i in (0, 4, 9, 19)))
+```
+
+In ra đúng bảng ở đầu bài. Đọc kết quả: nếu cột cuối **nhỏ hơn cột đầu vài bậc mười** thì mạng sẽ không học được (vanishing); nếu **lớn hơn vài bậc** thì sẽ ra NaN (exploding); chỉ khi bốn cột gần bằng nhau là ổn.
+
+## Khởi tạo trong Transformer
+
+Transformer không dùng thẳng Xavier hay He, vì hai lý do: có LayerNorm, và có kết nối residual.
+
+**Mặc định là $\mathcal{N}(0, 0.02)$.** GPT-2 và BERT khởi tạo mọi ma trận trọng số bằng phân phối chuẩn cắt cụt với độ lệch chuẩn 0.02 **cố định**, không phụ thuộc $n_{\text{in}}$. Con số đó tương đương $1/\sqrt{n}$ với $n = 2500$ (vì $1/\sqrt{2500} = 0.02$), tức là **nhỏ hơn** Xavier cho các lớp thường gặp: với $d = 768$ thì Xavier cho $1/\sqrt{768} = 0.036$. Khởi tạo nhỏ hơn mức "giữ phương sai" là cố ý — LayerNorm sẽ chuẩn hoá lại tỉ lệ ở mỗi lớp, còn khởi tạo nhỏ giúp các bước đầu ổn định.
+
+**Chia tỉ lệ cho nhánh residual.** Mỗi khối Transformer cộng kết quả vào residual stream: $x \leftarrow x + \text{Attn}(x)$, rồi $x \leftarrow x + \text{MLP}(x)$. Phương sai của các đóng góp độc lập thì **cộng dồn**, nên qua $L$ khối (mỗi khối 2 lần cộng) phương sai của residual stream phình lên khoảng $2L$ lần. GPT-2 sửa bằng cách nhân thêm $1/\sqrt{2L}$ vào trọng số của **lớp chiếu cuối mỗi nhánh residual**:
+
+$$
+\sigma = \frac{0.02}{\sqrt{2L}}
+\qquad
+L = 12 \Rightarrow \sigma = 0.0041
+\qquad
+L = 48 \Rightarrow \sigma = 0.0020
+$$
+
+Mạng càng sâu, các nhánh residual càng phải khởi tạo nhỏ. Ở giới hạn, khối mới gần như là ánh xạ đồng nhất lúc bắt đầu — mạng sâu khởi động như mạng nông rồi tự "mở" dần ra.
+
+**LayerNorm khởi tạo $\gamma = 1$, $\beta = 0$**, tức bắt đầu như một phép chuẩn hoá thuần.
+
+**Pre-LN so với Post-LN.** Bản Transformer gốc đặt LayerNorm **sau** khối (Post-LN) và cần warmup learning rate, nếu không sẽ phân kỳ. Đặt LayerNorm **trước** (Pre-LN, dùng trong mọi mô hình hiện đại) làm đường residual thông suốt từ đầu tới cuối, gradient về tới lớp 1 không bị nhân thêm gì — huấn luyện ổn định hơn nhiều và bớt nhạy với khởi tạo. Nhiều "mẹo khởi tạo" của thời Post-LN đã trở nên không cần thiết chính nhờ thay đổi này.
+
+<CauHoi cau="khoi-tao-trong-so/q10" />
+
+## Nâng cao
+
+- **fan_in hay fan_out.** He init có hai bản: $2/n_{\text{in}}$ giữ phương sai lượt xuôi, $2/n_{\text{out}}$ giữ phương sai lượt ngược. Paper gốc chỉ ra cả hai đều dùng được vì sai lệch chỉ tích luỹ theo hệ số $n_{\text{in}}/n_{\text{out}}$ ở đầu và cuối, không nhân luỹ thừa. PyTorch mặc định `mode='fan_in'`.
+- **Mặc định của PyTorch không phải Xavier hay He.** `nn.Linear` khởi tạo $U(-1/\sqrt{n_{\text{in}}}, 1/\sqrt{n_{\text{in}}})$, có phương sai $1/(3 n_{\text{in}})$ — nhỏ hơn Xavier đúng 3 lần. Đây là di sản lịch sử, thường vẫn chạy được nhưng với mạng rất sâu nên gọi `nn.init.kaiming_normal_` một cách tường minh.
+- **Khởi tạo trực giao.** Với RNN, khởi tạo ma trận hồi tiếp là ma trận trực giao giữ chuẩn của vector chính xác (mọi trị riêng có module 1), nên tín hiệu không tắt cũng không nổ qua nhiều bước thời gian. Đây là cách chuẩn cho RNN, tốt hơn Xavier.
+- **LSUV.** Khởi tạo ngẫu nhiên rồi chạy một batch thật, đo phương sai từng lớp và chia lại cho tới khi bằng 1. Không cần công thức, đúng cả với kiến trúc lạ.
+- **BatchNorm/LayerNorm không xoá bỏ vấn đề.** Chúng chuẩn hoá lại tỉ lệ nên mạng bớt nhạy với khởi tạo rất nhiều, nhưng vẫn cần khởi tạo không quá dại: BatchNorm không cứu được mạng khởi tạo bằng 0 (đối xứng), và mạng rất sâu vẫn cần chia tỉ lệ residual.
+- **Khởi tạo và learning rate quấn vào nhau.** Khởi tạo lớn hơn làm gradient lớn hơn, nên learning rate tốt nhỏ đi. Vì vậy hai lỗi này có triệu chứng giống nhau, và đổi cái này thì phải dò lại cái kia.
+- **Dead ReLU và bias.** Có thời người ta khởi tạo bias ReLU bằng 0.01 để tránh neuron chết ngay từ đầu. Đo đạc về sau cho thấy cách này không cải thiện ổn định; bias bằng 0 là mặc định hiện nay.
+
+## Sai lầm hay gặp
+
+| Sai lầm | Triệu chứng nhìn thấy | Cách sửa |
+|---|---|---|
+| Khởi tạo $W = 0$ | Loss giảm một chút rồi phẳng ở mức "đoán đều" ($\ln C$ với $C$ lớp); mọi neuron cùng lớp có output giống hệt nhau | Dùng số ngẫu nhiên; in `h.std(axis=0)` để thấy các neuron có khác nhau không |
+| `randn * 0.01` cho mạng sâu | Loss hoàn toàn bất động; in phương sai kích hoạt thấy tụt vài bậc mỗi lớp | Đổi sang He hoặc Xavier tuỳ hàm kích hoạt |
+| `randn * 1.0` cho mạng sâu | `nan` sau vài bước; trước đó loss vọt lên rất lớn | Chia theo $\sqrt{n_{\text{in}}}$ |
+| Dùng Xavier với ReLU ở mạng rất sâu | Học được nhưng chậm bất thường; kích hoạt tắt dần đều theo lớp (hệ số 1/2 mỗi lớp) | Đổi sang He ($\times\sqrt2$) |
+| Dùng He với tanh | Kích hoạt phình dần, tanh bão hoà ở các lớp sau, gradient tắt | Đổi sang Xavier |
+| Quên rằng $\sigma$ phụ thuộc $n_{\text{in}}$, dùng một hằng số cho mọi lớp | Mạng hẹp thì ổn, mạng rộng thì hỏng; đổi độ rộng lớp là phải dò lại learning rate | Viết hàm khởi tạo nhận `n_in` |
+| Khởi tạo bias ngẫu nhiên "cho chắc" | Không hỏng hẳn nhưng thêm nhiễu vô ích, đầu ra lệch lúc ban đầu | Bias = 0 |
+| Transformer sâu không chia $1/\sqrt{2L}$ | Loss ổn định ở mô hình nhỏ nhưng phân kỳ khi tăng số lớp | Chia lớp chiếu residual cho $\sqrt{2L}$, thêm warmup |
+| Đổ lỗi cho learning rate khi thực ra là khởi tạo | Dò $\eta$ qua 4 bậc mười mà không cái nào chạy được | Chạy đoạn đo phương sai 20 lớp ở trên trước khi dò $\eta$ |
+
+## Tra nhanh
+
+- **Công thức khung**: $\operatorname{Var}(z) = n_{\text{in}} \cdot \operatorname{Var}(w) \cdot \operatorname{Var}(x)$. Mọi thứ khác suy ra từ đây.
+- **Giữ phương sai lượt xuôi**: $\sigma_w = 1/\sqrt{n_{\text{in}}}$.
+- **Xavier/Glorot** (tanh, sigmoid): $\sigma_w = \sqrt{2/(n_{\text{in}}+n_{\text{out}})}$; bản đều $a = \sqrt{6/(n_{\text{in}}+n_{\text{out}})}$ (số 6 = 3 × 2, do $\operatorname{Var}(U(-a,a)) = a^2/3$).
+- **He/Kaiming** (ReLU): $\sigma_w = \sqrt{2/n_{\text{in}}}$. Hệ số 2 bù cho nửa tín hiệu ReLU vứt đi.
+- **Không bao giờ dùng 0** cho $W$ (đối xứng). **Luôn dùng 0** cho bias.
+- **Không dùng hằng số** cho $\sigma_w$: nó phải phụ thuộc $n_{\text{in}}$.
+- Lớp $256\to256$: Xavier $= 1/16 = 0.0625$; He $= 1/\sqrt{128} = 0.0884$.
+- **Transformer**: $\mathcal{N}(0, 0.02)$, LayerNorm $\gamma=1, \beta=0$, lớp chiếu residual chia thêm $\sqrt{2L}$.
+- **Cách kiểm 30 giây**: một lượt xuôi, in `z.var()` từng lớp. Bốn bậc mười chênh nhau là hỏng.
+- Liên quan: [Lan truyền ngược](/khai-niem/lan-truyen-nguoc), [Hàm kích hoạt](/khai-niem/ham-kich-hoat), và bài Kỳ vọng, phương sai cho phần phương sai của tổng.

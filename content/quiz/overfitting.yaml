@@ -1,0 +1,133 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: Quá khớp (overfitting) là hiện tượng gì?
+    lua_chon:
+      - Loss trên tập train thấp nhưng loss trên dữ liệu chưa gặp lại cao
+      - Loss cao ở cả tập train lẫn tập validation
+      - Thuật toán không hội tụ, loss tăng vọt thành NaN
+      - Mô hình chạy quá chậm vì có quá nhiều tham số
+    dap_an: 0
+    giai_thich: "Quá khớp là học thuộc cả nhiễu riêng của tập train. Phương án 2 là CHƯA khớp (underfitting), phương án 3 là learning rate quá lớn, phương án 4 là chuyện tốc độ chứ không phải chất lượng."
+
+  - id: q2
+    loai: mot
+    do_kho: 1
+    de: "Sau 30 epoch: train loss 0.024, val loss 0.029, cả hai đã phẳng từ epoch 22. Đây là dáng nào?"
+    lua_chon:
+      - Chưa khớp
+      - Quá khớp
+      - Vừa khéo
+      - Rò rỉ dữ liệu
+    dap_an: 2
+    giai_thich: "Cả hai đều THẤP và sát nhau, không đường nào quay đầu đi lên. Đây là dáng C. Muốn tốt hơn thì phải tăng ĐỒNG THỜI sức chứa mô hình và lượng dữ liệu, chứ chỉnh điều chuẩn sẽ không giúp gì."
+
+  - id: q3
+    loai: mot
+    do_kho: 2
+    de: "Train loss 0.01, val loss 2.3, khoảng cách càng lúc càng nới rộng qua từng epoch. Việc nên làm TRƯỚC tiên là gì?"
+    lua_chon:
+      - Tăng số lớp và số neuron để mô hình mạnh hơn
+      - Quay lại checkpoint ở epoch có val loss thấp nhất (early stopping), rồi tăng điều chuẩn
+      - Giảm learning rate xuống 10 lần
+      - Huấn luyện thêm 100 epoch nữa để val loss kịp giảm
+    dap_an: 1
+    giai_thich: "Đây là dáng B — quá khớp rõ ràng. Early stopping là cách rẻ nhất và không thêm siêu tham số nào: cứ lấy checkpoint tốt nhất theo val. Sau đó mới tính tới weight decay, dropout, thêm dữ liệu. Tăng sức chứa (phương án 1) hay train lâu hơn (phương án 4) chỉ làm tệ thêm."
+
+  - id: q4
+    loai: so
+    do_kho: 2
+    de: "Có 8 điểm huấn luyện. Bạn khớp một đa thức bậc 7 (tức 8 hệ số) bằng bình phương tối thiểu. MSE trên tập TRAIN bằng bao nhiêu?"
+    dap_an: 0
+    sai_so: 0.001
+    giai_thich: "8 phương trình, 8 ẩn: đa thức đi qua ĐÚNG từng điểm một, nên mọi sai số bằng 0 và MSE train bằng 0. Đây là ví dụ rõ nhất cho chuyện train loss bằng 0 hoàn toàn không nói lên mô hình tốt."
+
+  - id: q5
+    loai: mot
+    do_kho: 2
+    de: "Suốt 20 epoch, val loss LUÔN thấp hơn train loss khoảng 0.15. Nên kết luận gì?"
+    lua_chon:
+      - Mô hình tổng quát hoá rất tốt, cứ thế dùng
+      - Nghi có lỗi ở đường ống dữ liệu hoặc ở cách đo, phải kiểm tra trước khi tin
+      - Đây là dấu hiệu quá khớp
+      - Đây là dấu hiệu learning rate quá nhỏ
+    dap_an: 1
+    giai_thich: "Đây là dáng D. Ba nguyên nhân hay gặp nhất: (1) rò rỉ dữ liệu — cùng mẫu có ở cả hai tập, hoặc chuẩn hoá trước khi chia; (2) tập val quá nhỏ hoặc quá dễ; (3) train loss được đo TRONG lúc dropout/augmentation đang bật nên điều kiện khó hơn val. Nguyên nhân (3) là bình thường và chấp nhận được, hai nguyên nhân kia thì không."
+
+  - id: q6
+    loai: nhieu
+    do_kho: 2
+    de: Những cách nào dưới đây thật sự làm GIẢM quá khớp? (chọn tất cả ý đúng)
+    lua_chon:
+      - Thu thập thêm dữ liệu huấn luyện
+      - Tăng hệ số weight decay
+      - Tăng số neuron của các lớp ẩn
+      - Dừng sớm ở epoch có val loss thấp nhất
+    dap_an: [0, 1, 3]
+    giai_thich: "Thêm dữ liệu, tăng điều chuẩn và early stopping đều thu hẹp khoảng cách train–val. Tăng số neuron là TĂNG sức chứa, tức là đổ thêm dầu vào lửa — đó là cách chữa CHƯA khớp."
+
+  - id: q7
+    loai: mot
+    do_kho: 2
+    de: "Train loss 0.84, val loss 0.89, cả hai đã phẳng từ lâu và không giảm nữa. Việc nên làm là gì?"
+    lua_chon:
+      - Tăng dropout lên 0.5 vì val vẫn cao hơn train
+      - Thu thập thêm 10.000 mẫu huấn luyện
+      - Tăng sức chứa mô hình, huấn luyện lâu hơn, và GIẢM điều chuẩn
+      - Dừng sớm ngay bây giờ
+    dap_an: 2
+    giai_thich: "Train loss còn CAO nghĩa là mô hình chưa học nổi cả tập train — đây là dáng A, chưa khớp. Khoảng cách 0.05 là rất nhỏ, không phải quá khớp. Thêm điều chuẩn hay thêm dữ liệu đều vô ích khi mô hình còn chưa đủ sức."
+
+  - id: q8
+    loai: so
+    do_kho: 2
+    de: "Tại một điểm x, bias² = 0.02, variance = 0.05, nhiễu σ² = 0.04. Sai số bình phương kỳ vọng tại điểm đó bằng bao nhiêu?"
+    dap_an: 0.11
+    sai_so: 0.001
+    giai_thich: "E[(y − f̂)²] = bias² + variance + σ² = 0.02 + 0.05 + 0.04 = 0.11. Dù chỉnh mô hình giỏi tới đâu để bias² và variance về 0, sai số vẫn không xuống dưới 0.04 — nhiễu là cái sàn."
+
+  - id: q9
+    loai: mot
+    do_kho: 3
+    de: Thêm thật nhiều dữ liệu huấn luyện giúp được trường hợp nào?
+    lua_chon:
+      - Cả quá khớp lẫn chưa khớp
+      - Chỉ quá khớp
+      - Chỉ chưa khớp
+      - Không giúp được trường hợp nào, chỉ có đổi mô hình mới giúp
+    dap_an: 1
+    giai_thich: "Thêm dữ liệu kéo hai đường train/val lại gần nhau, nên chữa được quá khớp. Nhưng nếu mô hình quá đơn giản (bias cao), thêm bao nhiêu dữ liệu thì đường thẳng vẫn không thành đường sin: train loss vẫn cao, val loss vẫn cao. Chưa khớp phải chữa bằng mô hình mạnh hơn."
+
+  - id: q10
+    loai: so
+    do_kho: 2
+    de: "Trên tập validation chỉ có 2 điểm, mô hình dự đoán 4.125 và 6.175, trong khi giá trị thật là 4 và 6. MSE validation bằng bao nhiêu?"
+    dap_an: 0.023125
+    sai_so: 0.0001
+    giai_thich: "Sai số là 0.125 và 0.175. MSE = (0.125² + 0.175²)/2 = (0.015625 + 0.030625)/2 = 0.046250/2 = 0.023125."
+
+  - id: q11
+    loai: mot
+    do_kho: 2
+    de: "Bạn thử 40 bộ siêu tham số, chọn bộ có ĐIỂM TEST cao nhất, rồi báo cáo chính điểm test đó. Vấn đề ở đâu?"
+    lua_chon:
+      - Không có vấn đề gì, test là tập chưa từng huấn luyện trên đó
+      - Tập test đã bị dùng như tập validation, nên con số báo cáo lạc quan hơn thực tế
+      - Phải thử ít nhất 100 bộ mới đủ tin cậy
+      - Phải huấn luyện lại trên cả train và test rồi mới báo cáo
+    dap_an: 1
+    giai_thich: "Chọn theo tập nào thì tập đó mất vai trò đánh giá khách quan: bạn đã tối ưu vào chính nhiễu của tập test. Đúng quy trình là chọn bằng val, chỉ chạm vào test một lần duy nhất ở cuối, và báo cáo con số đó."
+
+  - id: q12
+    loai: mot
+    do_kho: 3
+    de: Hiện tượng "double descent" nói điều gì?
+    lua_chon:
+      - Cứ tăng kích thước mô hình thì val loss luôn giảm, không cần lo quá khớp nữa
+      - Khi sức chứa vượt qua điểm khớp hoàn hảo tập train, val loss vọt lên một đỉnh rồi lại GIẢM lần thứ hai
+      - Val loss luôn có đúng hai cực tiểu địa phương với mọi mô hình
+      - Gradient descent phải chạy hai lần mới hội tụ
+    dap_an: 1
+    giai_thich: "Belkin và cộng sự (2019) quan sát thấy đường val loss theo sức chứa có hai nhánh xuống, ngăn cách bởi một đỉnh ở gần điểm nội suy. Đây là HIỆN TƯỢNG quan sát được trong một số chế độ dữ liệu/mô hình, không phải lời hứa rằng mô hình lớn thì không bao giờ quá khớp. Với vài nghìn mẫu, chế độ cổ điển vẫn đúng."

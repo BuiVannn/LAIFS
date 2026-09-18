@@ -1,0 +1,455 @@
+---
+ten_vi: "Accuracy, precision, recall, confusion matrix"
+ten_en: "Model Evaluation: Accuracy, Precision, Recall, F1, ROC-AUC and PR-AUC"
+tang: 2
+thu_tu: 20
+tien_quyet: ["train-val-test"]
+trang_thai: nhap
+dinh_nghia: >-
+  Bộ thước đo cho bài toán phân loại, dựng trên ma trận nhầm lẫn — bảng đếm bốn loại kết quả
+  TP/FP/FN/TN. Accuracy là tỉ lệ đoán đúng nói chung; precision hỏi "trong những cái bị báo dương,
+  bao nhiêu phần đúng"; recall hỏi "trong những cái thật sự dương, bắt được bao nhiêu phần";
+  F1 gộp hai cái sau bằng trung bình điều hoà. Mọi con số này đều phụ thuộc vào ngưỡng quyết định.
+truc_giac: >-
+  Một mô hình phân loại không cho ra hai kết quả mà bốn: bắt đúng, bỏ sót, báo động giả, và bỏ qua
+  đúng. Accuracy trộn cả bốn vào một con số, nên khi một lớp chiếm 99% thì nó chỉ đang đo tỉ lệ lớp
+  đó chứ không đo mô hình. Muốn biết mô hình có dùng được không, phải mở bảng bốn ô ra nhìn — và
+  phải nói rõ bạn sợ bỏ sót hơn hay sợ báo động giả hơn.
+hieu_nham:
+  - "Accuracy 99% không có nghĩa là mô hình tốt. Với dữ liệu 99% lớp âm, mô hình đoán \"âm\" cho mọi thứ cũng được đúng 99% mà không phát hiện được gì cả."
+  - "Precision và recall không phải hai cách nói của cùng một thứ: chúng khác nhau ở MẪU SỐ. Precision chia cho số lần mô hình báo dương, recall chia cho số mẫu thật sự dương."
+  - "Không có \"precision/recall của mô hình\". Chúng là hàm của NGƯỠNG quyết định: đổi ngưỡng là hai con số đổi ngược chiều nhau. Muốn nói về mô hình mà không phụ thuộc ngưỡng thì dùng ROC-AUC hoặc PR-AUC."
+  - "F1 không phải trung bình cộng của precision và recall. Nó là trung bình điều hoà, nên P = 1.0 và R = 0.01 cho F1 = 0.0198 chứ không phải 0.505."
+  - "ROC-AUC cao không cứu được bài toán lệch lớp. Cùng một mô hình có thể có ROC-AUC 0.95 mà PR-AUC chỉ 0.10, vì ROC dùng mẫu số là toàn bộ lớp âm nên vài chục báo động giả gần như không làm nó xê dịch."
+y_chinh:
+  - "Ma trận nhầm lẫn 2×2 (TP, FP, FN, TN) là dữ liệu gốc; mọi thước đo còn lại chỉ là tỉ số lấy ra từ bốn số đó"
+  - "Precision = TP/(TP+FP) — độ tin cậy của cảnh báo. Recall = TP/(TP+FN) — độ phủ. F1 = 2PR/(P+R)"
+  - "Accuracy đánh lừa khi dữ liệu lệch lớp: 99% lớp âm thì đoán toàn âm đã được 99%"
+  - "Precision và recall đánh đổi nhau qua ngưỡng quyết định; chọn ngưỡng là quyết định kinh doanh, không phải quyết định kỹ thuật"
+  - "ROC-AUC không phụ thuộc tỉ lệ lớp nên lạc quan với dữ liệu lệch; PR-AUC mới phản ánh đúng trải nghiệm của người trực cảnh báo"
+  - "Chọn thước đo theo cái giá của từng loại lỗi; với bài toán sinh văn bản thì không có TP/FP nên phải dùng họ thước đo khác"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=Kdsp6soqA7o
+    tieu_de: "Machine Learning Fundamentals: The Confusion Matrix"
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: 7 phút, dựng ma trận nhầm lẫn 2×2 rồi mở rộng lên đa lớp. Xem trước khi đọc phần tính tay.
+  - url: https://www.youtube.com/watch?v=4jRBRDbJemM
+    tieu_de: ROC and AUC, Clearly Explained!
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Vẽ đường ROC bằng cách trượt ngưỡng qua từng mẫu, đúng cách bài này tính tay. Xem khi tới phần ROC-AUC.
+  - url: https://developers.google.com/machine-learning/crash-course/classification/accuracy-precision-recall
+    tieu_de: "Classification: Accuracy, recall, precision, and related metrics"
+    tac_gia: Google Machine Learning Education
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Chuẩn thuật ngữ và có bảng gợi ý chọn thước đo theo loại bài toán. Đọc để đối chiếu phần "chọn thước đo" trong bài.
+  - url: https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0118432
+    tieu_de: "The Precision-Recall Plot Is More Informative than the ROC Plot When Evaluating Binary Classifiers on Imbalanced Datasets"
+    tac_gia: Takaya Saito, Marc Rehmsmeier (PLOS ONE 2015)
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Bài chuẩn để trích dẫn khi cần bảo vệ lựa chọn PR-AUC thay ROC-AUC. Xem các hình so hai đường trên cùng dữ liệu lệch lớp.
+---
+
+import NguongQuyetDinh from '../../src/viz/NguongQuyetDinh.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Tình huống: 99% mà không bắt được vụ nào
+
+Ngân hàng đặt hàng một mô hình phát hiện giao dịch gian lận. Sau ba tuần, đội ML báo cáo: **độ chính xác 99.0%** trên tập test 1010 giao dịch. Phòng rủi ro mừng, cho chạy thử.
+
+Một tháng sau: **không phát hiện được vụ gian lận nào**.
+
+Mở ma trận nhầm lẫn ra mới thấy chuyện gì đã xảy ra. Tập test có 1000 giao dịch bình thường và 10 giao dịch gian lận. Mô hình trả lời **"không gian lận"** cho cả 1010 giao dịch:
+
+| | Dự đoán: gian lận | Dự đoán: bình thường |
+|---|---|---|
+| **Thật: gian lận** | 0 | 10 |
+| **Thật: bình thường** | 0 | 1000 |
+
+Độ chính xác $= (0 + 1000)/1010 = 0.9901$. Con số đúng, báo cáo không sai. Nhưng nó đo tỉ lệ lớp trong tập test chứ không đo mô hình. Một dòng `return "bình thường"` cũng đạt đúng con số đó.
+
+Đây là lý do có bài này.
+
+## Trực giác: bốn kết quả, không phải hai
+
+Mô hình phân loại nhị phân không cho ra "đúng" hoặc "sai". Nó cho ra bốn tình huống, và **giá của bốn tình huống đó khác nhau**:
+
+| | Dự đoán 1 (dương) | Dự đoán 0 (âm) |
+|---|---|---|
+| **Thật 1** | **TP** — bắt đúng | **FN** — bỏ sót |
+| **Thật 0** | **FP** — báo động giả | **TN** — bỏ qua đúng |
+
+Cách nhớ tên: chữ thứ hai là **mô hình nói gì** (P = nói dương, N = nói âm), chữ thứ nhất là **mô hình có đúng không** (T = đúng, F = sai). "FP" = mô hình nói dương (P) và nó sai (F).
+
+Tầm quan trọng của việc tách bốn ô:
+
+- Sàng lọc ung thư: một **FN** (bỏ sót bệnh nhân) đắt hơn một **FP** (gọi thêm đi xét nghiệm lại) hàng nghìn lần.
+- Lọc thư rác: một **FP** (thư quan trọng rơi vào hòm rác) đắt hơn một **FN** (một thư rác lọt vào hòm thư).
+
+Accuracy cộng TP với TN rồi chia cho tổng, nên nó **coi FN và FP đắt ngang nhau** — giả định gần như luôn sai.
+
+## Bốn tỉ số lấy ra từ bốn ô
+
+$$
+\text{Accuracy} = \frac{TP + TN}{TP + FP + FN + TN}
+\qquad
+\text{Precision} = \frac{TP}{TP + FP}
+\qquad
+\text{Recall} = \frac{TP}{TP + FN}
+$$
+
+Khác biệt cốt lõi giữa precision và recall nằm ở **mẫu số**:
+
+- **Precision** chia cho *số lần mô hình kêu*. Nó trả lời: **"mô hình kêu thì có đáng tin không?"** Đây là con số người trực cảnh báo quan tâm.
+- **Recall** chia cho *số ca thật sự có*. Nó trả lời: **"có bao nhiêu ca bị lọt lưới?"** Đây là con số người chịu trách nhiệm rủi ro quan tâm.
+
+Cả hai đều **bỏ qua hoàn toàn ô TN**. Đó là chủ ý: khi lớp dương hiếm, ô TN khổng lồ và nó nuốt chửng mọi thông tin — đúng như tình huống 99% ở đầu bài.
+
+### Vì sao F1 dùng trung bình điều hoà
+
+Đẩy recall lên 1.0 rất dễ: báo dương cho mọi mẫu. Đẩy precision lên 1.0 cũng dễ: chỉ báo dương cho đúng một mẫu mà bạn chắc chắn nhất. Cần một con số phạt được cả hai trò đó:
+
+$$
+F_1 = \frac{2 \cdot P \cdot R}{P + R}
+$$
+
+Lấy $P = 1.0$ và $R = 0.01$ (mô hình chỉ báo đúng một ca trong 100 ca thật):
+
+- Trung bình cộng: $(1.0 + 0.01)/2 = 0.505$ — nghe như mô hình dùng tạm được.
+- Trung bình điều hoà: $2(1.0)(0.01)/1.01 = 0.0198$ — đúng với thực tế là mô hình vô dụng.
+
+Trung bình điều hoà luôn **bị kéo về phía số nhỏ hơn**. Đó chính là tính chất ta cần.
+
+Khi hai loại lỗi không đắt ngang nhau, dùng $F_\beta$:
+
+$$
+F_\beta = (1 + \beta^2)\,\frac{P \cdot R}{\beta^2 P + R}
+$$
+
+$\beta > 1$ coi recall quan trọng hơn ($\beta = 2$: sàng lọc bệnh), $\beta < 1$ coi precision quan trọng hơn ($\beta = 0.5$: lọc thư rác).
+
+<CauHoi cau="danh-gia-mo-hinh/q2" />
+
+## Tính tay: 100 thư, từng bước
+
+Bộ lọc thư rác chạy trên tập test 100 thư, trong đó có 10 thư rác. Kết quả:
+
+- Mô hình gắn cờ 9 thư. Trong đó 6 thư đúng là rác, 3 thư là thư thường bị oan.
+- 4 thư rác lọt lưới.
+
+Điền vào ma trận nhầm lẫn:
+
+| | Dự đoán: rác | Dự đoán: thường | Tổng hàng |
+|---|---|---|---|
+| **Thật: rác** | TP = **6** | FN = **4** | 10 |
+| **Thật: thường** | FP = **3** | TN = **87** | 90 |
+| **Tổng cột** | 9 | 91 | 100 |
+
+Kiểm nhanh trước khi tính: tổng hàng phải bằng số mẫu thật của từng lớp (10 và 90), tổng cột phải bằng số lần mô hình đoán từng lớp (9 và 91), tổng bốn ô phải bằng 100. Đúng cả.
+
+Giờ tính từng bước:
+
+$$
+\text{Accuracy} = \frac{6 + 87}{100} = \frac{93}{100} = 0.9300
+$$
+
+$$
+\text{Precision} = \frac{6}{6 + 3} = \frac{6}{9} = 0.6667
+$$
+
+$$
+\text{Recall} = \frac{6}{6 + 4} = \frac{6}{10} = 0.6000
+$$
+
+$$
+F_1 = \frac{2 \times 0.6667 \times 0.6000}{0.6667 + 0.6000} = \frac{0.8000}{1.2667} = 0.6316
+$$
+
+(Mẹo tính nhanh, tránh sai số làm tròn: $F_1 = \dfrac{2\,TP}{2\,TP + FP + FN} = \dfrac{12}{12 + 3 + 4} = \dfrac{12}{19} = 0.6316$.)
+
+### Đường cơ sở ngu ngốc: luôn nói "thường"
+
+Bây giờ so với mô hình một dòng `return "thư thường"`:
+
+| | Dự đoán: rác | Dự đoán: thường |
+|---|---|---|
+| **Thật: rác** | TP = 0 | FN = 10 |
+| **Thật: thường** | FP = 0 | TN = 90 |
+
+- Accuracy $= 90/100 = 0.9000$
+- Precision $= 0/0$ — **không xác định**, vì mô hình chưa từng báo dương
+- Recall $= 0/10 = 0$
+- $F_1 = 0$
+
+Bộ lọc thật được 0.93, mô hình rỗng được 0.90. **Chênh nhau 3 điểm.** Nếu báo cáo chỉ có accuracy, không ai nhìn ra bộ lọc thật có ích hay không. F1 thì nói rõ: 0.6316 so với 0.
+
+Ghi chú về chuyện chia cho 0: khi $TP + FP = 0$, precision **không có giá trị**. Đừng lặng lẽ gán 0 hay 1 — hãy báo là không xác định, hoặc quy ước rõ ràng và ghi lại quy ước đó. Thư viện `scikit-learn` mặc định trả 0 kèm một cảnh báo, và cảnh báo đó là thông tin quan trọng chứ không phải phiền nhiễu.
+
+$\beta$ khác cho ra kết luận khác trên chính bộ lọc này: $F_{0.5} = 0.6522$ (ưu tiên precision), $F_1 = 0.6316$, $F_2 = 0.6123$ (ưu tiên recall). Khi precision và recall lệch nhau, việc chọn $\beta$ là chọn xem bạn sợ loại lỗi nào hơn.
+
+<CauHoi cau="danh-gia-mo-hinh/q5" />
+
+## Ngưỡng quyết định: nguồn gốc của mọi đánh đổi
+
+Mô hình phân loại thật không xuất ra 0 hoặc 1. Nó xuất ra một **điểm** $s \in [0, 1]$, và ta so với **ngưỡng** $t$:
+
+$$
+\hat{y} = \begin{cases} 1 & s \ge t \\ 0 & s < t \end{cases}
+$$
+
+$t = 0.5$ chỉ là **mặc định của thư viện**, không phải một lựa chọn có căn cứ. Đổi $t$ là đổi cả bốn ô của ma trận nhầm lẫn.
+
+Lấy 10 thư, mỗi thư một điểm, cột `thật` là nhãn đúng:
+
+| Điểm $s$ | 0.95 | 0.90 | 0.80 | 0.70 | 0.60 | 0.50 | 0.40 | 0.30 | 0.20 | 0.10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Thật | 1 | 0 | 1 | 1 | 0 | 0 | 1 | 0 | 0 | 0 |
+
+4 thư rác, 6 thư thường. Quét ngưỡng từ cao xuống thấp, mỗi lần hạ ngưỡng là thêm đúng một thư vào nhóm "bị gắn cờ":
+
+| $t$ | TP | FP | FN | TN | Precision | Recall | $F_1$ |
+|---|---|---|---|---|---|---|---|
+| 0.95 | 1 | 0 | 3 | 6 | 1.0000 | 0.2500 | 0.4000 |
+| 0.90 | 1 | 1 | 3 | 5 | 0.5000 | 0.2500 | 0.3333 |
+| 0.80 | 2 | 1 | 2 | 5 | 0.6667 | 0.5000 | 0.5714 |
+| **0.70** | **3** | **1** | **1** | **5** | **0.7500** | **0.7500** | **0.7500** |
+| 0.60 | 3 | 2 | 1 | 4 | 0.6000 | 0.7500 | 0.6667 |
+| 0.50 | 3 | 3 | 1 | 3 | 0.5000 | 0.7500 | 0.6000 |
+| 0.40 | 4 | 3 | 0 | 3 | 0.5714 | 1.0000 | 0.7273 |
+| 0.30 | 4 | 4 | 0 | 2 | 0.5000 | 1.0000 | 0.6667 |
+| 0.20 | 4 | 5 | 0 | 1 | 0.4444 | 1.0000 | 0.6154 |
+| 0.10 | 4 | 6 | 0 | 0 | 0.4000 | 1.0000 | 0.5714 |
+
+Ba điều đọc ra từ bảng:
+
+1. **Recall chỉ tăng hoặc giữ nguyên khi hạ ngưỡng.** Hạ ngưỡng thì tập bị gắn cờ chỉ nở ra, nên TP không thể giảm.
+2. **Precision thì không đơn điệu.** Từ $t = 0.95$ xuống $0.90$, precision rơi từ 1.0 xuống 0.5 vì thư tiếp theo là thư thường; rồi lại lên 0.6667 ở $t = 0.80$. Đường precision–recall thật luôn răng cưa như vậy.
+3. **Ngưỡng mặc định 0.5 không phải ngưỡng tốt nhất.** $F_1$ ở $t = 0.5$ là 0.6000; ở $t = 0.70$ là 0.7500. Chỉ đổi một con số, không huấn luyện lại gì cả.
+
+Quy tắc làm việc: **chọn ngưỡng trên tập validation, rồi khoá lại, rồi mới đo trên test.** Chọn ngưỡng trên tập test là một kiểu rò rỉ đúng như bài [chia train/val/test](/khai-niem/train-val-test) mô tả.
+
+## Code: dựng ma trận nhầm lẫn và quét ngưỡng
+
+```python
+import numpy as np
+
+def ma_tran(y, y_hat):                       # trả về (TP, FP, FN, TN)
+    return (int(np.sum((y == 1) & (y_hat == 1))), int(np.sum((y == 0) & (y_hat == 1))),
+            int(np.sum((y == 1) & (y_hat == 0))), int(np.sum((y == 0) & (y_hat == 0))))
+
+def do(tp, fp, fn, tn):                      # None khi mẫu số bằng 0, KHÔNG lặng lẽ gán 0
+    p = tp / (tp + fp) if tp + fp else None
+    r = tp / (tp + fn) if tp + fn else None
+    f1 = 2 * p * r / (p + r) if p and r else 0.0
+    return (tp + tn) / (tp + fp + fn + tn), p, r, f1
+
+# bảng 100 thư ở phần tính tay, dựng lại thành mảng nhãn
+y     = np.array([1] * 10 + [0] * 90)
+y_hat = np.array([1] * 6 + [0] * 4 + [1] * 3 + [0] * 87)
+print(ma_tran(y, y_hat))                     # (6, 3, 4, 87)
+print(do(*ma_tran(y, y_hat)))                # ≈ (0.93, 0.6667, 0.6, 0.6316)
+print(do(*ma_tran(y, np.zeros(100, int))))   # (0.9, None, 0.0, 0.0)  ← mô hình luôn nói "thường"
+
+# quét ngưỡng trên 10 thư có điểm
+s = np.array([0.95, 0.90, 0.80, 0.70, 0.60, 0.50, 0.40, 0.30, 0.20, 0.10])
+t_that = np.array([1, 0, 1, 1, 0, 0, 1, 0, 0, 0])
+for t in s:
+    a, p, r, f1 = do(*ma_tran(t_that, (s >= t).astype(int)))
+    print(f"t={t:.2f}  P={p:.4f}  R={r:.4f}  F1={f1:.4f}")
+```
+
+Hàm `do` trả `None` khi precision không có mẫu số. Đó là 6 ký tự đắt giá: nếu gán 0, mô hình rỗng ở trên sẽ có precision "0.0" và trông như một mô hình tệ bình thường, thay vì lộ ra rằng nó chưa từng báo dương lần nào.
+
+## Tự thử: trượt ngưỡng
+
+<NguongQuyetDinh
+  client:visible
+  bo="mau10"
+  nguong={0.45}
+  duDoan={{
+    de: "Vẫn 10 thư ở bảng trên (4 rác / 6 thường), nhưng ngưỡng hạ xuống t = 0.45. So với t = 0.70 (P = 0.75, R = 0.75), hai con số sẽ thế nào?",
+    lua_chon: ["Cả hai cùng tăng", "Recall tăng, precision giảm", "Recall giảm, precision tăng"],
+    dap_an: 1,
+    giai_thich: "Tại t = 0.45: TP = 3, FP = 3 → precision 0.5000, recall vẫn 0.7500. Hạ ngưỡng chỉ làm tập bị gắn cờ nở ra, nên recall không bao giờ giảm — nhưng ba thư thêm vào đều là thư thường nên precision tụt."
+  }}
+/>
+
+<NguongQuyetDinh
+  client:visible
+  bo="lechLop"
+  nguong={0.3}
+  duDoan={{
+    de: "100 giao dịch, chỉ 5 vụ gian lận. Tại ngưỡng t = 0.30 mô hình bắt được cả 5 vụ (recall = 1.0). Accuracy sẽ là bao nhiêu, và precision?",
+    lua_chon: ["Accuracy ≈ 0.88, precision ≈ 0.29", "Accuracy ≈ 0.88, precision ≈ 1.00", "Accuracy ≈ 0.99, precision ≈ 0.95"],
+    dap_an: 0,
+    giai_thich: "TP = 5, FP = 12, FN = 0, TN = 83 → accuracy 0.88, precision 0.2941. Bắt hết gian lận nhưng cứ 17 cảnh báo thì 12 cái là báo động giả. Đáng chú ý: mô hình đoán 'không gian lận' cho tất cả được accuracy 0.95 — CAO HƠN. Accuracy xếp hạng ngược."
+  }}
+/>
+
+Bảng tự do — kéo ngưỡng và đổi bộ dữ liệu:
+
+<NguongQuyetDinh client:visible />
+
+<CauHoi cau="danh-gia-mo-hinh/q8" />
+
+## ROC-AUC và PR-AUC: bỏ ngưỡng đi
+
+Precision và recall là con số **tại một ngưỡng**. Muốn so hai mô hình mà không phải chọn ngưỡng trước, ta tóm tắt cả đường cong bằng một số.
+
+**Đường ROC** vẽ true positive rate (chính là recall) theo false positive rate $\text{FPR} = FP/(FP + TN)$, khi ngưỡng quét từ cao xuống thấp. **ROC-AUC** là diện tích dưới đường đó.
+
+ROC-AUC có một cách hiểu rất gọn, và đây là cách nên nhớ:
+
+> ROC-AUC = xác suất mô hình chấm một mẫu dương lấy ngẫu nhiên **cao điểm hơn** một mẫu âm lấy ngẫu nhiên.
+
+Nghĩa là nó đo **khả năng xếp hạng**, không đo khả năng ra quyết định. Tính tay được ngay với bảng 10 thư ở trên: 4 mẫu dương, 6 mẫu âm → $4 \times 6 = 24$ cặp (dương, âm). Đếm số cặp mà điểm của mẫu dương cao hơn:
+
+- Dương 0.95 thắng cả 6 mẫu âm → 6
+- Dương 0.80 thắng 5 mẫu âm (0.60, 0.50, 0.30, 0.20, 0.10), thua 0.90 → 5
+- Dương 0.70 thắng 5 → 5
+- Dương 0.40 thắng 3 (0.30, 0.20, 0.10) → 3
+
+$$
+\text{ROC-AUC} = \frac{6 + 5 + 5 + 3}{24} = \frac{19}{24} = 0.7917
+$$
+
+AUC $= 0.5$ là xếp hạng ngẫu nhiên, $1.0$ là xếp hạng hoàn hảo. Dưới 0.5 nghĩa là mô hình xếp ngược — đảo dấu dự đoán là được một mô hình tốt hơn.
+
+**Đường PR** vẽ precision theo recall, và diện tích dưới nó (thường tính bằng *average precision*) là **PR-AUC**. Với đúng bảng 10 thư trên, PR-AUC $= 0.7470$.
+
+### Khi lệch lớp, hai con số nói hai chuyện khác nhau
+
+Đây là chỗ quan trọng nhất của cả phần này. Lấy bộ dữ liệu 1010 giao dịch ở đầu bài (10 gian lận, 1000 bình thường) và một mô hình xếp được **cả 10 vụ gian lận vào top 100 điểm cao nhất**:
+
+| Thước đo | Giá trị |
+|---|---|
+| Accuracy (đoán toàn âm) | 0.9901 |
+| **ROC-AUC** | **0.9505** |
+| **PR-AUC** | **0.1000** |
+| Precision tại ngưỡng bắt hết 10 vụ | 10/100 = 0.10 |
+| Recall tại ngưỡng đó | 1.00 |
+
+ROC-AUC 0.95 nghe như một mô hình xuất sắc. PR-AUC 0.10 nói sự thật: **để bắt hết 10 vụ, phòng rủi ro phải xem xét 100 giao dịch, trong đó 90 là báo động giả.**
+
+Vì sao chúng lệch nhau xa thế? FPR có mẫu số là $FP + TN$ — toàn bộ 1000 mẫu âm. Thêm 90 báo động giả chỉ đẩy FPR lên 0.09, gần như không nhìn thấy trên đường ROC. Precision có mẫu số là $TP + FP$ — chỉ 100 mẫu bị gắn cờ, nên 90 báo động giả nghiền nát nó xuống 0.10.
+
+**ROC-AUC không phụ thuộc tỉ lệ lớp** — nghe như ưu điểm, nhưng ở đây nó chính là nhược điểm, vì tỉ lệ lớp là thứ quyết định trải nghiệm thật của người trực cảnh báo. Saito và Rehmsmeier (2015) chứng minh chi tiết điều này; kết luận thực hành: **lớp dương hiếm thì báo cáo PR-AUC, và luôn ghi kèm tỉ lệ lớp dương** (đường cơ sở của PR-AUC chính là tỉ lệ lớp dương, ở đây là 0.0099 — nên 0.10 thật ra vẫn gấp 10 lần đoán bừa).
+
+## Chọn thước đo theo bài toán
+
+Không có thước đo đúng phổ quát. Có một câu hỏi đúng: **lỗi nào tốn tiền hơn, và tốn hơn bao nhiêu lần?**
+
+| Bài toán | Sợ gì nhất | Thước đo chính |
+|---|---|---|
+| Sàng lọc ung thư | FN — bỏ sót bệnh nhân | Recall (ràng buộc precision tối thiểu), $F_2$ |
+| Lọc thư rác | FP — mất thư quan trọng | Precision (ràng buộc recall), $F_{0.5}$ |
+| Phát hiện gian lận (đội trực có hạn) | FP làm ngập danh sách chờ | Precision@k, PR-AUC |
+| Gợi ý sản phẩm | thứ hạng sai | Precision@k, nDCG |
+| Dữ liệu cân bằng, hai lỗi ngang giá | — | Accuracy dùng được |
+| So hai mô hình trước khi chọn ngưỡng | — | ROC-AUC (cân bằng) hoặc PR-AUC (lệch) |
+| Đa lớp, các lớp quan trọng như nhau | — | Macro-F1 |
+| Đa lớp, quan tâm tổng số mẫu đúng | — | Micro-F1 (bằng accuracy trong bài đơn nhãn) |
+
+Cách làm việc thực dụng, theo đúng thứ tự:
+
+1. Chốt **ràng buộc vận hành** trước: "đội trực xử lý được tối đa 200 cảnh báo/ngày" hoặc "không chấp nhận bỏ sót quá 5%".
+2. Chọn ngưỡng trên **validation** để thoả ràng buộc đó.
+3. Báo cáo trên **test**: cả ma trận nhầm lẫn đầy đủ, precision, recall, và tỉ lệ lớp dương.
+4. Không bao giờ báo cáo một con số đơn độc.
+
+### Đa lớp: macro, micro, weighted
+
+Với $K$ lớp, ma trận nhầm lẫn thành $K \times K$. Tính precision/recall cho từng lớp theo kiểu một-chọi-tất-cả, rồi gộp:
+
+- **Macro-F1**: trung bình cộng F1 của các lớp. Mỗi lớp nặng như nhau, **kể cả lớp chỉ có 3 mẫu**. Dùng khi lớp hiếm quan trọng.
+- **Weighted-F1**: trung bình có trọng số theo số mẫu mỗi lớp. Lớp lớn chi phối.
+- **Micro-F1**: cộng dồn TP/FP/FN của mọi lớp rồi mới tính. Trong bài phân loại đơn nhãn, micro-F1 bằng đúng accuracy.
+
+Một mô hình bỏ hẳn một lớp hiếm có thể có weighted-F1 rất cao và macro-F1 rất thấp. Nếu báo cáo chỉ ghi "F1 = 0.91" mà không nói kiểu gộp nào, con số đó không đọc được.
+
+## Đánh giá bài toán sinh văn bản thì khác ra sao
+
+Mọi thứ ở trên đứng trên một giả định: **có một đáp án đúng duy nhất** để đối chiếu, nên đếm được TP/FP/FN/TN.
+
+Với dịch máy, tóm tắt, hay trả lời tự do, giả định đó sụp. Một câu tiếng Anh có hàng chục bản dịch tiếng Việt đều đúng. Không có ô nào để đếm: bản dịch "cuộc họp được dời sang tuần sau" không phải TP cũng không phải FP so với "cuộc họp đã bị hoãn sang tuần sau".
+
+Ba điều thay đổi:
+
+1. **Thước đo trở thành đo độ giống**, không phải đếm đúng/sai. BLEU và chrF đếm n-gram chung với một bản tham chiếu; COMET dùng một mô hình đã học từ điểm người chấm.
+2. **Điểm số không còn nghĩa tuyệt đối.** Precision 0.75 có nghĩa xác định ở mọi bài phân loại. BLEU 40 thì không — nó phụ thuộc bộ tham chiếu, cách tách từ, cặp ngôn ngữ. Không so BLEU giữa hai tập test khác nhau.
+3. **Đánh giá người quay lại làm chuẩn vàng**, với quy trình đánh dấu lỗi có kỷ luật (MQM) thay vì một con số.
+
+Có một điểm chung đáng nhớ: **cả hai họ thước đo đều mù với "loại lỗi nào nghiêm trọng"**. Ở phân loại, accuracy coi FN và FP ngang giá — bạn sửa bằng cách chọn $F_\beta$ hoặc đặt ràng buộc vận hành. Ở dịch máy, BLEU coi một từ đồng nghĩa và một ngày sai ngang giá — và bài [Đánh giá bản dịch](/khai-niem/danh-gia-dich) cho thấy bản dịch sai ngày lại được BLEU **cao nhất** trong nhóm. Cùng một bệnh, hai cách chữa khác nhau.
+
+<CauHoi cau="danh-gia-mo-hinh/q11" />
+
+## Nâng cao
+
+**Một con số không có khoảng tin cậy là một con số không đọc được.** Accuracy 0.93 trên 100 mẫu có sai số chuẩn $\sqrt{0.93 \times 0.07/100} \approx 0.026$, tức khoảng tin cậy 95% xấp xỉ $[0.88, 0.98]$. Mô hình A được 0.93 và mô hình B được 0.91 trên 100 mẫu là **không phân biệt được**. Với thước đo phức tạp (F1, AUC) không có công thức gọn: dùng **bootstrap** — lấy mẫu có hoàn lại từ tập test 1000 lần, tính lại thước đo, lấy phân vị 2.5% và 97.5%.
+
+**Hiệu chuẩn (calibration) khác với xếp hạng.** ROC-AUC chỉ quan tâm thứ tự. Một mô hình có thể xếp hạng hoàn hảo (AUC = 1.0) mà mọi điểm số đều nằm trong khoảng 0.4–0.6, nên không thể đọc điểm như xác suất. Khi bạn cần điểm số để tính kỳ vọng thiệt hại ("vụ này 3% khả năng gian lận, giá trị 50 triệu"), phải kiểm hiệu chuẩn riêng bằng đồ thị reliability, và chỉnh bằng Platt scaling hoặc isotonic regression.
+
+**Ma trận chi phí thay cho F1.** Nếu ước lượng được giá thật của từng loại lỗi (một FN mất 50 triệu, một FP tốn 200 nghìn công xử lý), thì bỏ F1 đi và tối thiểu hoá trực tiếp $C = 50\,000\,000 \cdot FN + 200\,000 \cdot FP$. Ngưỡng tối ưu suy ra được từ tỉ lệ chi phí. F1 chỉ là thứ dùng khi bạn **không** biết chi phí.
+
+**Đo theo từng nhóm.** Một con số tổng che được thất bại có hệ thống: mô hình đúng 94% tổng thể nhưng 71% trên nhóm người dùng miền Trung, hoặc 60% trên các câu dài hơn 40 từ. Luôn cắt kết quả theo vài chiều có ý nghĩa (vùng, thiết bị, độ dài, thời điểm) trước khi tuyên bố mô hình dùng được.
+
+**Đường cơ sở bắt buộc.** Trước khi khoe bất kỳ con số nào, tính con số đó cho ba đường cơ sở: đoán toàn lớp đa số, đoán ngẫu nhiên theo tỉ lệ lớp, và hệ thống `if/else` hiện hành. Ở đầu bài, đường cơ sở "đoán toàn âm" đạt 0.9901 — nếu đội ML tính nó ngay từ ngày đầu thì đã không có ba tuần lãng phí.
+
+## Sai lầm hay gặp
+
+**Báo cáo accuracy trên dữ liệu lệch lớp.** *Triệu chứng:* accuracy cao gần bằng tỉ lệ lớp đa số, và trong báo cáo không có ma trận nhầm lẫn. Kiểm trong 10 giây: tính accuracy của mô hình đoán toàn lớp đa số. Nếu nó gần bằng con số bạn định khoe, con số đó vô nghĩa.
+
+**Dùng ngưỡng 0.5 mà không hỏi lại.** *Triệu chứng:* trong toàn bộ code không có biến nào tên `nguong`/`threshold`, chỉ có `.predict()`. Với lớp dương hiếm, 0.5 hầu như luôn là ngưỡng tệ. Quét ngưỡng trên validation mất năm dòng code.
+
+**Chọn ngưỡng trên tập test.** *Triệu chứng:* trong nhật ký thí nghiệm có dòng "thử vài ngưỡng, 0.37 cho F1 cao nhất trên test". Đó là rò rỉ: con số F1 đó đã thổi phồng. Chọn trên validation, khoá lại, rồi mới mở test.
+
+**Nhầm precision với recall.** *Triệu chứng:* bạn nói "recall 0.9 nên chỉ 10% cảnh báo là sai". Sai — đó là precision. Cách chống nhầm vĩnh viễn: nhớ theo **mẫu số**. Precision chia cho *số lần mô hình kêu*; recall chia cho *số ca thật sự có*.
+
+**Lặng lẽ gán 0 khi mẫu số bằng 0.** *Triệu chứng:* mô hình có precision đúng 0.0 và không ai để ý. Rất có thể nó chưa từng dự đoán lớp dương lần nào — một thất bại hoàn toàn khác với "dự đoán dương nhưng sai". Kiểm $TP + FP$ trước khi đọc precision.
+
+**Dựa vào ROC-AUC với dữ liệu lệch lớp.** *Triệu chứng:* ROC-AUC trên 0.9 nhưng người dùng thật kêu ngập báo động giả. Tính PR-AUC và precision tại ngưỡng đang chạy — hai con số đó mới khớp với thứ họ đang trải qua.
+
+**So hai mô hình bằng một con số trên một tập test nhỏ.** *Triệu chứng:* chênh lệch 1–2 điểm trên vài trăm mẫu được coi là "mô hình B tốt hơn". Tính khoảng tin cậy bootstrap trước khi kết luận; phần lớn các chênh lệch đó biến mất.
+
+## Tra nhanh
+
+| Câu hỏi | Trả lời 30 giây |
+|---|---|
+| Bốn ô là gì? | TP bắt đúng · FP báo động giả · FN bỏ sót · TN bỏ qua đúng. Chữ 2 = mô hình nói gì, chữ 1 = đúng hay sai |
+| Accuracy | $(TP+TN)/n$ — chỉ đáng tin khi hai lớp cân bằng và hai lỗi ngang giá |
+| Precision | $TP/(TP+FP)$ — "mô hình kêu thì có đáng tin không". Mẫu số = số lần kêu |
+| Recall | $TP/(TP+FN)$ — "bỏ sót bao nhiêu". Mẫu số = số ca thật sự có |
+| F1 | $2PR/(P+R) = 2TP/(2TP+FP+FN)$ — trung bình điều hoà, bị kéo về số nhỏ hơn |
+| $F_\beta$ | $\beta > 1$ ưu tiên recall; $\beta < 1$ ưu tiên precision |
+| Ví dụ chuẩn của bài | TP 6, FP 3, FN 4, TN 87 → acc 0.93 · P 0.6667 · R 0.6 · F1 0.6316 |
+| Dữ liệu 99% lớp âm, accuracy 99% nghĩa là gì? | Gần như chắc chắn mô hình đoán toàn âm. Mở ma trận nhầm lẫn ra kiểm |
+| Precision khi $TP + FP = 0$ | **Không xác định.** Báo là không xác định, đừng gán 0 |
+| Hạ ngưỡng thì sao? | Recall tăng hoặc giữ nguyên; precision dao động và có xu hướng giảm |
+| Ngưỡng mặc định 0.5 | Là mặc định của thư viện, không phải lựa chọn có căn cứ. Chọn trên **validation** |
+| ROC-AUC nghĩa là gì? | P(mẫu dương ngẫu nhiên được chấm cao hơn mẫu âm ngẫu nhiên). Đo xếp hạng, không đo quyết định |
+| Tính ROC-AUC tay | Đếm số cặp (dương, âm) mà dương thắng, chia cho $P \times N$. Ví dụ bài này: 19/24 = 0.7917 |
+| ROC-AUC hay PR-AUC? | Cân bằng → ROC-AUC. Lệch lớp → **PR-AUC**, đường cơ sở của nó là tỉ lệ lớp dương |
+| Lệch lớp thì lệch bao nhiêu? | Ví dụ bài này: cùng mô hình, ROC-AUC 0.9505 mà PR-AUC 0.1000 |
+| Macro vs weighted vs micro F1 | Macro: mọi lớp nặng như nhau · weighted: theo số mẫu · micro: bằng accuracy (đơn nhãn) |
+| Chênh 2 điểm có đáng tin? | Trên vài trăm mẫu thì không. Bootstrap tập test 1000 lần lấy khoảng tin cậy |
+| Bài sinh văn bản (dịch, tóm tắt) | Không có TP/FP vì nhiều đáp án đúng → [BLEU, chrF, COMET, MQM](/khai-niem/danh-gia-dich) |
+| Cần báo cáo tối thiểu những gì? | Ma trận nhầm lẫn đầy đủ + precision + recall + tỉ lệ lớp dương + đường cơ sở |
+
+## Tóm tắt
+
+- Ma trận nhầm lẫn là dữ liệu gốc; accuracy, precision, recall, F1 chỉ là bốn tỉ số lấy ra từ đó.
+- Accuracy đánh lừa khi lệch lớp: 99% lớp âm thì `return "âm"` đã đạt 99%. Luôn tính đường cơ sở này trước.
+- Precision và recall khác nhau ở mẫu số: số lần mô hình kêu, so với số ca thật sự có. F1 là trung bình điều hoà nên bị kéo về phía số nhỏ.
+- Ví dụ chuẩn: TP 6, FP 3, FN 4, TN 87 → acc 0.93, P 0.6667, R 0.6, F1 0.6316 — trong khi mô hình rỗng vẫn được acc 0.90.
+- Mọi thước đo trên đều gắn với một ngưỡng. Chọn ngưỡng trên validation, khoá lại, rồi mới mở test.
+- ROC-AUC đo khả năng xếp hạng và không phụ thuộc tỉ lệ lớp — nên nó lạc quan với dữ liệu lệch. Cùng một mô hình: ROC-AUC 0.9505, PR-AUC 0.1000.
+- Với bài toán sinh văn bản thì không đếm được TP/FP; chuyển sang [BLEU, chrF, COMET và MQM](/khai-niem/danh-gia-dich).

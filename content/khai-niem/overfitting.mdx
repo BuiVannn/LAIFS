@@ -1,0 +1,269 @@
+---
+ten_vi: "Overfitting / underfitting"
+ten_en: Overfitting and Underfitting
+tang: 2
+thu_tu: 18
+tien_quyet: ["train-val-test"]
+trang_thai: nhap
+dinh_nghia: >-
+  Quá khớp (overfitting) là khi mô hình học thuộc cả những chi tiết ngẫu nhiên của tập huấn luyện,
+  nên loss trên tập train rất thấp còn loss trên dữ liệu chưa gặp lại cao. Chưa khớp (underfitting)
+  là đầu kia: mô hình quá đơn giản nên loss cao ở CẢ hai tập. Điều ta thật sự muốn tối thiểu hoá
+  là sai số trên dữ liệu mới, không phải sai số trên tập train.
+truc_giac: >-
+  Hai người ôn thi. Người thứ nhất học thuộc lòng đáp án 20 đề cũ: làm lại 20 đề đó thì 10 điểm,
+  gặp đề mới thì trượt — đó là quá khớp. Người thứ hai chỉ đọc lướt mục lục: đề cũ hay đề mới đều
+  làm sai như nhau — đó là chưa khớp. Học hiểu quy luật, không học thuộc từng đề, mới là đích đến.
+hieu_nham:
+  - "Train loss thấp KHÔNG phải là mục tiêu. Một bảng tra cứu thuộc lòng toàn bộ tập train có train loss bằng 0 nhưng vô dụng với dữ liệu mới. Chỉ tập validation mới nói được mô hình có tổng quát hoá hay không."
+  - "Quá khớp không phải chuyện 'mô hình quá to'. Cùng một mô hình sẽ quá khớp trên 200 mẫu và vừa khéo trên 200.000 mẫu: tỉ lệ giữa sức chứa và lượng dữ liệu mới là thứ quyết định."
+  - "Val loss tăng lên trong khi val accuracy vẫn tăng là chuyện bình thường với cross-entropy: mô hình đoán đúng nhiều hơn nhưng lại quá tự tin ở những chỗ đoán sai. Đừng vội dừng chỉ vì val loss nhích lên."
+  - "Val loss THẤP HƠN train loss không phải tin vui. Gần như luôn là lỗi đường ống dữ liệu: rò rỉ dữ liệu, tập val quá dễ, hoặc train bị dropout/augmentation làm khó còn val thì không."
+  - "Chọn siêu tham số bằng tập test rồi báo cáo điểm trên chính tập test đó là tự lừa mình: tập test đã trở thành tập validation, con số báo cáo sẽ lạc quan hơn thực tế."
+y_chinh:
+  - "Mục tiêu thật là sai số trên dữ liệu MỚI, train loss chỉ là thứ đo được trong lúc huấn luyện"
+  - "Quá khớp: train thấp, val cao và đang đi lên. Chưa khớp: cả hai đều cao và phẳng"
+  - "Khoảng cách val − train đo mức quá khớp; độ cao của train loss đo mức chưa khớp. Đọc hai thứ đó tách rời nhau"
+  - "Sai số kỳ vọng tách thành bias² + phương sai + nhiễu; tăng sức chứa làm giảm bias nhưng tăng phương sai"
+  - "Thêm dữ liệu kéo hai đường lại gần nhau và chữa được quá khớp, nhưng không chữa được chưa khớp"
+  - "Nhiễu trong dữ liệu là một cái sàn: không mô hình nào hạ val loss xuống dưới mức đó"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=EuBBz3bI-aA
+    tieu_de: "Machine Learning Fundamentals: Bias and Variance"
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Sáu phút, vẽ tay đúng ý đánh đổi thiên lệch–phương sai trên một ví dụ khớp đường cong. Nên xem đầu tiên.
+  - url: https://machinelearningcoban.com/2017/03/04/overfitting/
+    tieu_de: "Bài 11: Overfitting"
+    tac_gia: Vũ Hữu Tiệp (Machine Learning cơ bản)
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: vi
+    ghi_chu: Tiếng Việt, đi thẳng vào ví dụ khớp đa thức bậc cao kèm code và hình. Đọc cùng lúc với bài này.
+  - url: https://developers.google.com/machine-learning/crash-course/overfitting/overfitting
+    tieu_de: "Overfitting — Machine Learning Crash Course"
+    tac_gia: Google
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Ngắn, có phần về đường học và cách chia dữ liệu. Đọc khi muốn một bản tóm tắt gọn để tra lại.
+  - url: https://arxiv.org/abs/1812.11118
+    tieu_de: "Reconciling modern machine learning practice and the bias-variance trade-off"
+    tac_gia: Belkin, Hsu, Ma, Mandal (2019)
+    loai: bai_viet
+    muc_do: toan_nang
+    ngon_ngu: en
+    ghi_chu: Bài báo đặt tên cho hiện tượng "double descent" — vì sao mô hình rất lớn vẫn tổng quát hoá tốt. Chỉ đọc phần mở đầu và Figure 1 là đủ hiểu ý.
+---
+
+import KhopDaThuc from '../../src/viz/KhopDaThuc.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Mô hình 10 điểm mà vẫn vô dụng
+
+Bạn xây mô hình dự đoán giá nhà từ 200 căn đã bán. Sau vài giờ chỉnh, train loss tụt xuống 0.004 — gần như hoàn hảo. Bạn đem ra dùng thật, và mô hình đoán lệch trung bình 800 triệu một căn.
+
+Không có gì sai trong code. Sai ở chỗ bạn đã tối ưu **nhầm mục tiêu**. Thứ ta muốn nhỏ là
+
+$$
+\mathbb{E}_{(x, y) \sim \mathcal{D}}\left[\ell\big(f(x),\, y\big)\right]
+$$
+
+tức là sai số kỳ vọng trên **toàn bộ** phân phối dữ liệu $\mathcal{D}$ — kể cả những căn nhà chưa từng bán. Nhưng ta không thấy $\mathcal{D}$, ta chỉ có 200 mẫu, nên thứ duy nhất tính được là trung bình trên 200 mẫu đó:
+
+$$
+\hat{L}_{\text{train}} = \frac{1}{n}\sum_{i=1}^{n} \ell\big(f(x_i),\, y_i\big)
+$$
+
+Gradient descent chỉ biết kéo $\hat{L}_{\text{train}}$ xuống. Nếu mô hình đủ mạnh, nó sẽ kéo bằng mọi giá — kể cả bằng cách ghi nhớ nhiễu riêng của 200 căn này. Đó là **quá khớp** (overfitting).
+
+## Trực giác: học quy luật hay học thuộc đề
+
+Nhiễu trong dữ liệu — sai số đo, biến động thị trường, may rủi — theo định nghĩa là thứ **không lặp lại** ở mẫu mới. Học thuộc nhiễu của tập train giúp train loss giảm nhưng không giúp gì ở dữ liệu mới, thậm chí còn hại: mô hình bẻ cong đường dự đoán để chạm từng điểm, và giữa các điểm nó văng đi rất xa.
+
+Ngược lại, mô hình quá đơn giản thì không đủ chỗ để ghi cả quy luật thật. Nó sai có hệ thống ở cả hai tập. Đó là **chưa khớp** (underfitting).
+
+Kéo thanh trượt bậc đa thức dưới đây: cùng một tập dữ liệu, cùng một thuật toán, chỉ đổi sức chứa của mô hình.
+
+<KhopDaThuc
+  client:visible
+  n={8}
+  bac={1}
+  duDoan={{
+    de: "8 điểm huấn luyện, sự thật là đường sin. Kéo bậc từ 1 lên 7, MSE trên tập VALIDATION sẽ đi theo hướng nào?",
+    lua_chon: ["Giảm đều, bậc càng cao càng tốt", "Giảm tới một bậc nào đó rồi quay đầu TĂNG", "Tăng ngay từ đầu"],
+    dap_an: 1,
+    giai_thich: "Val MSE giảm từ 0.541 (bậc 0) xuống đáy 0.0284 ở bậc 4, rồi bò ngược lên 0.0679 ở bậc 7 và 0.1020 ở bậc 9. Trong khi đó train MSE chỉ có giảm, và từ bậc 7 trở đi nó đúng bằng 0 — 8 điểm, 8 tham số, đa thức đi qua từng điểm một. Train loss bằng 0 mà val tệ gấp đôi: đó là bộ mặt của quá khớp."
+  }}
+/>
+
+Để ý thêm cột **hệ số lớn nhất |c|** trong chú thích: bậc 4 có $|c| \le 3.02$, bậc 7 vọt lên $33.69$. Quá khớp gần như luôn đi kèm trọng số phình to — đây chính là chỗ [điều chuẩn](/khai-niem/regularization) chen vào.
+
+<CauHoi cau="overfitting/q3" />
+
+## Đọc đường học: bốn dáng và việc cần làm
+
+Đây là kỹ năng đáng giá nhất của cả bài. Vẽ **train loss** và **val loss** theo epoch trên cùng một trục, rồi đối chiếu:
+
+| Dáng | Train | Val | Chẩn đoán | Làm gì TRƯỚC |
+|---|---|---|---|---|
+| **A** | cao, phẳng sớm | cao, phẳng, sát train | Chưa khớp | Tăng sức chứa (rộng/sâu hơn), huấn luyện lâu hơn, **giảm** điều chuẩn, thêm đặc trưng. Đừng thêm dữ liệu |
+| **B** | thấp và vẫn giảm | chạm đáy rồi **đi lên**, khoảng cách nới rộng | Quá khớp | Early stopping tại đáy val, tăng điều chuẩn / dropout, thêm dữ liệu, giảm sức chứa |
+| **C** | thấp, phẳng | thấp, phẳng, sát train | Vừa khéo | Muốn tốt hơn thì tăng **đồng thời** sức chứa và dữ liệu; hoặc chấp nhận, đã gần sàn nhiễu |
+| **D** | bất kỳ | val **thấp hơn** train, hoặc nhảy loạn, hoặc phẳng lì từ epoch 0 | Nghi đường ống dữ liệu | Kiểm tra rò rỉ dữ liệu, kích thước tập val, có quên `model.eval()` không, tập val có cùng phân phối với train không |
+
+Hai điều cần tách bạch:
+
+- **Độ cao của train loss** đo mức **chưa khớp**. Train loss còn cao thì bàn chuyện quá khớp là vô nghĩa — mô hình chưa học nổi cả tập train.
+- **Khoảng cách val − train** đo mức **quá khớp**. Khoảng cách nhỏ mà cả hai đều cao thì đó là dáng A, không phải dáng C.
+
+Dáng D hay bị bỏ qua nhất. Val thấp hơn train nghe như tin vui nên ít ai dừng lại kiểm tra, trong khi nó gần như luôn là lỗi: dropout và augmentation chỉ bật lúc train (nên train loss đo trong điều kiện khó hơn), hoặc cùng một mẫu xuất hiện ở cả hai tập.
+
+<CauHoi cau="overfitting/q5" />
+
+## Vì sao có đánh đổi: bias, phương sai, nhiễu
+
+Giả sử sự thật là $y = f(x) + \varepsilon$ với nhiễu $\varepsilon$ có kỳ vọng 0 và phương sai $\sigma^2$. Gọi $\hat{f}$ là mô hình ta huấn luyện được — nó phụ thuộc vào **tập train ngẫu nhiên** mà ta bốc được. Lấy kỳ vọng trên cả nhiễu lẫn tập train:
+
+$$
+\mathbb{E}\left[(y - \hat{f}(x))^2\right]
+= \underbrace{\big(f(x) - \mathbb{E}[\hat{f}(x)]\big)^2}_{\text{bias}^2}
++ \underbrace{\mathbb{E}\left[\big(\hat{f}(x) - \mathbb{E}[\hat{f}(x)]\big)^2\right]}_{\text{variance}}
++ \underbrace{\sigma^2}_{\text{noise}}
+$$
+
+Đọc ba số hạng bằng lời:
+
+- **Bias** (thiên lệch): trung bình qua mọi tập train, mô hình lệch khỏi sự thật bao nhiêu. Mô hình quá đơn giản có bias lớn — đường thẳng không bao giờ là đường sin, bốc tập train nào cũng vậy.
+- **Variance** (phương sai): đổi tập train thì mô hình nhảy đi bao xa. Mô hình quá mạnh có variance lớn — đổi một điểm dữ liệu là cả đường cong bậc 9 lắc theo.
+- **Noise** (nhiễu): $\sigma^2$ không có tham số nào chạm tới được. Đây là **sàn**. Trong phần trực quan trên, $\sigma = 0.15$ nên sàn là $\sigma^2 = 0.0225$; val MSE tốt nhất đạt được là $0.0143$ — đã sát sàn, và con số thấp hơn sàn chỉ xuất hiện do tập val hữu hạn, không phải do mô hình giỏi hơn sự thật.
+
+Tăng sức chứa mô hình thường **giảm bias, tăng variance**. Đó là đánh đổi thiên lệch–phương sai, và đáy của tổng hai thứ chính là chỗ val loss thấp nhất.
+
+## Tính tay: bốn điểm, hai mô hình
+
+Sự thật là $y = 2x + 1$. Ta bốc được bốn điểm train (đã dính nhiễu) và biết hai điểm validation:
+
+| Tập | $x$ | $y$ |
+|---|---|---|
+| train | 0, 1, 2, 3 | 1, 3.5, 4.5, 7.5 |
+| val | 1.5, 2.5 | 4, 6 |
+
+**Mô hình 1 — đường thẳng.** Bình phương tối thiểu cho $\hat{y} = 2.05x + 1.05$.
+
+| $x$ | $y$ | $\hat{y}$ | $(\hat{y}-y)^2$ |
+|---|---|---|---|
+| 0 | 1 | 1.05 | 0.0025 |
+| 1 | 3.5 | 3.10 | 0.16 |
+| 2 | 4.5 | 5.15 | 0.4225 |
+| 3 | 7.5 | 7.20 | 0.09 |
+
+$\text{MSE}_{\text{train}} = (0.0025 + 0.16 + 0.4225 + 0.09)/4 = 0.16875$.
+
+Trên val: $\hat{y}(1.5) = 4.125$, $\hat{y}(2.5) = 6.175$, nên $\text{MSE}_{\text{val}} = (0.125^2 + 0.175^2)/2 = 0.023125$.
+
+**Mô hình 2 — đa thức bậc 3.** Bốn điểm, bốn tham số: đa thức đi qua **đúng** cả bốn điểm,
+
+$$
+\hat{y} = 0.58\overline{3}\,x^3 - 2.5\,x^2 + 4.41\overline{6}\,x + 1
+$$
+
+nên $\text{MSE}_{\text{train}} = 0$, hoàn hảo tuyệt đối. Trên val: $\hat{y}(1.5) = 3.9688$, $\hat{y}(2.5) = 5.5312$, sai số $-0.0313$ và $-0.4688$, cho
+
+$$
+\text{MSE}_{\text{val}} = \frac{0.0313^2 + 0.4688^2}{2} \approx 0.1104
+$$
+
+Bảng tổng kết nói tất cả:
+
+| Mô hình | MSE train | MSE val | val − train |
+|---|---|---|---|
+| Đường thẳng | 0.16875 | **0.0231** | −0.1456 |
+| Bậc 3 | **0.0000** | 0.1104 | +0.1104 |
+
+Mô hình có train loss **bằng 0** lại tệ hơn gần **5 lần** trên dữ liệu mới. Nếu chỉ nhìn train loss, bạn sẽ chọn nhầm.
+
+## Code: tự kiểm lại bằng NumPy
+
+```python
+import numpy as np
+
+x_tr = np.array([0.0, 1.0, 2.0, 3.0])
+y_tr = np.array([1.0, 3.5, 4.5, 7.5])
+x_va = np.array([1.5, 2.5])
+y_va = np.array([4.0, 6.0])   # su that y = 2x + 1
+
+def mse_train_val(bac):
+    V = np.vander(x_tr, bac + 1)                      # ma tran Vandermonde
+    c = np.linalg.lstsq(V, y_tr, rcond=None)[0]       # binh phuong toi thieu
+    tr = np.mean((np.polyval(c, x_tr) - y_tr) ** 2)
+    va = np.mean((np.polyval(c, x_va) - y_va) ** 2)
+    return float(tr), float(va), float(np.max(np.abs(c)))
+
+for bac in (1, 2, 3):
+    tr, va, mx = mse_train_val(bac)
+    print(f"bac {bac}: train={tr:.5f}  val={va:.5f}  max|c|={mx:.3f}")
+```
+
+```
+bac 1: train=0.16875  val=0.02312  max|c|=2.050
+bac 2: train=0.15312  val=0.01082  max|c|=1.675
+bac 3: train=0.00000  val=0.11035  max|c|=4.417
+```
+
+Khớp bảng tính tay. Đọc theo hàng dọc: cột **train** chỉ có giảm, giảm tới đúng 0 ở bậc 3. Cột **val** thì chạm đáy ở bậc 2 (0.01082) rồi vọt lên gấp 10 lần ở bậc 3. Cột hệ số lớn nhất phình từ 1.675 lên 4.417 đúng lúc val xấu đi — ba cột này kể cùng một câu chuyện, và chỉ cột đầu là cột gradient descent nhìn thấy.
+
+## Nâng cao
+
+**Thêm dữ liệu thì sao?** Kéo ô "số điểm huấn luyện" trong phần trực quan từ 8 lên 60 rồi để bậc ở 9. Với 8 điểm, val MSE ở bậc 9 là $0.1020$ — gấp 3.6 lần đáy. Với 60 điểm, val MSE ở bậc 9 chỉ còn $0.0169$, gần như bằng đáy $0.0159$. **Cùng một mô hình, cùng một bậc, quá khớp gần như biến mất chỉ vì có thêm dữ liệu.** Đó là lý do "thêm dữ liệu" luôn nằm trong danh sách cách chữa quá khớp — và cũng là lý do nó vô ích với dáng A: thêm bao nhiêu dữ liệu thì đường thẳng vẫn không thành đường sin.
+
+Một cách khác để nhìn: vẽ val loss theo **kích thước tập train** (learning curve theo dữ liệu). Nếu hai đường train/val còn cách xa nhau và val vẫn đang giảm khi thêm dữ liệu, gom thêm dữ liệu là việc đáng làm. Nếu hai đường đã dính nhau và cùng phẳng ở mức cao, thêm dữ liệu không cứu được, phải đổi mô hình.
+
+**Vậy sao GPT với 175 tỉ tham số không quá khớp?** Câu chuyện bias–variance ở trên mô tả đúng chế độ cổ điển, nhưng thực nghiệm những năm gần đây cho thấy bức tranh chưa đủ. Belkin và cộng sự (2019) chỉ ra hiện tượng **double descent**: khi tăng sức chứa vượt qua điểm mô hình vừa đủ khớp hoàn hảo tập train (điểm nội suy), val loss vọt lên một đỉnh — rồi **giảm lần thứ hai**, có khi xuống thấp hơn cả đáy cổ điển. [Nakkiran và cộng sự](https://arxiv.org/abs/1912.02292) quan sát hiện tượng tương tự theo cả số epoch lẫn kích thước mô hình trong mạng neuron sâu.
+
+Phần "vì sao" thì vẫn đang tranh luận. Các giả thuyết hay được nhắc: gradient descent có **thiên hướng ngầm** (implicit bias) chọn nghiệm chuẩn nhỏ trong vô số nghiệm khớp hoàn hảo; dữ liệu huấn luyện khổng lồ so với số lần lặp; và bản thân SGD, dropout, weight decay đã điều chuẩn sẵn.
+
+Nói cho đúng mức: **đây là hiện tượng đã quan sát được, không phải một lời hứa**. Nó không có nghĩa "cứ làm mô hình to là hết lo". Với tập dữ liệu vài nghìn mẫu mà bạn hay gặp lúc học, chế độ cổ điển vẫn đúng và quá khớp vẫn là kẻ thù số một. Cách duy nhất để biết mình đang ở chế độ nào vẫn là nhìn đường val.
+
+## Sai lầm hay gặp và triệu chứng nhận biết
+
+**1. Nhìn train loss để quyết định.** *Triệu chứng:* bạn khoe "loss xuống 0.001" mà chưa từng chạy một lượt đánh giá nào trên tập val. Số đẹp, mô hình vô dụng. *Sửa:* mọi vòng huấn luyện phải in **hai** con số.
+
+**2. Dùng tập test để chọn siêu tham số.** *Triệu chứng:* bạn thử 30 learning rate, chọn cái có test accuracy cao nhất, rồi báo cáo chính con số đó. *Sửa:* chọn bằng val, chỉ chạm vào test **một lần duy nhất** ở cuối. Con số bạn báo cáo sau khi tối ưu trên test luôn lạc quan hơn thực tế.
+
+**3. Rò rỉ dữ liệu.** *Triệu chứng:* val loss thấp hơn train loss, hoặc val accuracy cao bất thường ngay từ epoch đầu (dáng D). *Sửa:* kiểm tra trùng lặp giữa hai tập; kiểm tra bạn có chuẩn hoá (tính mean/std) **trước** khi chia dữ liệu không — nếu có, thông tin của tập val đã rò sang train.
+
+**4. Nhầm chưa khớp thành quá khớp.** *Triệu chứng:* train loss còn cao (0.8) và val loss cũng cao (0.85), bạn thấy val > train nên tăng dropout lên 0.5 — và mọi thứ tệ đi. *Sửa:* nhìn **độ cao** của train loss trước khi nhìn khoảng cách. Dáng A cần thêm sức chứa, không phải thêm điều chuẩn.
+
+**5. Early stopping bằng mắt, dừng ở dao động đầu tiên.** *Triệu chứng:* val loss nhích lên một epoch rồi bạn dừng, trong khi nó chỉ đang dao động và sẽ tiếp tục giảm. *Sửa:* dùng kiên nhẫn (patience) 5–10 epoch, và **lưu lại checkpoint tốt nhất** chứ không lấy checkpoint cuối.
+
+**6. Tập validation quá nhỏ.** *Triệu chứng:* val loss nhảy loạn từ 0.3 lên 0.7 rồi về 0.35 giữa các epoch liền nhau. *Sửa:* 50 mẫu val thì một mẫu sai đã đổi 2% — hoặc tăng tập val, hoặc dùng cross-validation.
+
+## Tra nhanh
+
+| Bạn thấy | Nó là gì | Việc đầu tiên |
+|---|---|---|
+| train 0.01, val 2.3, khoảng cách nới rộng | Quá khớp nặng | Lấy checkpoint ở đáy val (early stopping), rồi thêm điều chuẩn / dropout / dữ liệu |
+| train 0.84, val 0.89, cả hai phẳng | Chưa khớp | Mô hình lớn hơn, train lâu hơn, **giảm** điều chuẩn |
+| train 0.02, val 0.025, cả hai phẳng thấp | Vừa khéo | Dừng lại, hoặc tăng đồng thời dữ liệu và sức chứa |
+| val < train một cách rõ rệt | Nghi rò rỉ / lỗi eval | Kiểm tra trùng mẫu, `model.eval()`, phân phối tập val |
+| val loss tăng nhưng val accuracy cũng tăng | Bình thường với cross-entropy | Theo dõi metric bạn thật sự quan tâm, đừng dừng vội |
+| val nhảy loạn giữa các epoch | Tập val quá nhỏ | Tăng tập val hoặc cross-validation |
+
+**Ba con số cần in ở mỗi epoch:** train loss, val loss, và hiệu val − train.
+
+**Thứ tự chữa quá khớp (rẻ → đắt):** early stopping → tăng weight decay → dropout → augmentation → thêm dữ liệu → giảm kích thước mô hình.
+
+**Công thức cần nhớ:** $\mathbb{E}[(y - \hat{f})^2] = \text{bias}^2 + \text{variance} + \sigma^2$. Số hạng cuối là sàn, không ai vượt được.
+
+## Tự kiểm
+
+<CauHoi cau="overfitting/q7" />
+
+<CauHoi cau="overfitting/q9" />
+
+<CauHoi cau="overfitting/q11" />
+
+Tiếp theo: [Điều chuẩn L1/L2](/khai-niem/regularization) — cách phạt trọng số lớn để ghìm quá khớp; rồi [Dropout](/khai-niem/dropout).

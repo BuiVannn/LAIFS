@@ -45,6 +45,7 @@ Mọi thứ gắn với một **khái niệm** qua id (tên file).
 | Khái niệm + bài học | `content/khai-niem/<id>.mdx` | Frontmatter là thẻ tóm tắt + `tai_lieu`; phần thân là bài học. Công thức viết `$...$`. File chỉ có frontmatter = "sắp có" |
 | Trắc nghiệm | `content/quiz/<id>.yaml` | Mỗi câu có `id` **cố định** (đổi là mất lịch ôn của người học). `loai`: `mot` (dap_an: số thứ tự), `nhieu` (dap_an: danh sách), `so` (dap_an: số, `sai_so`). Nhúng giữa bài: `<CauHoi cau="<khái niệm>/<id câu>" />` — câu đã nhúng không lặp lại ở cuối bài |
 | Bài code | `content/bai-tap/<ten-bai>/` | `de.md` (frontmatter `khai_niem`), `starter.py`, `solution.py`, `tests.py` (các hàm `test_*` dùng `assert`) |
+| Cấu trúc bài học | 9 mục | Tình huống thật → trực giác → dẫn công thức → tính tay → code chạy được → nâng cao → sai lầm kèm triệu chứng → **## Tra nhanh** → câu hỏi nhúng giữa bài |
 | Trực quan hoá | `src/viz/<Ten>.tsx` | Component React, nhúng vào `.mdx` bằng `<Ten client:visible />`. Viz nên nhận prop `duDoan` (xem `DuDoan.tsx`) để khoá tham số và bắt đoán trước khi chạy |
 | Ý chính | `y_chinh` trong frontmatter khái niệm | Hiện ra sau khi người học viết "giải thích lại bằng lời của bạn" để tự đối chiếu |
 
@@ -62,6 +63,6 @@ Lưu trong localStorage (khoá `laifs:v1`, xem `src/tien-do.ts`): kết quả t�
 
 ## Quy trình duyệt
 
-Mục danh sách trong YAML chứa `: ` phải bọc nháy kép, nếu không cả file quiz sẽ không nạp được.
+Mục danh sách trong YAML chứa `: ` phải bọc nháy kép, nếu không cả file quiz sẽ không nạp được. Công thức `$$…$$` trải nhiều dòng phải để `$$` ở dòng riêng (giữ nguyên thụt lề nếu nằm trong danh sách), nếu không KaTeX vỡ.
 
 AI/người soạn để `trang_thai: nhap` → người duyệt chạy qua checklist ở mục 7 của KHUNG-Y-TUONG.md → đổi thành `da_duyet`, điền `nguoi_duyet`.

@@ -1,0 +1,129 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: "Batch norm lấy trung bình và phương sai theo trục nào của ma trận batch X shape (n, d)?"
+    lua_chon:
+      - "Theo hàng: mỗi mẫu tự chuẩn hoá bằng thống kê của chính nó"
+      - "Theo cột: mỗi đặc trưng có μ, σ² riêng, tính dọc theo n mẫu trong batch"
+      - Trên toàn bộ ma trận, ra đúng một cặp μ và σ²
+      - Theo từng phần tử một
+    dap_an: 1
+    giai_thich: "Mỗi đặc trưng (mỗi cột, mỗi neuron) được quy về thang riêng của nó, thống kê tính dọc theo các mẫu: trong numpy là axis=0. Chuẩn hoá theo hàng (axis=-1) là LayerNorm, một phép khác."
+
+  - id: q2
+    loai: so
+    do_kho: 2
+    de: "Một đặc trưng có giá trị trên batch 5 mẫu là 3, 5, 6, 7, 9. Tính phương sai σ² theo đúng công thức batch norm (chia cho n)."
+    dap_an: 4
+    sai_so: 0.001
+    giai_thich: "μ = (3+5+6+7+9)/5 = 6. Độ lệch: −3, −1, 0, 1, 3. Bình phương: 9, 1, 0, 1, 9, tổng 20. Chia cho n = 5 được σ² = 4, nên s = √4 = 2. (Nếu chia cho n−1 = 4 sẽ ra 5, nhưng batch norm chia cho n.)"
+
+  - id: q3
+    loai: so
+    do_kho: 2
+    de: "Vẫn batch 3, 5, 6, 7, 9 (μ = 6, σ² = 4). Với γ = 0.5 và β = 3, đầu ra y của mẫu có x = 9 bằng bao nhiêu? (bỏ qua ε)"
+    dap_an: 3.75
+    sai_so: 0.001
+    giai_thich: "x̂ = (9 − 6)/2 = 1.5. Rồi y = γ·x̂ + β = 0.5 × 1.5 + 3 = 3.75. Để ý cột y có trung bình đúng bằng β = 3 và độ lệch chuẩn đúng bằng γ = 0.5."
+
+  - id: q4
+    loai: mot
+    do_kho: 2
+    de: "Vì sao batch norm phải thêm hai tham số học được γ và β thay vì dừng lại ở x̂ đã chuẩn hoá?"
+    lua_chon:
+      - Để tránh chia cho 0 khi phương sai bằng 0
+      - Để tăng tốc độ tính toán của lớp
+      - "Vì ép mọi lớp về trung bình 0 phương sai 1 làm mất khả năng biểu diễn (ví dụ giam sigmoid ở khúc gần thẳng); γ, β cho mạng tự vặn lại thang đo, kể cả khôi phục y nguyên đầu vào"
+      - Để thay thế cho learning rate
+    dap_an: 2
+    giai_thich: "Tránh chia 0 là việc của ε. Chọn γ = √(σ²+ε) và β = μ thì y = x đúng bằng đầu vào, nghĩa là phép đồng nhất nằm trong tập hàm lớp BN biểu diễn được: thêm BN không bao giờ làm mạng kém biểu đạt hơn."
+
+  - id: q5
+    loai: so
+    do_kho: 1
+    de: "Một lớp batch norm đặt sau lớp ẩn có 256 neuron. Lớp BN đó có bao nhiêu tham số HỌC ĐƯỢC?"
+    dap_an: 512
+    sai_so: 0.001
+    giai_thich: "Mỗi đặc trưng một cặp (γ, β), nên 256 × 2 = 512. Trung bình chạy và phương sai chạy cũng có 256 số mỗi loại nhưng chúng KHÔNG học bằng gradient, chỉ là thống kê tích luỹ (trong PyTorch gọi là buffer)."
+
+  - id: q6
+    loai: mot
+    do_kho: 2
+    de: "Lúc suy luận (eval), lớp batch norm dùng μ và σ² lấy từ đâu?"
+    lua_chon:
+      - Từ chính batch đang được suy luận, như lúc train
+      - Từ trung bình chạy đã tích luỹ trong suốt quá trình huấn luyện
+      - Tính lại trên toàn bộ tập huấn luyện mỗi lần suy luận
+      - "Đặt μ = 0 và σ² = 1"
+    dap_an: 1
+    giai_thich: "Lúc eval, BN phải là phép biến đổi cố định, mỗi mẫu độc lập với mọi mẫu khác. Nếu dùng thống kê batch hiện tại thì cùng một ảnh chạy ở hai batch khác nhau sẽ ra hai kết quả khác nhau, và với batch một mẫu thì x̂ = 0 nên đầu ra chỉ còn β."
+
+  - id: q7
+    loai: nhieu
+    do_kho: 3
+    de: Về lượt ngược (backward) qua batch norm, những phát biểu nào ĐÚNG? (chọn tất cả ý đúng)
+    lua_chon:
+      - "Gradient của mẫu i chỉ phụ thuộc gradient đi vào của chính mẫu i"
+      - "Tổng của ∂L/∂x theo chiều batch bằng 0"
+      - "Tổng của (∂L/∂x)·x̂ theo chiều batch bằng 0"
+      - "∂L/∂γ = Σᵢ (∂L/∂yᵢ)·x̂ᵢ, cộng dồn trên cả batch"
+    dap_an: [1, 2, 3]
+    giai_thich: "μ và σ² phụ thuộc MỌI mẫu, nên gradient chảy chéo giữa các mẫu: ý thứ nhất sai. Hai tổng bằng 0 là hệ quả của hai số hạng trừ trong công thức rút gọn (BN triệt tiêu hướng dịch cả batch và hướng phình cả batch) — đây là cách kiểm tra code backward nhanh nhất. γ và β dùng chung cho mọi mẫu nên gradient của chúng cộng dồn theo batch."
+
+  - id: q8
+    loai: so
+    do_kho: 3
+    de: "Một đặc trưng có giá trị trên batch 4 mẫu là 2, 2, 6, 6 (μ = 4, σ² = 4, s = 2, x̂ = −1, −1, 1, 1). Cho γ = 3 và gradient từ phía sau ∂L/∂y = (1, 0, 0, 0). Tính ∂L/∂x của mẫu thứ nhất."
+    dap_an: 0.75
+    sai_so: 0.001
+    giai_thich: "g = γ·∂L/∂y = (3, 0, 0, 0), nên Σg = 3 và Σg·x̂ = 3 × (−1) = −3. Công thức: ∂L/∂x₁ = (n·g₁ − Σg − x̂₁·Σg·x̂)/(n·s) = (4×3 − 3 − (−1)(−3))/(4×2) = (12 − 3 − 3)/8 = 0.75. Cả vector ra (0.75, −0.75, 0, 0): tổng bằng 0 đúng như kỳ vọng, và ba mẫu không liên quan tới loss vẫn nhận gradient khác 0."
+
+  - id: q9
+    loai: mot
+    do_kho: 2
+    de: "Bạn để lớp BN ở chế độ TRAIN rồi đưa vào một batch chỉ có 1 mẫu. Đầu ra của lớp là gì?"
+    lua_chon:
+      - Đúng bằng đầu vào x
+      - Đúng bằng β, với mọi giá trị đầu vào
+      - Đúng bằng γ·x
+      - Báo lỗi chia cho 0
+    dap_an: 1
+    giai_thich: "Với n = 1 thì μ = x và σ² = 0, nên x̂ = 0/√ε = 0 và y = γ·0 + β = β. Không báo lỗi vì có ε trong căn — đó là điều nguy hiểm: mô hình lặng lẽ trả cùng một đáp án cho mọi đầu vào."
+
+  - id: q10
+    loai: mot
+    do_kho: 3
+    de: "Mạng có batch norm: loss huấn luyện giảm đẹp, nhưng độ chính xác trên tập validate thấp bất thường. Bạn thử đổi batch size lúc đánh giá từ 32 xuống 8 thì kết quả validate đổi theo. Nguyên nhân khả dĩ nhất?"
+    lua_chon:
+      - Learning rate quá lớn
+      - Mô hình bị overfitting
+      - Quên chuyển lớp BN sang chế độ eval, nên nó vẫn chuẩn hoá bằng thống kê của batch đang chạy
+      - Dữ liệu validate bị xáo trộn sai
+    dap_an: 2
+    giai_thich: "Chỉ dấu quyết định là 'đổi batch size thì kết quả đổi'. Ở chế độ eval đúng, BN là phép biến đổi cố định nên mỗi mẫu cho cùng kết quả bất kể nó nằm chung với ai. Overfitting hay learning rate không gây ra sự phụ thuộc đó. Trong PyTorch, sửa bằng model.eval(); torch.no_grad() KHÔNG thay thế được vì nó chỉ tắt việc lưu đồ thị tính toán."
+
+  - id: q11
+    loai: mot
+    do_kho: 2
+    de: "Vì sao Transformer và các mô hình NLP dùng LayerNorm thay cho BatchNorm?"
+    lua_chon:
+      - Vì LayerNorm tính nhanh hơn nhiều
+      - "Vì câu có độ dài khác nhau nên thống kê theo batch tại một vị trí bị trộn với ô padding, vì batch thường nhỏ, và vì không chấp nhận được việc kết quả một câu phụ thuộc các câu khác cùng batch"
+      - Vì LayerNorm không cần tham số học được
+      - Vì BatchNorm không dùng được cho dữ liệu dạng văn bản về mặt kỹ thuật
+    dap_an: 1
+    giai_thich: "LayerNorm giữ nguyên công thức 4 bước, chỉ đổi trục lấy thống kê sang chiều đặc trưng của TỪNG mẫu (axis=−1). Nhờ vậy mỗi mẫu độc lập, không cần thống kê chạy, không có khác biệt train/eval, không quan tâm batch size. LayerNorm vẫn có γ và β."
+
+  - id: q12
+    loai: nhieu
+    do_kho: 3
+    de: "Về tranh luận 'internal covariate shift', những phát biểu nào ĐÚNG? (chọn tất cả ý đúng)"
+    lua_chon:
+      - "Bài báo gốc (Ioffe & Szegedy, 2015) giải thích tác dụng của batch norm là nhờ giảm internal covariate shift"
+      - "Santurkar và cộng sự (2018) bơm nhiễu phi tĩnh ngay SAU lớp batch norm, cố tình tạo thêm covariate shift, mà mạng vẫn huấn luyện nhanh"
+      - "Vì giải thích gốc bị phản bác nên batch norm thực ra không có tác dụng"
+      - "Giải thích thay thế được đề xuất là batch norm làm mặt loss mượt hơn, nhờ đó gradient ổn định và learning rate lớn vẫn an toàn"
+    dap_an: [0, 1, 3]
+    giai_thich: "Hiệu quả thực nghiệm của batch norm được đo lại nhiều lần và rất vững; chỉ có LỜI GIẢI THÍCH bị nghi ngờ. Đây là ví dụ điển hình cho việc tách 'kết quả đo được' khỏi 'câu chuyện giải thích' khi đọc một bài báo deep learning."

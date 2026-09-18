@@ -1,0 +1,129 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: Dropout làm gì trong một lượt xuôi lúc huấn luyện?
+    lua_chon:
+      - Đặt kích hoạt của mỗi neuron về 0 một cách ngẫu nhiên và độc lập
+      - Xoá vĩnh viễn một số neuron khỏi mạng
+      - Giảm learning rate của các neuron ít dùng
+      - Cộng nhiễu Gauss vào trọng số
+    dap_an: 0
+    giai_thich: "Neuron chỉ bị TẮT TẠM cho lượt đó, trọng số vẫn còn nguyên và lượt sau có thể lại được bật. Nếu xoá vĩnh viễn thì đó là tỉa mạng (pruning), một kỹ thuật hoàn toàn khác."
+
+  - id: q2
+    loai: mot
+    do_kho: 2
+    de: Vì sao nói dropout giống như huấn luyện một tập hợp (ensemble) rất nhiều mạng?
+    lua_chon:
+      - Vì mỗi lượt huấn luyện thực chất lấy mẫu một mạng con khác nhau, và các mạng con dùng CHUNG trọng số
+      - Vì ta phải huấn luyện nhiều mô hình riêng rồi lấy trung bình
+      - Vì dropout nhân bản mạng ra nhiều lần trong bộ nhớ
+      - Vì dropout chạy nhiều lần lúc dự đoán rồi lấy trung bình
+    dap_an: 0
+    giai_thich: "Lớp n neuron có 2ⁿ cách bật/tắt, tức 2ⁿ mạng con. Mỗi mini-batch cập nhật một mạng con, nhưng vì trọng số dùng chung nên mọi mạng con cùng hưởng lợi. Lúc dự đoán chỉ chạy MỘT mạng đầy đủ đã co thang đúng cách, và nó xấp xỉ trung bình của cả tập hợp."
+
+  - id: q3
+    loai: so
+    do_kho: 1
+    de: "Một lớp có 10 neuron, tất cả đều chịu dropout. Có bao nhiêu mạng con khác nhau có thể sinh ra từ lớp này?"
+    dap_an: 1024
+    sai_so: 0.5
+    giai_thich: "Mỗi neuron có 2 trạng thái (bật hoặc tắt), độc lập nhau, nên có 2¹⁰ = 1024 tổ hợp. Với 100 neuron con số này là 2¹⁰⁰ ≈ 1.27 × 10³⁰ — không đời nào chạy hết được lúc dự đoán, và đó chính là lý do phải xấp xỉ bằng một mạng đầy đủ."
+
+  - id: q4
+    loai: mot
+    do_kho: 1
+    de: Lúc đánh giá (eval/inference), dropout hoạt động thế nào?
+    lua_chon:
+      - Vẫn tắt neuron ngẫu nhiên nhưng với xác suất nhỏ hơn
+      - Không tắt neuron nào cả
+      - Tắt đúng những neuron có trọng số nhỏ nhất
+      - Tắt neuron ở lớp cuối cùng
+    dap_an: 1
+    giai_thich: "Lúc eval dùng nguyên mạng đầy đủ, không tung đồng xu. Với inverted dropout thì cũng không phải chỉnh gì thêm, vì phép chia cho p lúc train đã lo sẵn chuyện thang giá trị."
+
+  - id: q5
+    loai: so
+    do_kho: 2
+    de: "Dùng inverted dropout với p = 0.5 (p là xác suất GIỮ). Một neuron có kích hoạt gốc h = 6 và lượt này nó được GIỮ. Giá trị đi tiếp sang lớp sau bằng bao nhiêu?"
+    dap_an: 12
+    sai_so: 0.001
+    giai_thich: "Inverted dropout chia cho p ngay lúc train: 6/0.5 = 12. Nhờ vậy kỳ vọng vẫn là 0.5 × 12 + 0.5 × 0 = 6, đúng bằng giá trị lúc eval. Nếu không chia, kỳ vọng chỉ còn 3 và mọi lớp sau bị lệch thang."
+
+  - id: q6
+    loai: mot
+    do_kho: 2
+    de: "Bạn cài dropout bằng cách chỉ nhân mặt nạ, quên chia cho p = 0.5. Chuyện gì xảy ra khi chuyển sang eval?"
+    lua_chon:
+      - Không gì cả, chia cho p chỉ là tối ưu tốc độ
+      - Đầu ra lúc eval lớn hơn lúc train, và sai lệch nhân lên qua từng lớp
+      - Mô hình báo lỗi shape
+      - Val loss sẽ thấp hơn train loss
+    dap_an: 1
+    giai_thich: "Lúc train kỳ vọng đầu ra là p·h = 0.5h, lúc eval là h. Các lớp sau được huấn luyện cho thang 0.5h nhưng lúc chạy nhận thang h. Với mạng L lớp có dropout, sai lệch cỡ (1/p)^L — mạng 4 lớp với p = 0.5 là gấp 16 lần."
+
+  - id: q7
+    loai: mot
+    do_kho: 2
+    de: "Bạn quên gọi model.eval() trước vòng đánh giá. Triệu chứng dễ nhận ra nhất là gì?"
+    lua_chon:
+      - Mô hình báo lỗi ngay lập tức
+      - Cùng một đầu vào, gọi model(x) hai lần cho hai kết quả KHÁC nhau; val loss cao và nhảy loạn giữa các epoch
+      - Train loss tăng vọt thành NaN
+      - Tốc độ huấn luyện chậm đi rõ rệt
+    dap_an: 1
+    giai_thich: "Dropout vẫn đang tung đồng xu nên dự đoán mang tính ngẫu nhiên. Không có lỗi nào được báo — đó là lý do lỗi này sống sót rất lâu trong code. Cách kiểm nhanh: chạy model(x) hai lần rồi so sánh; khác nhau là dropout (hoặc BatchNorm) còn bật."
+
+  - id: q8
+    loai: so
+    do_kho: 2
+    de: "Trong PyTorch bạn viết nn.Dropout(0.3). Theo quy ước của bài báo gốc (p là xác suất GIỮ), giá trị p ở đây bằng bao nhiêu?"
+    dap_an: 0.7
+    sai_so: 0.001
+    giai_thich: "PyTorch và Keras nhận xác suất TẮT, còn bài báo gốc dùng xác suất GIỮ. nn.Dropout(0.3) tắt 30%, tức giữ p = 0.7. Đây là nguồn lỗi rất hay gặp: đọc 'giữ 0.8 ở lớp đầu vào' rồi viết nn.Dropout(0.8) là tắt 80%, mạng gần như không học được gì."
+
+  - id: q9
+    loai: mot
+    do_kho: 2
+    de: "Mô hình của bạn đang có train accuracy 65% và val accuracy 63%. Bạn thêm dropout 0.5. Kết quả dự kiến?"
+    lua_chon:
+      - Val accuracy tăng rõ rệt vì dropout luôn giúp tổng quát hoá
+      - Cả train lẫn val accuracy cùng tụt, vì mô hình vốn đang CHƯA khớp
+      - Chỉ train accuracy tụt, val giữ nguyên
+      - Không gì thay đổi
+    dap_an: 1
+    giai_thich: "Train 65% và val 63% sát nhau, cả hai đều thấp — đó là chưa khớp. Dropout là điều chuẩn, tức là làm mô hình YẾU đi có chủ đích. Thêm điều chuẩn khi đang chưa khớp chỉ làm mọi thứ tệ hơn. Chỉ dùng dropout khi khoảng cách train–val đang nới rộng."
+
+  - id: q10
+    loai: nhieu
+    do_kho: 2
+    de: "Theo bài Attention Is All You Need (mục 5.4), dropout được đặt ở những chỗ nào trong Transformer? (chọn tất cả ý đúng)"
+    lua_chon:
+      - Đầu ra của mỗi lớp con, trước khi cộng vào nhánh residual và chuẩn hoá
+      - Tổng của embedding và positional encoding
+      - Trên chính ma trận trọng số học được của lớp tuyến tính
+      - Trên nhãn đầu ra để làm mượt nhãn
+    dap_an: [0, 1]
+    giai_thich: "Bài báo nêu đúng hai chỗ đó với P_drop = 0.1 cho mô hình base. Ý thứ ba mô tả DropConnect, không phải dropout thường. Ý thứ tư là label smoothing — bài báo CÓ dùng label smoothing, nhưng đó là kỹ thuật khác, không phải dropout."
+
+  - id: q11
+    loai: so
+    do_kho: 2
+    de: "Một lớp 200 neuron, dropout với p = 0.8 (xác suất GIỮ). Trung bình có bao nhiêu neuron bị TẮT mỗi lượt?"
+    dap_an: 40
+    sai_so: 0.5
+    giai_thich: "Xác suất tắt là 1 − p = 0.2, nên kỳ vọng số neuron bị tắt là 200 × 0.2 = 40, còn lại trung bình 160 neuron hoạt động. Vì trung bình chỉ p·n neuron làm việc, bài báo gốc khuyên khi thêm dropout thì nên nhân số neuron của lớp lên khoảng 1/p lần."
+
+  - id: q12
+    loai: mot
+    do_kho: 3
+    de: "Phép chia cho p trong inverted dropout giữ nguyên KỲ VỌNG đầu ra. Nó ảnh hưởng thế nào tới PHƯƠNG SAI?"
+    lua_chon:
+      - Cũng giữ nguyên phương sai
+      - Làm phương sai tăng lên, và đó chính là 'nhiễu có ích' mà dropout cố tình bơm vào
+      - Làm phương sai về 0
+      - Phương sai không liên quan gì tới dropout
+    dap_an: 1
+    giai_thich: "Var[h̃ᵢ] = hᵢ²·(1 − p)/p. Với p = 0.5 thì phương sai đúng bằng hᵢ², tức nhiễu ngang bằng tín hiệu. Đó là cái giá của dropout: nhiễu này giúp điều chuẩn nhưng cũng làm gradient loãng và huấn luyện chậm hơn. Vì thế p quá nhỏ (tắt quá nhiều) lại phản tác dụng."

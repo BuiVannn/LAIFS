@@ -1,0 +1,133 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: Khác biệt cốt lõi giữa lập trình thường và machine learning là gì?
+    lua_chon:
+      - "Lập trình thường đi từ luật ra đáp án; ML đi từ dữ liệu kèm đáp án ra luật"
+      - "Lập trình thường chạy trên CPU, ML chạy trên GPU"
+      - "ML không cần dữ liệu, chỉ cần thuật toán đủ mạnh"
+      - "ML luôn cho kết quả chính xác hơn lập trình thường"
+    dap_an: 0
+    giai_thich: "Mũi tên bị đảo chiều. Bạn đưa ví dụ (dữ liệu + đáp án), thuật toán trả về một chương trình. Phần cứng không liên quan, và ML không hề luôn tốt hơn: với luật rõ ràng thì if/else vừa rẻ hơn vừa đáng tin hơn."
+
+  - id: q2
+    loai: mot
+    do_kho: 1
+    de: "\"Huấn luyện một mô hình\" thực chất là làm gì?"
+    lua_chon:
+      - Tìm bộ tham số làm hàm mất mát trên dữ liệu huấn luyện nhỏ nhất
+      - Lưu toàn bộ dữ liệu vào bộ nhớ để tra cứu lại sau
+      - Chọn kiến trúc mạng phù hợp với bài toán
+      - Thu thập thêm dữ liệu cho tới khi đủ
+    dap_an: 0
+    giai_thich: "Huấn luyện = argmin_w L(w). Chọn kiến trúc là chọn HỌ hàm, làm trước khi huấn luyện (siêu tham số). Lưu toàn bộ dữ liệu để tra cứu là một mô hình hợp lệ nhưng đó là 1-NN, không phải định nghĩa của huấn luyện."
+
+  - id: q3
+    loai: so
+    do_kho: 2
+    de: "Dữ liệu x = [1, 2, 3, 4], y = [2.1, 3.9, 6.2, 7.8], mô hình f(x) = w·x, loss MSE. Nghiệm w = (tổng x·y) / (tổng x²) bằng bao nhiêu?"
+    dap_an: 1.99
+    sai_so: 0.001
+    giai_thich: "Tổng x·y = 2.1 + 7.8 + 18.6 + 31.2 = 59.7. Tổng x² = 1 + 4 + 9 + 16 = 30. w = 59.7 / 30 = 1.99."
+
+  - id: q4
+    loai: so
+    do_kho: 2
+    de: "Câu `học máy là học từ dữ liệu` có 7 token. Theo luật tự giám sát \"đoán token tiếp theo từ mọi token đứng trước\", câu này sinh ra bao nhiêu mẫu huấn luyện?"
+    dap_an: 6
+    sai_so: 0.001
+    giai_thich: "Mỗi token trừ token đầu tiên đều làm được một nhãn (token đầu không có ngữ cảnh đứng trước). 7 − 1 = 6 mẫu. Không ai gán nhãn cả — nhãn lấy từ chính câu đó."
+
+  - id: q5
+    loai: mot
+    do_kho: 2
+    de: "Trong ví dụ f(x) = w·x với loss MSE, đâu là THAM SỐ và đâu là SIÊU THAM SỐ?"
+    lua_chon:
+      - "w là tham số; việc chọn dạng tuyến tính và chọn MSE là siêu tham số"
+      - "w là siêu tham số; MSE là tham số"
+      - "Cả hai đều là tham số vì đều ảnh hưởng tới kết quả"
+      - "Cả hai đều là siêu tham số vì đều do người làm quyết định"
+    dap_an: 0
+    giai_thich: "Tham số do DỮ LIỆU quyết định trong lúc huấn luyện (w = 1.99). Siêu tham số do BẠN quyết định trước khi huấn luyện, dữ liệu không chạm vào được (họ hàm, loại loss, learning rate)."
+
+  - id: q6
+    loai: nhieu
+    do_kho: 2
+    de: Đâu là bài toán học KHÔNG giám sát? (chọn tất cả ý đúng)
+    lua_chon:
+      - Chia 100 000 khách hàng thành các nhóm hành vi mà không biết trước có mấy nhóm
+      - Dự đoán giá nhà từ diện tích, dựa trên 5000 giao dịch đã biết giá
+      - Nén 300 đặc trưng xuống 2 chiều để vẽ ra nhìn
+      - Đánh dấu những giao dịch không giống bất kỳ giao dịch nào từng thấy
+    dap_an: [0, 2, 3]
+    giai_thich: "Phân cụm, giảm chiều và phát hiện bất thường đều chỉ dùng x, không có y. Dự đoán giá nhà có nhãn y (giá đã biết) nên là học có giám sát — cụ thể là hồi quy."
+
+  - id: q7
+    loai: mot
+    do_kho: 2
+    de: Trong học tự giám sát (self-supervised), nhãn đến từ đâu?
+    lua_chon:
+      - Từ chính dữ liệu — che một phần đi rồi bắt mô hình đoán lại phần bị che
+      - Từ người gán nhãn, nhưng chỉ cần gán cho một phần nhỏ dữ liệu
+      - Không có nhãn, mô hình tự tìm cấu trúc như phân cụm
+      - Từ phần thưởng mà môi trường trả về sau mỗi hành động
+    dap_an: 0
+    giai_thich: "Nhãn sinh ra từ dữ liệu: token tiếp theo, hoặc token bị che. Phương án 2 là học bán giám sát, phương án 3 là học không giám sát, phương án 4 là học tăng cường. Vì có cặp (x, y) nên về kỹ thuật tự giám sát vẫn là học có giám sát — chỉ khác ở chỗ y đến từ đâu."
+
+  - id: q8
+    loai: mot
+    do_kho: 2
+    de: "Bạn chạy phân cụm và chia 100 000 khách hàng thành 5 nhóm. Sếp hỏi \"độ chính xác bao nhiêu?\". Câu trả lời đúng nhất là gì?"
+    lua_chon:
+      - "Không có độ chính xác: bài toán không giám sát không có đáp án đúng để chấm, phải để người có chuyên môn xem từng cụm có ý nghĩa kinh doanh không"
+      - "Chạy lại với tập test rồi tính accuracy như bình thường"
+      - "Độ chính xác bằng tỉ lệ khách hàng được xếp vào cụm lớn nhất"
+      - "Tăng số cụm lên cho tới khi độ chính xác vượt 90%"
+    dap_an: 0
+    giai_thich: "Đây là điểm khó nhất của học không giám sát: không có nhãn thì không có gì để đối chiếu. Có các chỉ số nội tại (silhouette, inertia) nhưng chúng đo độ chặt của cụm chứ không đo \"đúng\", và câu trả lời cuối cùng luôn là con người nhìn từng cụm."
+
+  - id: q9
+    loai: nhieu
+    do_kho: 2
+    de: Trường hợp nào nên cân nhắc KHÔNG dùng ML? (chọn tất cả ý đúng)
+    lua_chon:
+      - Luật nghiệp vụ đã rõ ràng, ổn định và ít ngoại lệ
+      - Phải giải thích được từng quyết định trước thanh tra
+      - Bài toán có nhiều dữ liệu lịch sử đã dán nhãn sẵn
+      - Không có dữ liệu lịch sử nào về việc cần dự đoán
+    dap_an: [0, 1, 3]
+    giai_thich: "Luật rõ thì if/else vừa rẻ vừa đúng 100%. Cần giải thích được thì mô hình hộp đen là gánh nặng. Không có dữ liệu thì không có gì để học. Nhiều dữ liệu đã dán nhãn lại chính là điều kiện thuận lợi NHẤT cho ML."
+
+  - id: q10
+    loai: mot
+    do_kho: 3
+    de: "Một mô hình đạt loss bằng 0 trên toàn bộ dữ liệu huấn luyện, nhưng chạy thật thì kém hơn cả đoán bừa. Kết luận hợp lý nhất?"
+    lua_chon:
+      - "Mục tiêu thật là sai ít trên dữ liệu CHƯA từng thấy; loss huấn luyện bằng 0 rất có thể nghĩa là mô hình đã học thuộc lòng"
+      - Loss huấn luyện bằng 0 là dấu hiệu mô hình hoàn hảo, lỗi nằm ở dữ liệu chạy thật
+      - Cần giảm learning rate để loss ổn định hơn
+      - "Phải huấn luyện thêm nhiều epoch nữa cho tới khi loss âm"
+    dap_an: 0
+    giai_thich: "Một bảng tra cứu nhớ toàn bộ dữ liệu huấn luyện có loss bằng 0 mà vô dụng. Đây chính là overfitting, và cũng là lý do bài kế tiếp nói về cách chia dữ liệu để đo cho đúng. (Loss MSE hay cross-entropy không bao giờ âm.)"
+
+  - id: q11
+    loai: mot
+    do_kho: 1
+    de: "Dự đoán \"email này thuộc nhóm khẩn hay thường\" và dự đoán \"đơn hàng này sẽ giao trong bao nhiêu giờ\" lần lượt là loại bài toán gì?"
+    lua_chon:
+      - Phân loại và hồi quy
+      - Hồi quy và phân loại
+      - Cả hai đều là phân loại
+      - Cả hai đều là học không giám sát
+    dap_an: 0
+    giai_thich: "Nhãn là một lớp trong tập hữu hạn (khẩn/thường) → phân loại. Nhãn là một số thực (số giờ) → hồi quy. Cả hai đều có nhãn người gán nên đều là học có giám sát."
+
+  - id: q12
+    loai: so
+    do_kho: 2
+    de: "Vẫn dữ liệu x = [1, 2, 3, 4], y = [2.1, 3.9, 6.2, 7.8] và f(x) = w·x. Hàm mất mát MSE tại w = 2.1 bằng bao nhiêu?"
+    dap_an: 0.115
+    sai_so: 0.001
+    giai_thich: "Dự đoán [2.1, 4.2, 6.3, 8.4], sai số [0, 0.3, 0.1, 0.6]. Bình phương [0, 0.09, 0.01, 0.36], tổng 0.46, chia 4 = 0.115. Lớn hơn L(1.99) = 0.0243, đúng như mong đợi vì 1.99 là nghiệm tối ưu."

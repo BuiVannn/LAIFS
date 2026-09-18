@@ -1,0 +1,408 @@
+---
+ten_vi: "Momentum, Adam"
+ten_en: "Optimizers: Momentum, RMSProp, Adam"
+tang: 3
+thu_tu: 32
+tien_quyet: ["sgd-mini-batch"]
+trang_thai: nhap
+dinh_nghia: >-
+  Optimizer là luật biến gradient thành bước cập nhật. Thay vì đi thẳng theo gradient hiện tại,
+  các optimizer hiện đại giữ thêm trạng thái: momentum trung bình trượt gradient để giữ đà,
+  RMSProp chia cho căn trung bình bình phương gradient để tự chỉnh độ dài bước cho từng tham số,
+  Adam gộp cả hai cộng thêm hiệu chỉnh thiên lệch cho các bước đầu.
+truc_giac: >-
+  SGD là người mù đi trong sương: mỗi bước dò lại độ dốc rồi bước, nên bị zigzag ở khe hẹp.
+  Momentum là quả bóng lăn: nó nhớ đà cũ nên các cú giật trái phải triệt tiêu nhau còn hướng
+  xuôi dốc thì cộng dồn. RMSProp là người biết chỉnh sải chân theo mặt đường: chỗ dốc gắt thì
+  bước ngắn, chỗ thoải thì bước dài. Adam là quả bóng lăn biết chỉnh sải chân.
+hieu_nham:
+  - "Adam KHÔNG làm cho learning rate thành vô nghĩa. Nó chuẩn hoá độ lớn bước theo từng tham số, nhưng hệ số η vẫn nhân vào tất cả và vẫn phải chọn (mặc định 1e-3 chỉ là điểm xuất phát)."
+  - "Hiệu chỉnh thiên lệch không phải chi tiết trang trí. Không có nó, bước đầu tiên của Adam dài gấp (1−β₁)/√(1−β₂) ≈ 3.16 lần dự kiến, và tới bước 3 đã vọt qua đáy — đủ để làm hỏng huấn luyện ngay từ đầu."
+  - "Adam không luôn tốt hơn SGD+momentum. Trên phân loại ảnh, SGD+momentum đã chỉnh kỹ thường cho accuracy test cao hơn Adam, dù Adam giảm loss train nhanh hơn."
+  - "Momentum hệ số β = 0.9 không có nghĩa là bước dài gấp 0.9 lần. Ở trạng thái ổn định, bước dài gấp 1/(1 − β) = 10 lần so với SGD cùng η."
+  - "AdamW không phải Adam có weight decay. Adam + L2 trong loss KHÁC AdamW: L2 đi qua phép chia cho √v nên bị bóp méo, còn AdamW trừ thẳng vào trọng số."
+  - "ε trong mẫu số không phải để 'tránh chia cho 0' là chính. Nó còn đặt trần cho độ dài bước khi gradient rất nhỏ, và giá trị của nó ảnh hưởng thật tới kết quả."
+y_chinh:
+  - "Momentum: v ← βv + g, w ← w − ηv. Trung bình trượt gradient, triệt tiêu dao động ngang và cộng dồn hướng xuôi dốc; ở trạng thái ổn định bước dài gấp 1/(1 − β)"
+  - "RMSProp: s ← βs + (1 − β)g², w ← w − η·g/(√s + ε). Chia cho độ lớn gradient gần đây nên mỗi tham số có độ dài bước riêng"
+  - "Adam gộp cả hai: m là mô men bậc 1 (hướng), v là mô men bậc 2 (thang đo), cộng hiệu chỉnh thiên lệch m̂ = m/(1 − β₁ᵗ), v̂ = v/(1 − β₂ᵗ)"
+  - "Cần hiệu chỉnh vì m và v khởi tạo bằng 0 nên các bước đầu bị kéo về 0; chia cho (1 − βᵗ) khử đúng phần thiếu đó. Nhờ vậy bước 1 của Adam dài đúng bằng η"
+  - "Mặc định β₁ = 0.9 (nhớ ~10 bước), β₂ = 0.999 (nhớ ~1000 bước), ε = 1e−8, η = 1e−3"
+  - "SGD+momentum vẫn thắng Adam về tổng quát hoá trên nhiều bài ảnh; Adam gần như bắt buộc cho Transformer và dữ liệu thưa. Với weight decay phải dùng AdamW"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=k8fTYJPd3_I
+    tieu_de: Gradient Descent With Momentum (C2W2L06)
+    tac_gia: Andrew Ng (DeepLearningAI)
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: "9 phút, hình ảnh quả bóng lăn và lý do dao động ngang bị triệt tiêu. Xem tiếp C2W2L07 (RMSProp) và C2W2L08 (Adam) là đủ cả ba."
+  - url: https://www.youtube.com/watch?v=JXQT_vxqwIs
+    tieu_de: Adam Optimization Algorithm (C2W2L08)
+    tac_gia: Andrew Ng (DeepLearningAI)
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Viết đủ 5 dòng công thức Adam kèm hiệu chỉnh thiên lệch và giá trị mặc định của β₁, β₂, ε. Khớp đúng phần dẫn công thức trong bài.
+  - url: https://distill.pub/2017/momentum/
+    tieu_de: Why Momentum Really Works
+    tac_gia: Gabriel Goh (Distill)
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Bài tương tác kinh điển, kéo thanh trượt β để thấy ngay dao động và tốc độ hội tụ đổi thế nào. Đọc khi muốn hiểu vì sao β = 0.9 là mặc định.
+  - url: https://arxiv.org/abs/1412.6980
+    tieu_de: "Adam: A Method for Stochastic Optimization"
+    tac_gia: Diederik P. Kingma, Jimmy Ba
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: "Paper gốc. Algorithm 1 ở trang 2 là toàn bộ thuật toán; mục 3 giải thích phép hiệu chỉnh thiên lệch đúng như phần dẫn trong bài."
+  - url: https://arxiv.org/abs/1711.05101
+    tieu_de: Decoupled Weight Decay Regularization
+    tac_gia: Ilya Loshchilov, Frank Hutter
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: "Paper gốc của AdamW. Đọc mục 2 và Algorithm 2 để thấy vì sao L2 trong loss không tương đương weight decay khi dùng Adam."
+---
+
+import DuongDiOptimizer from '../../src/viz/DuongDiOptimizer.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Khe hẹp: chỗ SGD bó tay
+
+Bạn huấn luyện một mạng và thấy loss giảm rất nhanh trong 200 bước đầu rồi gần như đứng im suốt 5000 bước sau. Tăng learning rate thì loss bật lên rồi ra NaN. Giảm learning rate thì còn chậm hơn nữa. Kẹt cứng.
+
+Nguyên nhân gần như luôn là hình dạng mặt lỗi: một **khe hẹp** (ravine). Thử hàm hai biến:
+
+$$
+f(x, y) = 0.02\,x^2 + 2\,y^2
+\qquad
+\nabla f = (0.04\,x,\; 4\,y)
+$$
+
+Theo $y$ hàm rất dốc (hệ số 2), theo $x$ gần như phẳng (hệ số 0.02) — chênh nhau 100 lần. Đáy ở $(0, 0)$.
+
+Learning rate phải nhỏ hơn $1/2 = 0.5$ để không phân kỳ theo hướng $y$ (xem [Learning rate](/khai-niem/learning-rate)). Nhưng chính $\eta$ đó đặt lên hướng $x$ thì mỗi bước chỉ nhân $x$ với $1 - 0.04\eta \approx 0.98$: bò như sên.
+
+Đây là bi kịch của SGD: **cùng một learning rate phải dùng cho cả hướng dốc nhất lẫn hướng thoải nhất.** Hướng dốc quyết định trần của $\eta$, còn hướng thoải là thứ cần đi xa nhất. Mạng thật có hàng triệu hướng và tỉ lệ chênh lệch còn tệ hơn 100 lần rất nhiều.
+
+Có hai cách sửa, và chúng độc lập với nhau:
+
+1. **Nhớ hướng cũ** để các cú giật ngang triệt tiêu nhau còn hướng xuôi dốc cộng dồn → **momentum**.
+2. **Đo độ dốc riêng cho từng tham số** và chia bước cho nó → **RMSProp**.
+
+Gộp cả hai là **Adam**.
+
+## Momentum: quả bóng lăn
+
+SGD giống người mù dò đường: mỗi bước quên sạch quá khứ, chỉ nhìn độ dốc ngay dưới chân. Quả bóng lăn thì khác — nó có **đà**. Gặp một mô đất nhỏ nó không dừng lại; gặp khe zigzag nó không nảy qua nảy lại vì đà theo phương ngang triệt tiêu nhau.
+
+Công thức: giữ thêm một biến $v$ (vận tốc) cùng shape với tham số.
+
+$$
+v \leftarrow \beta v + g
+\qquad
+w \leftarrow w - \eta\, v
+\qquad (v \text{ khoi tao} = 0)
+$$
+
+với $g = \nabla L_{\mathcal{B}}(w)$ là gradient mini-batch và $\beta$ thường bằng 0.9.
+
+**Vì sao nó giúp?** Khai triển $v$ ra:
+
+$$
+v_t = g_t + \beta g_{t-1} + \beta^2 g_{t-2} + \beta^3 g_{t-3} + \cdots
+$$
+
+$v$ là tổng có trọng số của **toàn bộ** gradient trong quá khứ, gradient càng cũ càng nhẹ. Hệ quả:
+
+- **Hướng dao động** (như $y$ trong khe hẹp): $g_t$ đổi dấu liên tục, các số hạng triệt tiêu nhau, $v$ nhỏ → bước ngắn lại.
+- **Hướng ổn định** (như $x$): $g_t$ luôn cùng dấu, các số hạng cộng dồn. Nếu $g$ gần như không đổi và bằng $g$, tổng cấp số nhân cho
+
+$$
+v_\infty = g \,(1 + \beta + \beta^2 + \cdots) = \frac{g}{1 - \beta}
+$$
+
+Với $\beta = 0.9$ thì $1/(1-\beta) = 10$: **bước dài gấp 10 lần** SGD cùng $\eta$. Đây là con số cần nhớ — nó cũng giải thích vì sao đổi từ SGD sang momentum mà giữ nguyên $\eta$ thì hay bị phân kỳ.
+
+Cách đọc $\beta$ khác: momentum nhớ khoảng $1/(1-\beta)$ bước gần nhất. $\beta = 0.9$ nhớ 10 bước, $\beta = 0.99$ nhớ 100 bước.
+
+<CauHoi cau="optimizer/q2" />
+
+### Tính tay momentum
+
+Lấy $L(w) = w^2$ nên $g = 2w$. Chọn $\eta = 0.1$, $\beta = 0.9$, xuất phát $w = 1$, $v = 0$.
+
+| $t$ | $g = 2w$ | $v \leftarrow 0.9v + g$ | $w \leftarrow w - 0.1v$ | SGD thường để so |
+|---|---|---|---|---|
+| 1 | 2.000 | $0 + 2 = 2.000$ | $1 - 0.2 = 0.800$ | 0.800 |
+| 2 | 1.600 | $1.8 + 1.6 = 3.400$ | $0.8 - 0.34 = 0.460$ | 0.640 |
+| 3 | 0.920 | $3.06 + 0.92 = 3.980$ | $0.46 - 0.398 = 0.062$ | 0.512 |
+| 4 | 0.124 | $3.582 + 0.124 = 3.706$ | $0.062 - 0.371 = -0.309$ | 0.410 |
+
+Bước 1 hai bên giống hệt nhau ($v_1 = g_1$). Từ bước 2 momentum tăng tốc rõ: tới bước 3 nó đã ở 0.062 trong khi SGD còn ở 0.512.
+
+Bước 4 lộ ra mặt trái: $w$ **vượt qua đáy** sang âm. Quả bóng lăn có đà thì không phanh gấp được. Trên hàm một biến trơn tru thì đó là vọt lố vô hại (nó sẽ dao động tắt dần), nhưng nó giải thích vì sao dùng momentum lớn với $\eta$ lớn rất dễ nổ.
+
+## RMSProp: chỉnh sải chân theo mặt đường
+
+Momentum sửa **hướng**. RMSProp sửa **độ dài bước, riêng cho từng tham số**.
+
+Ý tưởng: tham số nào dạo này có gradient lớn thì đang ở hướng dốc, cho bước ngắn lại; tham số nào gradient bé thì đang ở hướng thoải, cho bước dài ra. Muốn vậy, chia gradient cho một thước đo độ lớn gradient gần đây.
+
+Thước đo là trung bình trượt của **bình phương** gradient (bình phương để dấu không triệt tiêu nhau):
+
+$$
+s \leftarrow \beta s + (1 - \beta)\, g^2
+\qquad
+w \leftarrow w - \eta \cdot \frac{g}{\sqrt{s} + \varepsilon}
+\qquad (s \text{ khoi tao} = 0)
+$$
+
+Mọi phép toán ở đây là **theo từng phần tử** (element-wise): mỗi tham số có $s$ riêng, nên có độ dài bước riêng.
+
+Hai điều đáng để ý:
+
+- Nếu $g$ giữ nguyên một giá trị, thì $s \to g^2$ và bước trở thành $\eta \cdot g/|g| = \pm\eta$. **Độ dài bước gần như không phụ thuộc độ lớn gradient nữa**, chỉ còn dấu. Nhân cả loss với 1000 cũng không đổi đường đi — tính chất mà SGD không có.
+- Chú ý hệ số $(1-\beta)$ ở đây, khác với công thức momentum ở trên. Nó làm $s$ là **trung bình** có trọng số của $g^2$ chứ không phải tổng.
+
+### Tính tay RMSProp và cái bẫy bước đầu
+
+Vẫn $L(w) = w^2$, $\eta = 0.1$, $\beta = 0.9$, $\varepsilon = 10^{-8}$, $w = 1$, $s = 0$.
+
+Bước 1: $g = 2$, nên $s = 0.9 \times 0 + 0.1 \times 4 = 0.4$, $\sqrt{s} = 0.6325$.
+
+$$
+\Delta w = 0.1 \times \frac{2}{0.6325} = 0.3162
+\qquad\Rightarrow\qquad w = 1 - 0.3162 = 0.6838
+$$
+
+Bước đầu dài **0.3162**, gấp hơn 3 lần learning rate 0.1. Không phải ngẫu nhiên:
+
+$$
+s_1 = (1-\beta) g^2 \;\Rightarrow\; \sqrt{s_1} = \sqrt{1-\beta}\,|g|
+\;\Rightarrow\;
+\Delta w = \frac{\eta |g|}{\sqrt{1-\beta}\,|g|} = \frac{\eta}{\sqrt{1 - \beta}} = \frac{0.1}{\sqrt{0.1}} = 0.3162
+$$
+
+Vì $s$ khởi tạo bằng 0, ở bước đầu nó **nhỏ hơn giá trị đúng rất nhiều**, mà $s$ nằm dưới mẫu số nên bước bị phóng to. Với $\beta = 0.999$ (giá trị Adam dùng cho $v$) thì $\sqrt{s_1}$ chỉ bằng $1/\sqrt{0.001} = 31.6$ lần nhỏ hơn giá trị đúng, tức mẫu số hụt 31.6 lần.
+
+Đó chính là vấn đề mà Adam giải quyết.
+
+<CauHoi cau="optimizer/q5" />
+
+## Adam: gộp hai ý, cộng hiệu chỉnh thiên lệch
+
+Adam (Adaptive Moment Estimation) giữ **hai** trung bình trượt:
+
+- $m$ — mô men bậc 1, trung bình của $g$: cho **hướng** (đây chính là momentum).
+- $v$ — mô men bậc 2, trung bình của $g^2$: cho **thang đo** (đây chính là RMSProp).
+
+$$
+\begin{aligned}
+m_t &\leftarrow \beta_1 m_{t-1} + (1 - \beta_1)\, g_t \\
+v_t &\leftarrow \beta_2 v_{t-1} + (1 - \beta_2)\, g_t^2 \\
+\hat m_t &= \frac{m_t}{1 - \beta_1^{\,t}}, \qquad
+\hat v_t = \frac{v_t}{1 - \beta_2^{\,t}} \\
+w &\leftarrow w - \eta \cdot \frac{\hat m_t}{\sqrt{\hat v_t} + \varepsilon}
+\end{aligned}
+$$
+
+với $m_0 = v_0 = 0$, và mặc định $\eta = 10^{-3}$, $\beta_1 = 0.9$, $\beta_2 = 0.999$, $\varepsilon = 10^{-8}$.
+
+### Dẫn công thức hiệu chỉnh thiên lệch
+
+Hai dòng $\hat m$, $\hat v$ trông như phép chia tuỳ tiện. Chúng không tuỳ tiện — chúng là con số **đúng**, và đây là cách suy ra.
+
+Khai triển $m_t$ về theo gradient (dùng $m_0 = 0$):
+
+$$
+m_t = (1-\beta_1) \sum_{i=1}^{t} \beta_1^{\,t-i} g_i
+$$
+
+Giả sử gradient dừng, tức mọi $g_i$ có cùng kỳ vọng $\mathbb{E}[g]$. Lấy kỳ vọng hai vế:
+
+$$
+\mathbb{E}[m_t] = (1-\beta_1)\,\mathbb{E}[g] \sum_{i=1}^{t} \beta_1^{\,t-i}
+= (1-\beta_1)\,\mathbb{E}[g] \cdot \frac{1 - \beta_1^{\,t}}{1 - \beta_1}
+= \mathbb{E}[g]\,\big(1 - \beta_1^{\,t}\big)
+$$
+
+(dùng tổng cấp số nhân $1 + \beta_1 + \cdots + \beta_1^{t-1} = \frac{1-\beta_1^{t}}{1-\beta_1}$).
+
+Đọc dòng cuối: $m_t$ **không** ước lượng $\mathbb{E}[g]$ mà ước lượng $\mathbb{E}[g]$ nhân với $(1 - \beta_1^{\,t})$ — nó bị kéo về 0, vì tổng trọng số của $t$ số hạng đầu chưa đủ 1 (phần thiếu chính là $\beta_1^{\,t}$, lẽ ra thuộc về các gradient "trước lúc bắt đầu" mà ta đã đặt bằng 0).
+
+Muốn ước lượng không thiên lệch, chỉ việc **chia lại cho đúng cái hệ số đó**:
+
+$$
+\hat m_t = \frac{m_t}{1 - \beta_1^{\,t}}
+\qquad\Rightarrow\qquad
+\mathbb{E}[\hat m_t] = \mathbb{E}[g]
+$$
+
+Y hệt cho $v$: $\mathbb{E}[v_t] = \mathbb{E}[g^2](1 - \beta_2^{\,t})$, nên $\hat v_t = v_t/(1 - \beta_2^{\,t})$.
+
+Ba quan sát để nhớ:
+
+- **Tại $t = 1$**: $1 - \beta_1^1 = 0.1$ nên $\hat m_1 = m_1/0.1 = g_1$, và $\hat v_1 = v_1/0.001 = g_1^2$. Bước đầu thành $\eta \cdot g_1/|g_1| = \pm\eta$ — **đúng bằng learning rate, bất kể gradient lớn hay nhỏ**. Đây là cách kiểm tra code Adam nhanh nhất.
+- **Khi $t$ lớn**: $\beta^t \to 0$ nên $\hat m \to m$, $\hat v \to v$. Hiệu chỉnh tự tắt, không để lại tác dụng phụ.
+- **Bỏ hiệu chỉnh thì sao**: tử số $m_1 = 0.1 g$ hụt 10 lần, mẫu số $\sqrt{v_1} = 0.0316\,|g|$ hụt 31.6 lần. Hai cái hụt **không** khử nhau: bước đầu thành $\eta \cdot \frac{1-\beta_1}{\sqrt{1-\beta_2}} = 3.16\,\eta$, dài gấp hơn 3 lần dự kiến.
+
+### Tính tay Adam 4 bước
+
+$L(w) = w^2$, $g = 2w$, $\eta = 0.1$, $\beta_1 = 0.9$, $\beta_2 = 0.999$, $\varepsilon = 10^{-8}$, $w_0 = 1$.
+
+| $t$ | $g$ | $m$ | $v$ | $\hat m$ | $\hat v$ | $\sqrt{\hat v}$ | $\Delta w$ | $w$ |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 2.0000 | 0.2000 | 0.004000 | 2.0000 | 4.0000 | 2.0000 | 0.1000 | 0.9000 |
+| 2 | 1.8000 | 0.3600 | 0.007236 | 1.8947 | 3.6198 | 1.9026 | 0.0996 | 0.8004 |
+| 3 | 1.6008 | 0.4841 | 0.009791 | 1.7863 | 3.2671 | 1.8075 | 0.0988 | 0.7016 |
+| 4 | 1.4032 | 0.5760 | 0.011751 | 1.6749 | 2.9420 | 1.7152 | 0.0976 | 0.6039 |
+
+Kiểm tra dòng 1 bằng tay: $m_1 = 0.1 \times 2 = 0.2$; $v_1 = 0.001 \times 4 = 0.004$; $\hat m_1 = 0.2/0.1 = 2$; $\hat v_1 = 0.004/0.001 = 4$; $\Delta w = 0.1 \times 2/(\sqrt 4 + 10^{-8}) = 0.1$. Đúng bằng $\eta$.
+
+Điều đáng chú ý: mỗi bước Adam đi gần đúng 0.1, **gần như không đổi**, dù gradient giảm từ 2.0 xuống 1.4. Adam đã chuẩn hoá mất độ lớn gradient. So sánh với SGD ($\eta = 0.1$) đi 0.2 rồi 0.16 rồi 0.128 — ngắn dần.
+
+Nếu bỏ hai dòng hiệu chỉnh, ba bước đầu thành $w = 0.6838$, rồi $0.2702$, rồi $-0.1621$: bước đầu dài 0.3162 thay vì 0.1, và tới bước 3 đã vọt qua đáy sang âm. Sai lệch không hề nhỏ.
+
+<CauHoi cau="optimizer/q7" />
+
+## Code: ba optimizer trong 24 dòng
+
+Khớp đúng ba bảng tính tay ở trên.
+
+```python
+import numpy as np
+
+def chay(luat, w=1.0, lr=0.1, T=4, b1=0.9, b2=0.999, eps=1e-8):
+    v = m = s = 0.0
+    for t in range(1, T + 1):
+        g = 2 * w                                  # L(w) = w², nên L'(w) = 2w
+        if luat == "sgd":
+            buoc = lr * g
+        elif luat == "momentum":
+            v = 0.9 * v + g
+            buoc = lr * v
+        elif luat == "rmsprop":
+            s = 0.9 * s + 0.1 * g * g
+            buoc = lr * g / (np.sqrt(s) + eps)
+        else:                                      # adam
+            m = b1 * m + (1 - b1) * g
+            s = b2 * s + (1 - b2) * g * g
+            m_hat = m / (1 - b1 ** t)              # hiệu chỉnh thiên lệch
+            s_hat = s / (1 - b2 ** t)
+            buoc = lr * m_hat / (np.sqrt(s_hat) + eps)
+        w -= buoc
+        print(f"{luat:9s} t={t} g={g:7.4f} buoc={buoc:7.4f} w={w:7.4f}")
+    return w
+
+for luat in ("sgd", "momentum", "rmsprop", "adam"):
+    chay(luat)
+```
+
+Chạy xong, đối chiếu: `momentum` cho 0.8000, 0.4600, 0.0620, −0.3086; `rmsprop` bước đầu 0.3162; `adam` cho 0.9000, 0.8004, 0.7016, 0.6039 với bước đầu đúng 0.1000.
+
+## Ba optimizer trên cùng một khe hẹp
+
+Ba đường cùng xuất phát từ $(-2.6, 1)$ trên mặt lỗi $f = 0.02x^2 + 2y^2$ ở đầu bài. Đáy là vòng tròn nhỏ ở giữa. Mỗi optimizer dùng learning rate hợp lý nhất của riêng nó.
+
+<DuongDiOptimizer
+  client:visible
+  duDoan={{
+    de: "Sau 40 bước, optimizer nào tới gần đáy trước, và optimizer nào bị bỏ lại xa nhất?",
+    lua_chon: [
+      "SGD tới trước vì đi thẳng nhất; Adam lòng vòng nhất",
+      "Momentum tới trước, Adam theo sát; SGD sau 40 bước vẫn còn hơn nửa đường",
+      "Cả ba tới đáy gần như cùng lúc, chỉ khác đường đi",
+    ],
+    dap_an: 1,
+    giai_thich: "Sau 40 bước: momentum ở x = 0.11, Adam ở x = 0.17, còn SGD mới bò từ −2.6 tới −1.36, tức chưa đi được nửa đường. SGD không sai hướng — nó chỉ bị trần learning rate của hướng dốc y ghìm lại. Nhìn 5 bước đầu: y của SGD nhảy 1 → −0.6 → 0.36 → −0.216, đúng kiểu zigzag của khe hẹp.",
+  }}
+/>
+
+Đọc kỹ ba đường:
+
+- **SGD** dập tắt dao động theo $y$ rất nhanh (sau 5–6 bước $y \approx 0$) rồi bò dọc đáy khe theo $x$ với bước ngày càng ngắn. Nó không đi sai, chỉ là quá chậm.
+- **Momentum** cũng zigzag lúc đầu, thậm chí mạnh hơn, nhưng đà cộng dồn theo $x$ đưa nó tới đáy quanh bước 16, rồi vọt lố nhẹ và quay lại.
+- **Adam** gần như đi thẳng: nó chia mỗi hướng cho độ lớn gradient của chính hướng đó, nên sự chênh lệch 100 lần giữa hai hướng bị xoá gần hết.
+
+## Khi nào SGD+momentum vẫn tốt hơn Adam
+
+Adam giảm loss **train** nhanh hơn gần như mọi lúc. Nhưng thứ ta cần là loss trên dữ liệu mới.
+
+| Tình huống | Nên dùng | Vì sao |
+|---|---|---|
+| Phân loại ảnh (ResNet, CNN trên ImageNet/CIFAR) | SGD + momentum | Kết quả tốt nhất công bố vẫn dùng SGD+momentum; Adam thường kém 1–2 điểm accuracy test dù loss train thấp hơn |
+| Transformer, mô hình ngôn ngữ | AdamW | SGD huấn luyện Transformer rất khó ổn định; gradient của các lớp chênh lệch độ lớn quá lớn |
+| Dữ liệu thưa (embedding, hệ gợi ý) | Adam | Tham số ít xuất hiện vẫn được bước dài nhờ $v$ nhỏ; SGD gần như không cập nhật chúng |
+| Bắt đầu một bài toán mới, chưa biết gì | Adam(W) | Chạy được ngay với mặc định; SGD cần dò $\eta$ kỹ mới ra kết quả |
+| Có ngân sách tinh chỉnh siêu tham số | SGD + momentum + lịch learning rate | Trần chất lượng cao hơn, đổi lại tốn công |
+
+Cách hiểu vì sao Adam hay tổng quát hoá kém hơn: Adam xoá mất thông tin **độ lớn** gradient, mà chính độ lớn đó là cơ chế tự hãm khi tới gần đáy. Adam vẫn bước dài $\approx \eta$ khi đã vào vùng đáy, dễ đậu vào khe hẹp hơn là vùng phẳng rộng (xem lại phần cực tiểu phẳng ở bài [SGD & mini-batch](/khai-niem/sgd-mini-batch)).
+
+Thực tế thường gặp: bắt đầu bằng Adam để có kết quả chạy được, rồi nếu cần vắt kiệt chất lượng mới chuyển sang SGD+momentum có lịch learning rate.
+
+## AdamW: weight decay tách rời
+
+Weight decay là kỹ thuật ghìm trọng số về 0 để chống overfitting. Cách quen thuộc là cộng $\frac{\lambda}{2}\lVert w \rVert^2$ vào loss, tức cộng $\lambda w$ vào gradient. Với SGD, hai cách này tương đương:
+
+$$
+w \leftarrow w - \eta(g + \lambda w) = (1 - \eta\lambda)\,w - \eta g
+$$
+
+Với Adam thì **không** tương đương. Nếu cộng $\lambda w$ vào $g$, số hạng đó cũng đi qua phép chia cho $\sqrt{\hat v}$:
+
+$$
+w \leftarrow w - \eta \cdot \frac{\widehat{m(g + \lambda w)}}{\sqrt{\hat v} + \varepsilon}
+$$
+
+Tham số nào có gradient lớn thì $\sqrt{\hat v}$ lớn, nên **lực kéo về 0 bị chia nhỏ đi** — đúng những tham số ta muốn ghìm nhất lại được ghìm ít nhất. Weight decay trở nên phụ thuộc vào lịch sử gradient, không còn là hằng số mình đặt.
+
+AdamW sửa bằng cách **tách hẳn** weight decay ra khỏi gradient, trừ thẳng vào trọng số sau khi đã cập nhật Adam:
+
+$$
+w \leftarrow w - \eta \cdot \frac{\hat m}{\sqrt{\hat v} + \varepsilon} - \eta\,\lambda\,w
+$$
+
+Đây là mặc định trong mọi công thức huấn luyện Transformer hiện nay. Cẩn thận: `torch.optim.Adam(weight_decay=...)` là bản **L2 cũ**, không phải AdamW. Muốn AdamW phải gọi `torch.optim.AdamW`.
+
+<CauHoi cau="optimizer/q10" />
+
+## Nâng cao
+
+- **Ý nghĩa thật của $\varepsilon$.** Ngoài việc tránh chia cho 0, $\varepsilon$ đặt **trần** cho độ dài bước: bước không bao giờ vượt $\eta \lvert\hat m\rvert/\varepsilon$. Với gradient rất bé (như trên mô hình lớn ở cuối huấn luyện), $\sqrt{\hat v}$ có thể tụt xuống ngang $\varepsilon$ và $\varepsilon$ bắt đầu chi phối. Nhiều công thức huấn luyện mô hình lớn dùng $\varepsilon = 10^{-6}$ hoặc $10^{-8}$ và con số này có ảnh hưởng đo được.
+- **$\beta_2$ và tính ổn định.** $\beta_2 = 0.999$ nghĩa là $v$ nhớ ~1000 bước. Nếu huấn luyện chỉ vài nghìn bước, hoặc gradient thỉnh thoảng có cú vọt lớn (hay gặp với Transformer), $v$ phản ứng quá chậm và loss dễ vọt. Hạ xuống $\beta_2 = 0.95$ hoặc $0.98$ là cách sửa phổ biến.
+- **Nesterov momentum (NAG).** Tính gradient tại vị trí $w - \eta\beta v$ "sau khi đã trượt theo đà" thay vì tại $w$. Nhìn trước một bước nên phanh sớm hơn khi sắp vọt lố; thường tốt hơn momentum thường một chút, gần như miễn phí.
+- **Adam là bộ ba, không phải bộ đôi.** Adam gần như luôn đi kèm **warmup** (vài trăm bước đầu tăng $\eta$ từ 0) và **cosine decay**. Riêng Adam mặc định, không warmup, huấn luyện Transformer là công thức chuẩn để nổ loss ở bước 100.
+- **AdaGrad, tổ tiên của RMSProp.** AdaGrad cộng dồn $g^2$ từ đầu tới giờ ($s \leftarrow s + g^2$) thay vì trung bình trượt. Vì $s$ chỉ tăng, learning rate hiệu dụng giảm đơn điệu về 0 và huấn luyện chết yểu. RMSProp thay tổng bằng trung bình trượt để chữa đúng lỗi đó.
+- **Bộ nhớ.** SGD không giữ trạng thái. Momentum giữ 1 bản sao tham số. Adam giữ **2** ($m$ và $v$). Fine-tune mô hình 7 tỉ tham số ở fp32: 28 GB cho trọng số, cộng 56 GB chỉ riêng trạng thái Adam. Đây là lý do có các biến thể 8-bit và các optimizer tiết kiệm bộ nhớ.
+
+## Sai lầm hay gặp
+
+| Sai lầm | Triệu chứng nhìn thấy | Cách sửa |
+|---|---|---|
+| Quên hiệu chỉnh thiên lệch | Vài chục bước đầu loss vọt lên rồi mới chịu giảm; đổi $\beta_2$ làm kết quả đổi hẳn | Chia $m$ cho $1-\beta_1^t$, $v$ cho $1-\beta_2^t$. Kiểm: bước 1 phải dài đúng $\eta$ |
+| Chuyển SGD → momentum mà giữ nguyên $\eta$ | Loss phân kỳ hoặc ra NaN trong vài chục bước | Chia $\eta$ cho $1/(1-\beta) = 10$ làm điểm xuất phát |
+| Dùng $\eta = 0.1$ (quen từ SGD) cho Adam | Loss dao động mạnh, không hội tụ | Adam bắt đầu từ $10^{-3}$; với Transformer thường $10^{-4}$ tới $3\times10^{-4}$ |
+| Coi Adam là "không cần chỉnh gì" | Loss chững ở mức cao rồi nằm im | $\eta$ vẫn là siêu tham số quan trọng nhất; thử theo thang log |
+| Dùng `Adam(weight_decay=...)` tưởng là AdamW | Regularization gần như không có tác dụng, mô hình vẫn overfit | Đổi sang `AdamW` |
+| Adam không warmup trên Transformer | Loss nổ trong vài trăm bước đầu, hoặc kẹt ở mức "đoán đều" | Thêm warmup tuyến tính 500–4000 bước |
+| Tạo optimizer mới trong vòng lặp huấn luyện | Loss giảm rồi bật lại tuần hoàn; Adam mất tác dụng | Tạo một lần ngoài vòng lặp — $m$, $v$ phải được giữ qua các bước |
+| Quên đặt gradient về 0 (PyTorch) | Loss giảm vài bước rồi phân kỳ | Gọi `optimizer.zero_grad()` mỗi bước |
+| Đổi optimizer và quên dò lại learning rate | "Optimizer mới tệ hơn" — thực ra chưa bao giờ được chỉnh | Mỗi optimizer có thang $\eta$ riêng, phải dò lại |
+
+## Tra nhanh
+
+- **SGD**: $w \leftarrow w - \eta g$. Không trạng thái.
+- **Momentum**: $v \leftarrow \beta v + g$; $w \leftarrow w - \eta v$. $\beta = 0.9$ → bước dài gấp $1/(1-\beta) = 10$, nhớ ~10 bước.
+- **RMSProp**: $s \leftarrow \beta s + (1-\beta)g^2$; $w \leftarrow w - \eta g/(\sqrt s + \varepsilon)$. Element-wise.
+- **Adam**: $m \leftarrow \beta_1 m + (1-\beta_1)g$; $v \leftarrow \beta_2 v + (1-\beta_2)g^2$; $\hat m = m/(1-\beta_1^t)$; $\hat v = v/(1-\beta_2^t)$; $w \leftarrow w - \eta \hat m/(\sqrt{\hat v} + \varepsilon)$.
+- **Mặc định**: $\eta = 10^{-3}$, $\beta_1 = 0.9$, $\beta_2 = 0.999$, $\varepsilon = 10^{-8}$.
+- **$\beta_1$** điều khiển hướng (nhớ ~$1/(1-\beta_1)$ bước). **$\beta_2$** điều khiển thang đo. **$\varepsilon$** chặn mẫu số và đặt trần bước.
+- **Kiểm code Adam**: bước 1 phải dài đúng $\eta$, bất kể gradient. Không hiệu chỉnh thì dài gấp $(1-\beta_1)/\sqrt{1-\beta_2} = 3.16$ lần.
+- **AdamW** khi có weight decay. `Adam(weight_decay=)` trong PyTorch **không** phải AdamW.
+- **SGD+momentum** cho ảnh khi có thời gian chỉnh; **AdamW** cho Transformer và khi mới bắt đầu.
+- **Bộ nhớ**: Adam tốn gấp đôi số tham số để lưu $m$ và $v$.
+- Cần trước: [SGD & mini-batch](/khai-niem/sgd-mini-batch), [Learning rate](/khai-niem/learning-rate).

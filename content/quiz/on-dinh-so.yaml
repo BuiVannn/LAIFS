@@ -1,0 +1,134 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: "Trong NumPy với kiểu float64, np.exp(1000.0) cho ra gì?"
+    lua_chon:
+      - Một số rất lớn nhưng vẫn hữu hạn
+      - "inf, vì kết quả vượt quá số lớn nhất float64 biểu diễn được (~1.8×10³⁰⁸)"
+      - nan
+      - Báo lỗi OverflowError và dừng chương trình
+    dap_an: 1
+    giai_thich: "e¹⁰⁰⁰ ≈ 10⁴³⁴, vượt xa 1.8×10³⁰⁸. Ngưỡng tràn là x > 709.78 với float64, và chỉ 88.72 với float32. NumPy chỉ phát RuntimeWarning rồi trả về inf, chương trình vẫn chạy tiếp — đó là lý do lỗi này thường bị phát hiện muộn."
+
+  - id: q2
+    loai: mot
+    do_kho: 1
+    de: "np.log(0.0) cho ra gì, và vì sao nó nguy hiểm?"
+    lua_chon:
+      - "0, vô hại"
+      - "nan ngay lập tức"
+      - "−inf; nguy hiểm vì bước tính sau (như 0 × −inf hay −inf + inf) sẽ ra nan và lây khắp mạng"
+      - Báo lỗi ValueError
+    dap_an: 2
+    giai_thich: "log(0) = −inf là kết quả 'đúng' theo chuẩn IEEE 754. Vấn đề nằm ở bước sau: nhân −inf với 0 (rất hay gặp trong cross-entropy có nhãn one-hot) cho ra nan, và nan lây lan qua mọi phép tính."
+
+  - id: q3
+    loai: so
+    do_kho: 2
+    de: "Tính log-sum-exp của z = (1000, 1001, 1002), tức ln(e^1000 + e^1001 + e^1002). Kết quả bằng bao nhiêu? (4 chữ số thập phân)"
+    dap_an: 1002.4076
+    sai_so: 0.0005
+    giai_thich: "LSE = m + ln Σ e^(z_k − m) với m = 1002. Bên trong: e^(−2) + e^(−1) + e^0 = 0.135335 + 0.367879 + 1 = 1.503214. ln(1.503214) = 0.407606. Vậy LSE = 1002 + 0.407606 = 1002.4076. Tính thẳng np.log(np.sum(np.exp(z))) sẽ ra inf."
+
+  - id: q4
+    loai: mot
+    do_kho: 2
+    de: "Vì sao trừ max trước khi lấy exp trong softmax là hợp lệ?"
+    lua_chon:
+      - "Vì đó là một phép xấp xỉ tốt, sai số nhỏ có thể bỏ qua"
+      - "Vì softmax(z + c) = softmax(z) với mọi hằng số c: e^c triệt tiêu giữa tử và mẫu"
+      - Vì max luôn nhỏ hơn 1 nên không ảnh hưởng
+      - Vì NumPy tự chuẩn hoá lại kết quả
+    dap_an: 1
+    giai_thich: "Đây là phép biến đổi CHÍNH XÁC, không phải xấp xỉ. Tử số nhân e^c, mẫu số cũng nhân e^c, chúng triệt tiêu. Chọn c = −max z làm số mũ lớn nhất thành 0, nên e⁰ = 1: không bao giờ tràn trên, và mẫu số luôn ≥ 1 nên không chia cho 0."
+
+  - id: q5
+    loai: mot
+    do_kho: 3
+    de: "Huấn luyện chạy bình thường: epoch 1 loss 2.30, epoch 2 loss 1.84, epoch 3 loss nan. Loss KHÔNG hề tăng dần trước đó. Nên nghi ngờ điều gì TRƯỚC?"
+    lua_chon:
+      - Learning rate quá lớn làm mô hình phân kỳ
+      - "Dữ liệu bẩn (một nan/inf hoặc một mẫu gây chia cho 0) trong batch nào đó, hoặc một log(0) trong hàm loss"
+      - Mô hình quá ít tham số
+      - Batch size quá nhỏ
+    dap_an: 1
+    giai_thich: "Learning rate quá lớn để lại dấu vết rõ: loss TĂNG DẦN vài epoch rồi mới NaN. Ở đây loss đang giảm đều rồi đột ngột chết, nên nghi trước một mẫu dữ liệu cụ thể (assert np.isfinite(X).all()) hoặc một log(0) trong hàm loss. Thứ tự truy vết: dữ liệu → loss → learning rate → gradient."
+
+  - id: q6
+    loai: mot
+    do_kho: 2
+    de: "Vì sao torch.nn.CrossEntropyLoss nhận logit thô chứ không nhận xác suất đã qua softmax?"
+    lua_chon:
+      - Để tiết kiệm bộ nhớ
+      - "Để tính thẳng ln p_i = z_i − LSE(z), không đi qua p nên không bao giờ gặp log(0)"
+      - Vì softmax không có đạo hàm
+      - Vì logit chạy nhanh hơn trên GPU
+    dap_an: 1
+    giai_thich: "Tính p trước rồi log sau làm mất thông tin: một lớp có logit rất thấp cho p tràn dưới về đúng 0, rồi log(0) = −inf. Còn log_softmax(z) = z − LSE(z) giữ nguyên giá trị, ví dụ log_softmax([0, −1000]) cho đúng [0, −1000] thay vì [0, −inf]. Hệ quả thực hành: đừng đặt Softmax() ở lớp ra khi dùng CrossEntropyLoss."
+
+  - id: q7
+    loai: so
+    do_kho: 3
+    de: "Với kiểu float32 (số lớn nhất ≈ 3.4028×10³⁸), np.exp(x) bắt đầu tràn thành inf khi x vượt quá khoảng bao nhiêu? (làm tròn 1 chữ số thập phân)"
+    dap_an: 88.7
+    sai_so: 0.5
+    giai_thich: "Ngưỡng là ln(3.4028×10³⁸) = 88.72. Với float64 ngưỡng là ln(1.7977×10³⁰⁸) = 709.78. Vì huấn luyện mạng gần như luôn dùng float32, ngưỡng thấp này làm mẹo trừ max càng quan trọng."
+
+  - id: q8
+    loai: nhieu
+    do_kho: 2
+    de: Những cách nào giúp tránh NaN khi tính cross-entropy từ đầu ra của mạng? (chọn tất cả ý đúng)
+    lua_chon:
+      - Trừ max trước khi lấy exp trong softmax
+      - "Dùng log_softmax(z) = z − LSE(z) thay vì np.log(softmax(z))"
+      - Dùng hàm loss nhận logit thô thay vì tự ghép softmax rồi log
+      - "Thêm assert np.isfinite(loss) trong vòng lặp huấn luyện để dừng ngay tại batch có vấn đề"
+      - Đổi mọi phép so sánh số thực từ np.isclose sang ==
+    dap_an: [0, 1, 2, 3]
+    giai_thich: "Bốn ý đầu đúng. Ý cuối làm mọi thứ tệ hơn: dấu phẩy động hiếm khi bằng nhau chính xác (0.1 + 0.2 ≠ 0.3), nên luôn so sánh bằng np.isclose/np.allclose với dung sai rõ ràng."
+
+  - id: q9
+    loai: mot
+    do_kho: 2
+    de: "Chuẩn hoá (x − μ)/σ gặp một đặc trưng hằng số nên σ = 0. Cách viết nào đúng nhất?"
+    lua_chon:
+      - "(x − μ)/(σ + 1e-8)"
+      - "(x − μ)/np.sqrt(var + 1e-8)"
+      - "(x − μ)/np.maximum(σ, 0)"
+      - Bỏ qua, NumPy tự xử lý chia cho 0
+    dap_an: 1
+    giai_thich: "Đặt epsilon BÊN TRONG căn tốt hơn: sqrt(var) của một var âm (do sai số làm tròn) sẽ ra nan trước cả khi cộng epsilon. Đây cũng là cách batch norm làm. Lưu ý epsilon không phải thuốc chữa bách bệnh: nếu σ đáng ra không bao giờ bằng 0 mà nó bằng 0, epsilon chỉ giấu một bug khác đi."
+
+  - id: q10
+    loai: mot
+    do_kho: 3
+    de: "Trong float32, tính phương sai của x = (10⁸+1, 10⁸+2, 10⁸+3, 10⁸+4) bằng công thức E[x²] − (E[x])² cho kết quả −8.0. Vì sao?"
+    lua_chon:
+      - Vì công thức đó sai về mặt đại số
+      - "Triệt tiêu tai hại: E[x²] và (E[x])² là hai số khổng lồ gần bằng nhau, trừ đi nhau thì mọi chữ số đúng biến mất, chỉ còn sai số làm tròn"
+      - Vì NumPy có lỗi
+      - Vì dữ liệu có giá trị âm
+    dap_an: 1
+    giai_thich: "Hai vế đều cỡ 10¹⁶, mà float32 chỉ tin được ~7 chữ số có nghĩa, nên hiệu 1.25 nằm dưới ngưỡng phân giải: kết quả hoàn toàn là rác, thậm chí âm dù phương sai không thể âm. Công thức hai lượt E[(x − x̄)²] cho đúng 1.25 ở cả float32 lẫn float64."
+
+  - id: q11
+    loai: mot
+    do_kho: 2
+    de: "Kiểm tra x có phải NaN không, cách nào ĐÚNG?"
+    lua_chon:
+      - "x == np.nan"
+      - "x is np.nan"
+      - "np.isnan(x), hoặc np.isfinite(x) nếu muốn bắt cả inf"
+      - "x != x + 1"
+    dap_an: 2
+    giai_thich: "Theo chuẩn IEEE 754, NaN KHÔNG bằng bất cứ thứ gì, kể cả chính nó: np.nan == np.nan cho False. Phải dùng np.isnan. Với mảng, np.isfinite(x).all() là cách gọn nhất để kiểm tra cùng lúc cả nan lẫn inf."
+
+  - id: q12
+    loai: so
+    do_kho: 3
+    de: "Cho z = (0, −1000). Hàm log_softmax ổn định số trả về giá trị nào cho phần tử THỨ HAI?"
+    dap_an: -1000
+    sai_so: 0.01
+    giai_thich: "log_softmax(z) = z − LSE(z). Với m = 0: LSE = 0 + ln(e⁰ + e^(−1000)) = ln(1 + 0) = 0. Vậy kết quả là (0 − 0, −1000 − 0) = (0, −1000). Còn cách ngây thơ np.log(softmax(z)) cho (0, −inf) vì e^(−1000) tràn dưới về đúng 0."

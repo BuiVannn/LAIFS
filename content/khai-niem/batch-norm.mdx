@@ -1,0 +1,396 @@
+---
+ten_vi: "Batch normalization"
+ten_en: "Batch Normalization"
+tang: 3
+thu_tu: 34
+tien_quyet: ["mlp"]
+trang_thai: nhap
+dinh_nghia: >-
+  Một lớp chen giữa các lớp của mạng neuron. Với mỗi đặc trưng (mỗi cột của batch), nó lấy
+  trung bình và phương sai TRÊN BATCH để chuẩn hoá giá trị về trung bình 0 phương sai 1,
+  rồi nhân lại với một hệ số học được γ và cộng thêm β. Lúc huấn luyện dùng thống kê của
+  batch hiện tại; lúc suy luận dùng trung bình chạy đã tích luỹ trong quá trình huấn luyện.
+truc_giac: >-
+  Giống việc quy điểm các môn về cùng một thang trước khi cộng. Lớp phía sau không phải học
+  lại từ đầu mỗi khi lớp phía trước đổi thang đo đầu ra của nó: batch norm luôn giao cho nó
+  dữ liệu đã được kéo về khoảng quen thuộc. Còn γ và β là cái van cho mạng tự vặn lại thang
+  đo nếu nó thấy "trung bình 0, phương sai 1" không phải thứ nó cần.
+hieu_nham:
+  - "Batch norm KHÔNG chuẩn hoá từng mẫu riêng lẻ: nó chuẩn hoá theo CỘT (theo từng đặc trưng), lấy thống kê dọc theo các mẫu trong batch. Vì vậy kết quả của một mẫu phụ thuộc vào các mẫu khác cùng batch."
+  - "Không phải cứ chuẩn hoá xong là ép mạng luôn ở trung bình 0 phương sai 1. γ và β học được, nên mạng có thể tự khôi phục lại phân phối cũ nếu điều đó có lợi."
+  - "Lúc suy luận (eval) KHÔNG được dùng thống kê của batch đang chạy. Dùng nhầm thì một ảnh chạy riêng và cũng ảnh đó chạy chung batch sẽ ra hai kết quả khác nhau — đây là lỗi kinh điển."
+  - "Batch norm không thay được việc chuẩn hoá dữ liệu đầu vào và cũng không thay được learning rate hợp lý; nó chỉ làm mặt loss dễ đi hơn."
+  - "Giải thích 'batch norm chữa internal covariate shift' trong bài báo gốc đã bị nghiên cứu sau (Santurkar 2018) phản bác bằng thực nghiệm; hiệu quả thì có thật nhưng nguyên nhân thì chưa ngã ngũ."
+y_chinh:
+  - "Chuẩn hoá theo từng đặc trưng, lấy thống kê dọc theo batch: x̂ = (x − μ) / √(σ² + ε), với μ, σ² tính trên chiều batch"
+  - "Luôn kèm hai tham số học được: y = γ·x̂ + β, để mạng tự chỉnh lại thang đo và điểm gốc (γ = √(σ²+ε), β = μ thì khôi phục nguyên bản)"
+  - "Train dùng thống kê batch; eval dùng trung bình chạy (running mean/var) tích luỹ khi train — quên đổi chế độ là nguồn lỗi kinh điển"
+  - "Batch nhỏ thì ước lượng μ, σ² nhiễu; batch bằng 1 thì x̂ = 0 và đầu ra chỉ còn β"
+  - "Gradient qua batch norm không tính theo từng mẫu độc lập: μ và σ² phụ thuộc mọi mẫu nên gradient của một mẫu chảy sang các mẫu khác"
+  - "NLP/Transformer dùng LayerNorm (chuẩn hoá theo từng mẫu, dọc theo chiều đặc trưng) vì độ dài câu thay đổi và batch thường nhỏ"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=tNIpEZLv_eg
+    tieu_de: Normalizing Activations in a Network (C2W3L04)
+    tac_gia: DeepLearningAI (Andrew Ng)
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Dẫn công thức batch norm kèm γ, β trong 8 phút, đúng ký hiệu bài này dùng. Nên xem đầu tiên; xem tiếp C2W3L07 cho phần train vs test.
+  - url: https://kratzert.github.io/2016/02/12/understanding-the-gradient-flow-through-the-batch-normalization-layer.html
+    tieu_de: Understanding the backward pass through Batch Normalization Layer
+    tac_gia: Frederik Kratzert
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Vẽ đồ thị tính toán của batch norm rồi đi ngược từng nút, ra đúng công thức rút gọn trong bài. Đọc khi làm bài code cài backward.
+  - url: https://arxiv.org/abs/1502.03167
+    tieu_de: "Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift"
+    tac_gia: Sergey Ioffe, Christian Szegedy
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Bài báo gốc (2015). Mục 3 có đúng thuật toán train/inference; phần "internal covariate shift" là phần đã bị tranh luận, đọc kèm nguồn dưới.
+  - url: https://arxiv.org/abs/1805.11604
+    tieu_de: How Does Batch Normalization Help Optimization?
+    tac_gia: Shibani Santurkar, Dimitris Tsipras, Andrew Ilyas, Aleksander Mądry
+    loai: bai_viet
+    muc_do: toan_nang
+    ngon_ngu: en
+    ghi_chu: NeurIPS 2018, phản bác giải thích "internal covariate shift" bằng thí nghiệm cố tình bơm nhiễu sau batch norm. Đọc ít nhất phần 1 và 2.
+---
+
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Tình huống thật
+
+Bạn huấn luyện một MLP 8 lớp. Loss giảm rất chậm, và mỗi lần tăng learning rate lên một chút là nó bung ra `nan`. Bạn in phân phối đầu ra của từng lớp ẩn sau vài trăm bước và thấy:
+
+| Lớp | trung bình | độ lệch chuẩn |
+|---|---|---|
+| 1 | 0.02 | 0.9 |
+| 4 | −1.7 | 6.3 |
+| 8 | 12.4 | 84.0 |
+
+Lớp 1 đưa ra những con số cỡ đơn vị. Đến lớp 8 thì chúng cỡ hàng chục, hàng trăm, và **thang đo đó còn trôi đi sau mỗi bước cập nhật**. Lớp 8 vừa học xong cách xử lý đầu vào cỡ 80 thì bước sau đầu vào đã cỡ 200. Nó phải học lại.
+
+Batch normalization (gọi tắt **batch norm**, hay **BN**) là một lớp chen vào giữa, làm đúng một việc: **kéo đầu ra của lớp trước về một thang đo cố định trước khi giao cho lớp sau**.
+
+Kết quả thực tế trong bài báo gốc: mạng Inception trên ImageNet đạt cùng độ chính xác với **số bước ít hơn 14 lần**, và chịu được learning rate lớn hơn nhiều.
+
+## Trực giác: quy về cùng một thang
+
+Bạn chấm điểm một lớp học có hai môn. Môn A chấm thang 10, điểm thường 6–8. Môn B chấm thang 100, điểm thường 40–90. Nếu cộng thẳng hai cột, môn B át hoàn toàn môn A — không phải vì nó quan trọng hơn, chỉ vì nó có thang đo lớn hơn.
+
+Cách sửa quen thuộc: quy mỗi môn về **z-score** — trừ trung bình của môn đó, chia độ lệch chuẩn của môn đó. Sau đó cả hai cột đều nằm quanh 0, độ rộng cỡ 1.
+
+Batch norm làm đúng như vậy với đầu ra của một lớp mạng, và đây là chỗ hay nhầm:
+
+- **Mỗi "môn" là một đặc trưng** (một neuron, một cột của ma trận batch).
+- **Mỗi "học sinh" là một mẫu** trong batch (một hàng).
+- Trung bình và độ lệch chuẩn được tính **theo cột, dọc xuống các hàng**.
+
+Nghĩa là để chuẩn hoá mẫu thứ nhất, lớp BN phải nhìn cả batch. Đây là một tính chất rất lạ so với mọi lớp khác của mạng, và hầu hết rắc rối của batch norm đều bắt nguồn từ nó.
+
+Còn một câu hỏi tự nhiên: ép mọi lớp về trung bình 0 phương sai 1 thì có làm hỏng mạng không? Có chứ. Nên batch norm thêm một cái van, phần sau sẽ nói.
+
+## Công thức đầy đủ
+
+Gọi $X$ là ma trận batch, shape $(n, d)$: $n$ mẫu, $d$ đặc trưng. Ký hiệu $x_{ij}$ là giá trị đặc trưng $j$ của mẫu $i$.
+
+**Bước 1 — trung bình theo batch, riêng từng đặc trưng:**
+
+$$
+\mu_j = \frac{1}{n}\sum_{i=1}^{n} x_{ij}
+$$
+
+**Bước 2 — phương sai theo batch:**
+
+$$
+\sigma_j^2 = \frac{1}{n}\sum_{i=1}^{n} (x_{ij} - \mu_j)^2
+$$
+
+(Chia cho $n$, không phải $n-1$: thư viện nào cũng làm vậy, và ở đây ta không cần ước lượng không chệch.)
+
+**Bước 3 — chuẩn hoá:**
+
+$$
+\hat{x}_{ij} = \frac{x_{ij} - \mu_j}{\sqrt{\sigma_j^2 + \epsilon}}
+$$
+
+$\epsilon$ là một hằng số rất nhỏ (thường $10^{-5}$) cộng vào **trong căn**, để khi một đặc trưng có giá trị y hệt nhau ở mọi mẫu ($\sigma_j^2 = 0$) thì không chia cho 0.
+
+**Bước 4 — vặn lại thang đo:**
+
+$$
+y_{ij} = \gamma_j \, \hat{x}_{ij} + \beta_j
+$$
+
+$\gamma \in \mathbb{R}^d$ và $\beta \in \mathbb{R}^d$ là **tham số học được**, mỗi đặc trưng một cặp, được cập nhật bằng gradient descent y như trọng số thường. Khởi tạo $\gamma = 1$, $\beta = 0$.
+
+### Vì sao phải có γ và β?
+
+Đây là phần hay bị bỏ qua nhất, và cũng là phần làm batch norm dùng được.
+
+**Lý do 1: chuẩn hoá cứng làm mất khả năng biểu diễn.** Đặt batch norm ngay trước một hàm sigmoid. Sau bước 3, đầu vào của sigmoid luôn nằm quanh 0 với độ rộng cỡ 1 — tức là luôn ở **khúc gần như thẳng** của sigmoid. Bạn vừa vô hiệu hoá tính phi tuyến của hàm kích hoạt. Bài báo gốc nói thẳng điều này: "chuẩn hoá đầu vào của một sigmoid sẽ ràng buộc chúng vào chế độ tuyến tính của phi tuyến đó". Với $\gamma$ và $\beta$, mạng có thể tự kéo giãn trở lại để chạm vùng cong.
+
+**Lý do 2: giữ lại lựa chọn "không chuẩn hoá".** Chọn $\gamma_j = \sqrt{\sigma_j^2 + \epsilon}$ và $\beta_j = \mu_j$ thì $y_{ij} = x_{ij}$, đúng bằng đầu vào ban đầu. Nói cách khác **phép đồng nhất nằm trong tập hàm mà lớp BN biểu diễn được**. Thêm lớp BN vào không bao giờ làm mạng kém biểu đạt hơn; tệ nhất nó học cách tự vô hiệu hoá mình. Đây là kiểu lập luận rất hay gặp trong deep learning, sau này gặp lại ở kết nối tắt (residual).
+
+**Lý do 3: bias trở nên thừa.** Ở lớp $z = Wx + b$ ngay trước BN, cộng $b$ rồi trừ $\mu$ thì $b$ triệt tiêu hoàn toàn — $\beta$ đã đóng vai bias. Vì vậy code thật thường tắt bias của lớp liền trước BN (`bias=False`). Giữ lại cũng không sai, chỉ là một tham số chết.
+
+<CauHoi cau="batch-norm/q4" />
+
+### Gradient đi qua batch norm
+
+Chỗ này khác mọi lớp khác. Ở một lớp bình thường, gradient của mẫu $i$ chỉ phụ thuộc mẫu $i$. Ở batch norm, $\mu_j$ và $\sigma_j^2$ được tính từ **mọi** mẫu, nên $x_{1j}$ ảnh hưởng tới $\hat{x}_{5j}$. Lượt ngược phải gom gradient theo **ba đường**:
+
+1. đường thẳng qua tử số $x - \mu$,
+2. đường vòng qua $\mu$ (vì $\mu$ phụ thuộc $x$),
+3. đường vòng qua $\sigma^2$ (vì $\sigma^2$ cũng phụ thuộc $x$).
+
+Với $\gamma$ và $\beta$ thì đơn giản, cộng dồn theo batch như mọi tham số dùng chung:
+
+$$
+\frac{\partial L}{\partial \gamma_j} = \sum_{i=1}^{n} \frac{\partial L}{\partial y_{ij}} \hat{x}_{ij},
+\qquad
+\frac{\partial L}{\partial \beta_j} = \sum_{i=1}^{n} \frac{\partial L}{\partial y_{ij}}
+$$
+
+Đặt $g_{ij} = \partial L/\partial \hat{x}_{ij} = \gamma_j \cdot \partial L / \partial y_{ij}$ và $s_j = \sqrt{\sigma_j^2 + \epsilon}$. Gom ba đường trên lại và rút gọn (phép rút gọn nằm trong bài blog của Kratzert ở mục tài liệu) cho công thức gọn, một dòng:
+
+$$
+\frac{\partial L}{\partial x_{ij}} = \frac{1}{n\,s_j}\left( n\,g_{ij} \;-\; \sum_{k=1}^{n} g_{kj} \;-\; \hat{x}_{ij}\sum_{k=1}^{n} g_{kj}\,\hat{x}_{kj} \right)
+$$
+
+Đọc ba số hạng như ba phép trừ có nghĩa:
+
+- $n\,g_{ij}$: phần gradient "của riêng mẫu $i$".
+- Trừ đi trung bình của gradient toàn batch — phần đẩy **cả batch** dịch lên/xuống bị loại, vì dịch cả batch thì $\mu$ dịch theo và $\hat{x}$ không đổi.
+- Trừ đi phần tỉ lệ với $\hat{x}_{ij}$ — phần đẩy **cả batch** phình ra/co lại bị loại, vì $\sigma$ sẽ phình theo.
+
+Hệ quả kiểm tra được bằng tay: **tổng của $\partial L/\partial x$ theo batch bằng 0, và tổng của $\partial L/\partial x \cdot \hat{x}$ cũng bằng 0**. Batch norm "bịt" hai hướng mà nó vốn dĩ không quan tâm. Đây cũng là cách nhanh nhất để kiểm tra code backward: hai tổng đó phải ra 0.
+
+<CauHoi cau="batch-norm/q7" />
+
+## Ví dụ tính tay
+
+Batch 5 mẫu, 2 đặc trưng. Cột 2 cố tình để thang đo gấp 100 lần cột 1:
+
+$$
+X = \begin{pmatrix} 1 & 100 \\ 3 & 300 \\ 4 & 400 \\ 5 & 500 \\ 7 & 700 \end{pmatrix},
+\qquad \gamma = (2,\; 0.5), \qquad \beta = (1,\; -1)
+$$
+
+**Cột 1.** $\mu_1 = (1+3+4+5+7)/5 = 4$. Độ lệch: $-3, -1, 0, 1, 3$, bình phương $9,1,0,1,9$, tổng 20, chia 5 được $\sigma_1^2 = 4$, nên $s_1 = 2$.
+
+**Cột 2.** $\mu_2 = 400$, độ lệch $-300,-100,0,100,300$, $\sigma_2^2 = (90000+10000+0+10000+90000)/5 = 40000$, $s_2 = 200$.
+
+(Bỏ qua $\epsilon = 10^{-5}$ vì nó chỉ đổi chữ số thứ 6.)
+
+Chia độ lệch cho $s$:
+
+| mẫu | $x_1$ | $\hat{x}_1$ | $y_1 = 2\hat{x}_1 + 1$ | $x_2$ | $\hat{x}_2$ | $y_2 = 0.5\hat{x}_2 - 1$ |
+|---|---|---|---|---|---|---|
+| 1 | 1 | −1.5 | −2 | 100 | −1.5 | −1.75 |
+| 2 | 3 | −0.5 | 0 | 300 | −0.5 | −1.25 |
+| 3 | 4 | 0 | 1 | 400 | 0 | −1 |
+| 4 | 5 | 0.5 | 2 | 500 | 0.5 | −0.75 |
+| 5 | 7 | 1.5 | 4 | 700 | 1.5 | −0.25 |
+
+Hai điều đáng để ý:
+
+- Cột 2 lớn gấp 100 lần cột 1 nhưng $\hat{x}$ của hai cột **giống hệt nhau**. Batch norm xoá sạch chênh lệch thang đo giữa các đặc trưng.
+- Cột $\hat{x}$ có trung bình 0 và phương sai 1 (kiểm: $(2.25+0.25+0+0.25+2.25)/5 = 1$). Cột $y$ thì không: trung bình $y_1$ là 1 $= \beta_1$, độ lệch chuẩn là 2 $= \gamma_1$. Đúng như thiết kế.
+
+### Lượt ngược trên cùng ví dụ
+
+Vẫn cột 1, $s = 2$, $\hat{x} = (-1.5, -0.5, 0, 0.5, 1.5)$, $\gamma = 2$. Giả sử gradient từ phía sau chỉ chạm vào mẫu đầu tiên:
+
+$$
+\frac{\partial L}{\partial y} = (1, 0, 0, 0, 0)
+$$
+
+$$
+\frac{\partial L}{\partial \beta} = \sum \frac{\partial L}{\partial y} = 1,
+\qquad
+\frac{\partial L}{\partial \gamma} = \sum \frac{\partial L}{\partial y}\hat{x} = 1 \times (-1.5) = -1.5
+$$
+
+$$
+g = \gamma \cdot \frac{\partial L}{\partial y} = (2, 0, 0, 0, 0), \qquad \sum g = 2, \qquad \sum g\,\hat{x} = 2 \times (-1.5) = -3
+$$
+
+Thay vào công thức, với $n s = 5 \times 2 = 10$:
+
+$$
+\frac{\partial L}{\partial x_i} = \frac{1}{10}\Big(5 g_i - 2 - \hat{x}_i \cdot (-3)\Big)
+$$
+
+| $i$ | $5g_i$ | $-\sum g$ | $-\hat{x}_i \sum g \hat{x}$ | tổng | chia 10 |
+|---|---|---|---|---|---|
+| 1 | 10 | −2 | $-(-1.5)(-3) = -4.5$ | 3.5 | **0.35** |
+| 2 | 0 | −2 | $-(-0.5)(-3) = -1.5$ | −3.5 | **−0.35** |
+| 3 | 0 | −2 | 0 | −2 | **−0.2** |
+| 4 | 0 | −2 | $-(0.5)(-3) = 1.5$ | −0.5 | **−0.05** |
+| 5 | 0 | −2 | $-(1.5)(-3) = 4.5$ | 2.5 | **0.25** |
+
+Kiểm nhanh: $0.35 - 0.35 - 0.2 - 0.05 + 0.25 = 0$ ✓ và $0.35(-1.5) + (-0.35)(-0.5) + 0 + (-0.05)(0.5) + 0.25(1.5) = 0$ ✓.
+
+Điểm đắt giá: gradient vào chỉ đụng **một** mẫu, gradient ra lan sang **cả năm**. Bốn mẫu kia không hề liên quan tới loss vẫn nhận gradient — chỉ vì chúng góp phần vào $\mu$ và $\sigma$.
+
+## Code NumPy
+
+Bản đầy đủ cả train lẫn eval, chạy được:
+
+```python
+import numpy as np
+
+def batch_norm(X, gamma, beta, tb_chay, ps_chay, huan_luyen, momentum=0.9, eps=1e-5):
+    if huan_luyen:
+        mu = X.mean(axis=0)                 # (d,) — trung bình theo CỘT
+        var = X.var(axis=0)                 # (d,) — chia cho n
+        tb_chay = momentum * tb_chay + (1 - momentum) * mu
+        ps_chay = momentum * ps_chay + (1 - momentum) * var
+    else:
+        mu, var = tb_chay, ps_chay          # eval: KHÔNG nhìn batch hiện tại
+    xhat = (X - mu) / np.sqrt(var + eps)
+    return gamma * xhat + beta, tb_chay, ps_chay, xhat, np.sqrt(var + eps)
+
+def batch_norm_nguoc(dY, xhat, s, gamma):
+    n = dY.shape[0]
+    dgamma = (dY * xhat).sum(axis=0)
+    dbeta = dY.sum(axis=0)
+    g = gamma * dY
+    dX = (n * g - g.sum(axis=0) - xhat * (g * xhat).sum(axis=0)) / (n * s)
+    return dX, dgamma, dbeta
+
+X = np.array([[1., 100.], [3., 300.], [4., 400.], [5., 500.], [7., 700.]])
+Y, tb, ps, xhat, s = batch_norm(X, np.array([2., .5]), np.array([1., -1.]),
+                                np.zeros(2), np.ones(2), huan_luyen=True)
+print(np.round(Y, 4))          # cột 1: [-2, 0, 1, 2, 4]
+dY = np.array([[1., 0.], [0., 0.], [0., 0.], [0., 0.], [0., 0.]])
+dX, dg, db = batch_norm_nguoc(dY, xhat, s, np.array([2., .5]))
+print(np.round(dX[:, 0], 4))   # [0.35, -0.35, -0.2, -0.05, 0.25]
+print(dX.sum(axis=0))          # ≈ [0, 0]
+```
+
+Khớp từng số với bảng tính tay ở trên. Chú ý `axis=0`: đổi thành `axis=1` là bạn đã cài LayerNorm chứ không phải BatchNorm nữa.
+
+## Nâng cao
+
+### Train khác eval — nguồn lỗi kinh điển
+
+Lúc suy luận, bạn có thể chỉ có **một** mẫu. Không có batch thì lấy $\mu$, $\sigma^2$ ở đâu?
+
+Câu trả lời: trong lúc huấn luyện, lớp BN âm thầm ghi lại một bản **trung bình chạy** (running average) của $\mu$ và $\sigma^2$, ký hiệu $\mu_r$ và $\sigma_r^2$:
+
+$$
+\mu_r \leftarrow m \cdot \mu_r + (1-m) \cdot \mu_{\text{batch}}
+$$
+
+với $m$ thường là 0.9 hoặc 0.99. Lúc eval, lớp dùng con số tích luỹ đó và **hoàn toàn không nhìn batch hiện tại**. Nhờ vậy batch norm ở chế độ eval trở thành một phép biến đổi tuyến tính cố định, mỗi mẫu độc lập với mọi mẫu khác.
+
+Thử với $X$ ở trên. Sau khi huấn luyện, giả sử $\mu_r = (4, 400)$, $\sigma_r^2 = (4, 40000)$. Đưa vào một mẫu duy nhất $x = (5, 500)$:
+
+- **Đúng (eval mode):** $\hat{x} = (0.5,\, 0.5)$, $y = (2 \times 0.5 + 1,\; 0.5 \times 0.5 - 1) = (2,\, -0.75)$. Khớp đúng hàng 4 của bảng tính tay.
+- **Sai (quên đổi chế độ):** batch có 1 mẫu, nên $\mu = x$, $\sigma^2 = 0$, $\hat{x} = 0$, và $y = \beta = (1, -1)$ **với mọi đầu vào**. Mô hình trả về đúng một câu trả lời cho mọi ảnh.
+
+Triệu chứng nhận biết trong thực tế: loss lúc train đẹp, độ chính xác lúc validate thấp một cách vô lý; đổi kích thước batch lúc đánh giá thì kết quả đổi theo; chạy cùng một mẫu hai lần trong hai batch khác nhau ra hai đáp án. Trong PyTorch, đây chính là lý do phải gọi `model.eval()` — và lý do `torch.no_grad()` **không** thay thế được nó, vì `no_grad` chỉ tắt việc lưu đồ thị tính toán, không đụng gì tới chế độ của BN.
+
+<CauHoi cau="batch-norm/q6" />
+
+### Batch nhỏ thì hỏng ra sao
+
+Với $n$ mẫu, sai số chuẩn của $\mu$ ước lượng được tỉ lệ $1/\sqrt{n}$. Nghĩa là:
+
+| $n$ | Chuyện xảy ra |
+|---|---|
+| 1 | $\hat{x} = 0$ luôn. Lớp BN mất sạch thông tin, đầu ra chỉ còn $\beta$. |
+| 2–4 | $\mu$, $\sigma^2$ nhiễu dữ dội. Cùng một mẫu, tuỳ bạn nó của ai mà ra kết quả khác nhau — như một lớp nhiễu ngẫu nhiên mạnh. Thống kê chạy tích luỹ từ các ước lượng nhiễu này cũng lệch, nên khoảng cách train/eval doãng ra. |
+| 16–32 | Vùng thường dùng, ổn định. |
+
+Lượng nhiễu đó không hẳn xấu: nó có tác dụng chính quy hoá nhẹ (regularization), giống dropout yếu, nên mạng có BN thường cần ít dropout hơn. Nhưng khi batch buộc phải nhỏ — ảnh y tế độ phân giải cao, phát hiện vật thể, mô hình lớn không nhét vừa GPU — batch norm trở thành gánh nặng chứ không phải trợ giúp. Khi đó người ta chuyển sang GroupNorm hoặc LayerNorm, những phép chuẩn hoá **không** lấy thống kê dọc theo batch.
+
+### Vì sao NLP và Transformer dùng LayerNorm
+
+Ba lý do, xếp theo mức nghiêm trọng:
+
+1. **Độ dài câu thay đổi.** Một batch câu được đệm (padding) về cùng độ dài. Ở vị trí thứ 40, có thể chỉ 3 trên 32 câu là token thật, phần còn lại là padding. Trung bình theo batch tại vị trí đó được tính từ 3 mẫu thật lẫn 29 ô rác — vô nghĩa.
+2. **Phụ thuộc lẫn nhau giữa các mẫu.** Khi sinh văn bản, mô hình chạy từng câu một. Việc đầu ra của câu này phụ thuộc các câu khác trong batch là điều không chấp nhận được.
+3. **Batch hiệu dụng nhỏ.** Mô hình ngôn ngữ lớn thường chỉ nhét được vài chuỗi mỗi GPU.
+
+**LayerNorm** giữ nguyên công thức 4 bước, chỉ đổi **trục lấy thống kê**: thay vì trung bình theo cột (dọc batch), nó lấy trung bình theo hàng — tức là trên các đặc trưng **của chính mẫu đó**. Trong code là `axis=-1` thay cho `axis=0`. Hệ quả: mỗi mẫu được chuẩn hoá độc lập, không có khái niệm train/eval khác nhau, không cần thống kê chạy, không quan tâm kích thước batch. Toàn bộ khối Transformer dựng trên LayerNorm; sẽ có bài riêng.
+
+Batch norm thì vẫn ngự trị ở mạng tích chập cho ảnh, nơi batch lớn và mọi mẫu có cùng kích thước.
+
+### "Internal covariate shift" — câu chuyện chưa ngã ngũ
+
+Bài báo gốc (Ioffe & Szegedy, 2015) đặt tên vấn đề là **internal covariate shift**: khi các lớp dưới cập nhật, phân phối đầu vào của các lớp trên bị trôi, nên lớp trên phải liên tục thích nghi. Batch norm được đề xuất như thuốc chữa. Chính cái tên đó nằm trong tiêu đề bài báo.
+
+Năm 2018, Santurkar và cộng sự làm một thí nghiệm đơn giản và khó chịu: họ thêm **nhiễu ngẫu nhiên phi tĩnh** ngay *sau* lớp batch norm, tức là cố tình tạo ra rất nhiều covariate shift, nhiều hơn cả mạng không có BN. Theo giải thích gốc thì mạng đó phải huấn luyện tệ. Kết quả: nó vẫn huấn luyện nhanh gần bằng mạng có BN bình thường. Họ còn đo trực tiếp và thấy BN không nhất thiết làm giảm độ trôi phân phối.
+
+Giải thích họ đưa ra thay thế: batch norm làm **mặt loss mượt hơn** — gradient ổn định hơn, ít phụ thuộc điểm đang đứng hơn, nên learning rate lớn vẫn an toàn và tốc độ hội tụ tăng.
+
+Bài học đáng nhớ hơn cả batch norm: trong deep learning, **kỹ thuật có tác dụng** và **lý do được đưa ra cho tác dụng đó** là hai chuyện tách rời. Batch norm hoạt động tốt, điều đó đo được. Vì sao nó hoạt động thì đến giờ vẫn còn tranh luận. Khi đọc một bài báo, hãy tách phần "kết quả đo được" ra khỏi phần "câu chuyện giải thích".
+
+### Đặt BN ở đâu
+
+Bài báo gốc đặt BN **giữa** phép tuyến tính và hàm kích hoạt: $x \to Wx \to \text{BN} \to \text{ReLU}$. Nhiều thực nghiệm sau đó thấy đặt sau hàm kích hoạt cũng chạy tốt, có khi tốt hơn. Chưa có kết luận dứt khoát; mặc định cứ theo bài gốc.
+
+## Sai lầm hay gặp
+
+| Sai lầm | Triệu chứng nhận biết |
+|---|---|
+| Quên `model.eval()` lúc suy luận | Độ chính xác validate thấp bất thường trong khi train rất đẹp; đổi batch size lúc test thì kết quả đổi; chạy lại cùng một mẫu ra số khác |
+| Chuẩn hoá nhầm trục (`axis=1` thay vì `axis=0`) | Không báo lỗi gì nếu $n = d$; nếu khác thì lỗi broadcast. Dấu hiệu chắc chắn: `Y.mean(axis=0)` không ra 0 lúc train |
+| Quên `+ eps` trong căn | `nan` xuất hiện đúng lúc một đặc trưng trở thành hằng số (hay gặp với ReLU chết) |
+| Dùng batch rất nhỏ (1–4) | Loss nhảy loạn giữa các bước dù learning rate nhỏ; train tốt mà eval tệ do thống kê chạy bị lệch |
+| Quên rằng $\gamma$, $\beta$ là tham số cần cập nhật | Loss giảm chậm bất thường; kiểm bằng cách in `gamma` sau vài trăm bước — vẫn đúng bằng 1 là đã quên |
+| Vẫn giữ bias ở lớp ngay trước BN | Không hại, chỉ là tham số chết: `b.grad` gần 0 và `b` gần như không đổi |
+| Dùng BN cho dữ liệu chuỗi có padding | Loss không giảm hoặc giảm rồi đứng; kết quả đổi khi đổi thứ tự câu trong batch |
+| Cập nhật thống kê chạy lúc eval | Chỉ số validate trôi dần qua các epoch dù mô hình không đổi |
+
+<CauHoi cau="batch-norm/q10" />
+
+## Tra nhanh
+
+**Công thức**, cho batch $X$ shape $(n, d)$, mọi thống kê lấy theo `axis=0`:
+
+$$
+\mu = \frac{1}{n}\sum_i x_i, \quad
+\sigma^2 = \frac{1}{n}\sum_i (x_i - \mu)^2, \quad
+\hat{x} = \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}}, \quad
+y = \gamma \hat{x} + \beta
+$$
+
+**Backward**, với $g = \gamma \odot \partial L/\partial y$ và $s = \sqrt{\sigma^2+\epsilon}$:
+
+$$
+\frac{\partial L}{\partial \gamma} = \sum_i \frac{\partial L}{\partial y_i}\hat{x}_i, \quad
+\frac{\partial L}{\partial \beta} = \sum_i \frac{\partial L}{\partial y_i}, \quad
+\frac{\partial L}{\partial x} = \frac{n g - \sum_k g_k - \hat{x}\sum_k g_k \hat{x}_k}{n\,s}
+$$
+
+**Train vs eval**
+
+| | dùng $\mu$, $\sigma^2$ của | cập nhật thống kê chạy |
+|---|---|---|
+| train | batch hiện tại | có |
+| eval | trung bình chạy đã tích luỹ | không |
+
+**Số nhớ**
+
+- $\gamma$, $\beta$: mỗi đặc trưng một cặp, tổng $2d$ tham số. Khởi tạo $\gamma = 1$, $\beta = 0$.
+- $\epsilon \approx 10^{-5}$, momentum thống kê chạy $\approx 0.9$–$0.99$.
+- $\gamma = s$, $\beta = \mu$ thì BN thành phép đồng nhất.
+- Batch 1 mẫu ở chế độ train: đầu ra $= \beta$, bất kể đầu vào.
+- Kiểm tra backward: $\sum_i \partial L/\partial x_i = 0$ và $\sum_i (\partial L/\partial x_i)\hat{x}_i = 0$.
+
+**Chọn phép chuẩn hoá nào**
+
+| Tình huống | Dùng |
+|---|---|
+| Ảnh, mạng tích chập, batch ≥ 16 | BatchNorm |
+| NLP, Transformer, chuỗi có padding | LayerNorm (theo `axis=-1`) |
+| Batch buộc phải nhỏ (1–4) | GroupNorm hoặc LayerNorm |
+
+**Đọc tiếp:** [Gradient biến mất và bùng nổ](/khai-niem/gradient-bien-mat) — vấn đề mà chuẩn hoá là một trong các cách chữa; Khởi tạo trọng số và Dropout (cùng là kỹ thuật train khác eval) — sắp có.

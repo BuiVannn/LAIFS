@@ -1,0 +1,125 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: Entropy H(p) của một phân phối đo điều gì?
+    lua_chon:
+      - Mô hình dự đoán sai bao nhiêu
+      - Mức bất định sẵn có của phân phối — trung bình lượng "bất ngờ" khi rút một mẫu từ nó
+      - Khoảng cách giữa hai phân phối
+      - Số lớp của bài toán
+    dap_an: 1
+    giai_thich: "Entropy chỉ phụ thuộc p, không liên quan gì tới mô hình. Phân phối càng dàn đều thì càng bất định, entropy càng lớn; phân phối chắc chắn có entropy 0."
+
+  - id: q2
+    loai: so
+    do_kho: 1
+    de: "Entropy của phân phối đều trên 3 lớp, tính bằng nat (logarit tự nhiên), bằng bao nhiêu? (làm tròn 4 chữ số)"
+    dap_an: 1.0986
+    sai_so: 0.001
+    giai_thich: "H = −3 × (1/3)·ln(1/3) = ln 3 ≈ 1.0986 nat. Phân phối đều trên K lớp luôn là phân phối có entropy LỚN NHẤT, bằng ln K."
+
+  - id: q3
+    loai: so
+    do_kho: 1
+    de: "Nhãn thật là one-hot cho lớp 1, mô hình đoán q = [0.7, 0.2, 0.1]. Cross-entropy bằng bao nhiêu? (nat, làm tròn 4 chữ số)"
+    dap_an: 0.3567
+    sai_so: 0.001
+    giai_thich: "Với nhãn one-hot, mọi số hạng có p = 0 đều biến mất, chỉ còn −ln q của lớp đúng: −ln 0.7 ≈ 0.3567. Ba xác suất của các lớp sai không ảnh hưởng trực tiếp, chúng chỉ ảnh hưởng qua ràng buộc tổng bằng 1."
+
+  - id: q4
+    loai: so
+    do_kho: 2
+    de: "p = [0.5, 0.3, 0.2] (thật) và q = [0.7, 0.2, 0.1] (đoán). Biết H(p) ≈ 1.0297 và cross-entropy ≈ 1.1217, giá trị KL(p‖q) bằng bao nhiêu? (làm tròn 4 chữ số)"
+    dap_an: 0.092
+    sai_so: 0.001
+    giai_thich: "KL = CE − H = 1.1217 − 1.0297 ≈ 0.0920. Đẳng thức CE = H(p) + KL(p‖q) đúng với mọi cặp phân phối."
+
+  - id: q5
+    loai: mot
+    do_kho: 2
+    de: "Vì sao trong huấn luyện, tối thiểu hoá cross-entropy tương đương tối thiểu hoá KL(p‖q)?"
+    lua_chon:
+      - Vì cross-entropy và KL bằng nhau
+      - "Vì CE = H(p) + KL(p‖q), mà H(p) chỉ phụ thuộc dữ liệu chứ không phụ thuộc tham số mô hình — nó là hằng số đối với bài toán tối ưu"
+      - Vì KL luôn bằng 0 khi huấn luyện xong
+      - Vì entropy của nhãn one-hot luôn bằng 1
+    dap_an: 1
+    giai_thich: "H(p) là sàn không hạ được, gradient của nó theo tham số bằng 0. Hạ CE hết mức chỉ có thể hạ phần KL. Với nhãn one-hot thì H(p) = 0 nên CE và KL trùng nhau luôn."
+
+  - id: q6
+    loai: nhieu
+    do_kho: 2
+    de: Nhận định nào đúng về KL divergence? (chọn tất cả ý đúng)
+    lua_chon:
+      - "Luôn không âm, và bằng 0 khi và chỉ khi hai phân phối trùng nhau"
+      - "Không đối xứng: KL(p‖q) nói chung khác KL(q‖p)"
+      - Không thoả bất đẳng thức tam giác, nên không phải một khoảng cách theo nghĩa toán học
+      - Bị chặn trên bởi 1
+    dap_an: [0, 1, 2]
+    giai_thich: "KL có thể lớn vô cùng — chỉ cần q gán xác suất 0 cho một sự kiện mà p cho là có thể. Vì không đối xứng và không có bất đẳng thức tam giác, người ta gọi nó là 'divergence' chứ không gọi là 'distance'."
+
+  - id: q7
+    loai: mot
+    do_kho: 2
+    de: "Với softmax ở lớp cuối và cross-entropy làm loss, gradient của loss theo vector logit z bằng gì?"
+    lua_chon:
+      - q − p (xác suất dự đoán trừ nhãn)
+      - p − q
+      - "(q − p) nhân với đạo hàm của softmax"
+      - Không tính được dạng đóng
+    dap_an: 0
+    giai_thich: "Đạo hàm rườm rà của softmax triệt tiêu đúng với mẫu số của log, kết quả gọn lại thành q − p. Đây là lý do cặp softmax + cross-entropy được dùng khắp nơi: gradient tỉ lệ thẳng với mức sai, không bị nhân thêm hệ số nhỏ nào."
+
+  - id: q8
+    loai: nhieu
+    do_kho: 3
+    de: Vì sao MSE là lựa chọn tồi cho bài toán phân loại có sigmoid/softmax? (chọn tất cả ý đúng)
+    lua_chon:
+      - "Gradient bị nhân thêm đạo hàm của sigmoid, nên khi mô hình rất tự tin mà SAI thì gradient gần như bằng 0 và việc học đứng lại"
+      - MSE không tương ứng với giả định Bernoulli/Categorical, tức không phải NLL của mô hình xác suất đang dùng
+      - MSE phạt quá nhẹ những dự đoán tự tin mà sai, trong khi cross-entropy phạt vô hạn
+      - MSE không tính được với vector xác suất
+    dap_an: [0, 1, 2]
+    giai_thich: "Với z = −10 và nhãn 1: gradient cross-entropy là −0.99995, gradient MSE là −0.0000908 — chênh hơn 10 000 lần. MSE vẫn tính được với vector xác suất (ý cuối sai), chỉ là học rất tệ."
+
+  - id: q9
+    loai: so
+    do_kho: 2
+    de: "Một mô hình ngôn ngữ có cross-entropy trung bình 1.0986 nat trên mỗi token. Perplexity của nó bằng bao nhiêu? (làm tròn 2 chữ số)"
+    dap_an: 3
+    sai_so: 0.02
+    giai_thich: "Perplexity = exp(cross-entropy) = e^1.0986 = 3. Đọc là: mô hình lưỡng lự như thể mỗi bước phải chọn đều tay giữa 3 khả năng. Đây là lý do perplexity dễ cảm nhận hơn giá trị loss thô."
+
+  - id: q10
+    loai: mot
+    do_kho: 2
+    de: "Loss của bạn ra `nan` ngay batch đầu tiên khi tự cài cross-entropy bằng `np.log(softmax(z))`. Nguyên nhân khả dĩ nhất là gì?"
+    lua_chon:
+      - Learning rate quá lớn
+      - "Một xác suất bị bão hoà về 0 nên `log(0)` cho `-inf`, rồi `0 × inf` cho `nan`"
+      - Dữ liệu chưa được chuẩn hoá
+      - Số lớp quá nhiều
+    dap_an: 1
+    giai_thich: "Với logit lớn, `exp` tràn số hoặc softmax trả về đúng 0 cho lớp yếu. Cách sửa đúng là gộp hai bước thành `log_softmax` (trừ max rồi tính trực tiếp log), KHÔNG phải cộng epsilon vào xác suất."
+
+  - id: q11
+    loai: so
+    do_kho: 3
+    de: "Bốn mẫu với nhãn và dự đoán cho cross-entropy từng mẫu lần lượt là 0.356675, 0.693147, 0.223144, 0.916291. Loss của cả batch (trung bình) bằng bao nhiêu? (làm tròn 4 chữ số)"
+    dap_an: 0.5473
+    sai_so: 0.001
+    giai_thich: "(0.356675 + 0.693147 + 0.223144 + 0.916291)/4 ≈ 0.5473. Nhớ thứ tự: CỘNG theo trục lớp trước, rồi mới lấy TRUNG BÌNH theo trục batch. Đảo hai trục là lỗi shape kinh điển."
+
+  - id: q12
+    loai: nhieu
+    do_kho: 3
+    de: "Mô hình phân loại của bạn dự đoán đúng 97% nhưng loss vẫn cao và không giảm nữa. Điều nào đáng kiểm tra? (chọn tất cả ý đúng)"
+    lua_chon:
+      - Một số ít mẫu bị dự đoán rất tự tin mà sai, mỗi mẫu đóng góp một số hạng −ln(q) rất lớn
+      - Nhãn trong tập huấn luyện có lỗi, khiến mô hình bị ép học điều mâu thuẫn
+      - Đã lỡ chạy softmax hai lần nên phân phối bị làm phẳng, loss có sàn cao
+      - Độ chính xác cao thì loss buộc phải thấp, nên chắc chắn có bug ở phép đo độ chính xác
+    dap_an: [0, 1, 2]
+    giai_thich: "Độ chính xác chỉ nhìn lớp thắng, cross-entropy nhìn cả độ tự tin — nên hai chỉ số hoàn toàn có thể đi ngược nhau. Một mẫu với q = 0.001 cho lớp đúng đóng góp 6.9, nhiều bằng 20 mẫu tốt cộng lại."

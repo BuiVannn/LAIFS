@@ -1,0 +1,129 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: so
+    do_kho: 1
+    de: "Kỳ vọng của số chấm khi tung một con xúc xắc cân đối 6 mặt bằng bao nhiêu?"
+    dap_an: 3.5
+    sai_so: 0.001
+    giai_thich: "(1+2+3+4+5+6)/6 = 21/6 = 3.5. Để ý kỳ vọng KHÔNG cần là giá trị có thể xảy ra — không có mặt 3.5 nào cả. Nó là điểm thăng bằng, không phải một kết quả."
+
+  - id: q2
+    loai: so
+    do_kho: 2
+    de: "Dữ liệu x = (2, 4, 4, 4, 5, 5, 7, 9). Phương sai (chia cho n) bằng bao nhiêu?"
+    dap_an: 4
+    sai_so: 0.001
+    giai_thich: "μ = 40/8 = 5. Các độ lệch: −3, −1, −1, −1, 0, 0, 2, 4. Bình phương: 9, 1, 1, 1, 0, 0, 4, 16, tổng 32. σ² = 32/8 = 4, nên σ = 2."
+
+  - id: q3
+    loai: mot
+    do_kho: 1
+    de: "Vì sao định nghĩa độ tản dùng BÌNH PHƯƠNG độ lệch chứ không dùng chính độ lệch?"
+    lua_chon:
+      - Vì bình phương cho số lớn hơn nên dễ nhìn
+      - "Vì trung bình của độ lệch LUÔN bằng 0 (lệch dương và âm triệt tiêu), nên nó vô dụng"
+      - Vì máy tính tính bình phương nhanh hơn trị tuyệt đối
+      - Vì bình phương giữ nguyên đơn vị của dữ liệu
+    dap_an: 1
+    giai_thich: "E[X − μ] = E[X] − μ = 0 với mọi dữ liệu. Phải bỏ dấu đi. Bình phương được chọn thay vì trị tuyệt đối vì nó mượt (có đạo hàm ở mọi điểm) và vì nó CỘNG ĐƯỢC khi các biến độc lập. Bình phương làm đơn vị thành bình phương, đó là lý do phải lấy căn ra σ."
+
+  - id: q4
+    loai: so
+    do_kho: 2
+    de: "Một biến X có Var(X) = 9. Var(2X + 5) bằng bao nhiêu?"
+    dap_an: 36
+    sai_so: 0.001
+    giai_thich: "Var(aX + b) = a²Var(X) = 4 × 9 = 36. Cộng hằng số 5 không đổi độ tản (chỉ dời cả đám đi). Hệ số là a² chứ không phải a — theo σ thì gọn hơn: σ nhân 2, từ 3 thành 6."
+
+  - id: q5
+    loai: mot
+    do_kho: 2
+    de: "Sau khi chuẩn hoá z = (x − μ)/σ, cột dữ liệu mới có kỳ vọng và phương sai bằng bao nhiêu?"
+    lua_chon:
+      - "Kỳ vọng 0, phương sai 1"
+      - "Kỳ vọng 0, phương sai σ"
+      - "Kỳ vọng μ, phương sai 1"
+      - "Kỳ vọng 1, phương sai 0"
+    dap_an: 0
+    giai_thich: "Trừ μ làm kỳ vọng về 0 (tịnh tiến). Chia cho σ làm phương sai thành σ²/σ² = 1 (theo quy tắc Var(aX) = a²Var(X) với a = 1/σ). Nhờ vậy mọi đặc trưng về cùng thang và gradient descent không bị lệch theo cột có số to."
+
+  - id: q6
+    loai: mot
+    do_kho: 2
+    de: "Var(X + Y) = Var(X) + Var(Y) đúng khi nào?"
+    lua_chon:
+      - Luôn luôn đúng
+      - "Chỉ khi X và Y không tương quan (ví dụ: độc lập)"
+      - Chỉ khi X và Y cùng phân phối
+      - Chỉ khi X và Y đều có kỳ vọng 0
+    dap_an: 1
+    giai_thich: "Khai triển cho ba số hạng: Var(X) + Var(Y) + 2·Cov(X, Y). Số hạng chéo chỉ biến mất khi hiệp phương sai bằng 0. Trường hợp cực đoan Y = −X cho Var(X + Y) = 0, khác hẳn tổng phương sai."
+
+  - id: q7
+    loai: so
+    do_kho: 2
+    de: "Cộng 25 biến độc lập, mỗi biến có độ lệch chuẩn σ = 2. Độ lệch chuẩn của tổng bằng bao nhiêu?"
+    dap_an: 10
+    sai_so: 0.001
+    giai_thich: "PHƯƠNG SAI cộng lại: 25 × 4 = 100, nên σ của tổng là √100 = 10. Không phải 25 × 2 = 50. Quy tắc phải thuộc: phương sai cộng tuyến tính, độ lệch chuẩn tăng theo √d."
+
+  - id: q8
+    loai: mot
+    do_kho: 3
+    de: "Một neuron có d = 400 đầu vào (phương sai 1 mỗi cái). Muốn đầu ra cũng có phương sai 1, độ lệch chuẩn khởi tạo σ_w phải bằng bao nhiêu?"
+    lua_chon:
+      - "1/400 = 0.0025"
+      - "1/√400 = 0.05"
+      - "√400 = 20"
+      - "1 — không cần chỉnh gì"
+    dap_an: 1
+    giai_thich: "Var(z) = d·σ_w²·σ_x² = 400·σ_w². Muốn nó bằng 1 thì σ_w² = 1/400, tức σ_w = 1/√400 = 0.05. Cách nhớ theo hệ số: mỗi lớp nhân σ với √d·σ_w, muốn hệ số đó bằng 1 thì σ_w = 1/√d."
+
+  - id: q9
+    loai: mot
+    do_kho: 3
+    de: "Mạng 8 lớp, d = 100, khởi tạo σ_w = 0.2. Hệ số nhân mỗi lớp là √100 × 0.2 = 2. Sau 8 lớp, độ lệch chuẩn của activation (bắt đầu từ 1) là bao nhiêu?"
+    lua_chon:
+      - "16 (2 × 8)"
+      - "256 (2⁸)"
+      - "Vẫn 1"
+      - "0.004"
+    dap_an: 1
+    giai_thich: "Hệ số NHÂN dồn qua từng lớp chứ không cộng: 2⁸ = 256. Vài lớp nữa là tràn số thành inf rồi nan. Ngược lại σ_w = 0.05 cho hệ số 0.5 và 0.5⁸ ≈ 0.0039 — tín hiệu tắt hẳn. Chỉ hệ số đúng bằng 1 mới ổn."
+
+  - id: q10
+    loai: mot
+    do_kho: 2
+    de: "Code chuẩn hoá `X_test = (X_test - X_test.mean(0)) / X_test.std(0)` cho validation rất đẹp nhưng chạy thật thì tệ. Vấn đề nằm ở đâu?"
+    lua_chon:
+      - "Thiếu `keepdims=True` nên broadcasting sai"
+      - "Phải dùng μ và σ tính từ tập HUẤN LUYỆN, không tính lại trên tập test"
+      - "Phải dùng `ddof=1` cho tập test"
+      - "Phải chuẩn hoá theo `axis=1` thay vì `axis=0`"
+    dap_an: 1
+    giai_thich: "Tính lại thống kê trên tập test là rò rỉ thông tin: mô hình được hưởng lợi từ phân phối của chính dữ liệu đang bị đánh giá. Dấu hiệu nhận biết rõ nhất: bạn không thể chuẩn hoá MỘT mẫu đơn lẻ, vì code cần cả tập mới tính được mean. Đúng quy trình là lưu μ, σ của train như một phần của mô hình."
+
+  - id: q11
+    loai: nhieu
+    do_kho: 3
+    de: "Phát biểu nào về ứng dụng của phương sai trong deep learning là ĐÚNG? (chọn tất cả ý đúng)"
+    lua_chon:
+      - "Attention chia điểm số cho √d_k vì q·k là tổng của d_k số hạng, nên có độ lệch chuẩn cỡ √d_k"
+      - "He/Kaiming dùng √(2/d) thay vì 1/√d vì ReLU cắt bỏ một nửa đầu ra, làm phương sai giảm một nửa"
+      - "Gradient của mini-batch cỡ B có nhiễu giảm theo 1/√B, nên tăng batch gấp 4 chỉ giảm nhiễu một nửa"
+      - "Khởi tạo càng nhỏ thì càng an toàn vì tránh được tràn số"
+    dap_an: [0, 1, 2]
+    giai_thich: "Khởi tạo quá nhỏ KHÔNG an toàn: hệ số √d·σ_w nhỏ hơn 1 làm tín hiệu và gradient tắt theo cấp số nhân qua độ sâu, mạng đứng im. Cả ba ý còn lại đều là hệ quả trực tiếp của quy tắc 'phương sai của tổng độc lập thì cộng lại'."
+
+  - id: q12
+    loai: mot
+    do_kho: 2
+    de: "`np.var(x)` và `pandas.Series(x).var()` trên cùng dữ liệu cho hai số khác nhau. Vì sao?"
+    lua_chon:
+      - Pandas dùng thuật toán xấp xỉ nên kém chính xác hơn
+      - "NumPy mặc định `ddof=0` (chia n), pandas mặc định `ddof=1` (chia n−1)"
+      - Pandas tự bỏ qua các giá trị ngoại lai
+      - Vì kiểu dữ liệu float khác nhau
+    dap_an: 1
+    giai_thich: "Chia n cho phương sai của chính tập số liệu đang có; chia n−1 cho ước lượng không chệch của phương sai quần thể (vì μ cũng được ước lượng từ mẫu). Deep learning gần như luôn dùng ddof=0. Khi so kết quả giữa hai thư viện, hãy viết rõ `ddof=`."

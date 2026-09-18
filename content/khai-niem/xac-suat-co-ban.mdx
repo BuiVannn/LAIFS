@@ -1,0 +1,300 @@
+---
+ten_vi: "Xác suất, phân phối"
+ten_en: Probability and Distributions
+tang: 1
+thu_tu: 6
+tien_quyet: []
+trang_thai: nhap
+dinh_nghia: >-
+  Xác suất là một con số trong [0, 1] đo mức tin rằng một biến cố xảy ra. Phân phối xác suất là
+  cách chia trọn vẹn một đơn vị niềm tin đó cho mọi kết quả có thể: mọi phần không âm, cộng lại
+  đúng bằng 1. Mô hình ML gần như luôn xuất ra một phân phối chứ không phải một câu trả lời cứng.
+truc_giac: >-
+  Hình dung bạn có đúng 1 lít nước và một dãy cốc, mỗi cốc là một kết quả có thể. Phân phối là cách
+  bạn rót hết lít nước đó vào các cốc. Không cốc nào âm, và không được thừa hay thiếu giọt nào.
+  "Mô hình dự đoán" nghĩa là mô hình quyết định rót bao nhiêu vào mỗi cốc.
+hieu_nham:
+  - "P(A|B) và P(B|A) là hai số khác nhau. 'Xác suất thư spam chứa chữ khuyến mãi' không phải 'xác suất thư chứa chữ khuyến mãi là spam'. Công thức Bayes chính là cách đổi từ chiều này sang chiều kia, và nó cần thêm xác suất tiên nghiệm."
+  - "Với biến liên tục, mật độ KHÔNG phải xác suất và có thể lớn hơn 1. Xác suất là diện tích dưới đường mật độ; xác suất tại đúng một điểm luôn bằng 0."
+  - "Độc lập khác xung khắc. Xung khắc là 'không thể cùng xảy ra'; độc lập là 'biết cái này không đổi gì niềm tin về cái kia'. Hai biến cố xung khắc mà đều có xác suất dương thì chắc chắn không độc lập."
+  - "Nhân xác suất chỉ hợp lệ khi các biến cố độc lập (hoặc khi đã viết đúng dạng có điều kiện). Naive Bayes nhân thẳng các token dù chúng rõ ràng không độc lập — đó là lý do có chữ 'naive'."
+  - "Tích của nhiều xác suất nhỏ tụt xuống 0 trong số thực máy tính. Đó không phải xác suất bằng 0 mà là tràn số dưới, và luôn được sửa bằng cách cộng logarit."
+y_chinh:
+  - "Xác suất nằm trong [0, 1]; phân phối là một vector không âm có tổng đúng bằng 1"
+  - "Độc lập thì nhân được xác suất; đó là lý do hàm hợp lý của n quan sát là một tích"
+  - "Xác suất có điều kiện không đối xứng; Bayes đổi chiều điều kiện bằng cách thêm tiên nghiệm và bằng chứng"
+  - "Với biến liên tục, mật độ không phải xác suất và có thể vượt quá 1"
+  - "Bernoulli (0/1), Categorical (K lớp, chính là đầu ra softmax) và Gauss là ba phân phối mọi hàm mất mát quen thuộc dựa vào"
+  - "Luôn làm việc với log xác suất: tránh tràn số dưới, biến tích thành tổng, không đổi vị trí cực đại"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=rzFX5NWojp0
+    tieu_de: The Normal Distribution, Clearly Explained!!!
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Giải thích phân phối chuẩn và vì sao mật độ khác xác suất, rất chậm và trực quan. Xem trước khi đọc mục "mật độ không phải xác suất".
+  - url: https://www.youtube.com/watch?v=HZGCoVF3YvM
+    tieu_de: Bayes theorem, the geometry of changing beliefs
+    tac_gia: 3Blue1Brown
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Vẽ công thức Bayes thành diện tích trên một hình vuông. Sau video này bạn sẽ không còn phải học thuộc công thức nữa.
+  - url: https://seeing-theory.brown.edu/
+    tieu_de: "Seeing Theory: A visual introduction to probability and statistics"
+    tac_gia: Daniel Kunin (Brown University)
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Trang tương tác, kéo thả để thấy phân phối đổi hình. Chương 1 (Basic Probability) và chương 3 (Probability Distributions) là phần khớp với bài này.
+  - url: https://www.youtube.com/watch?v=ZA4JkHKZM50
+    tieu_de: Why "probability of 0" does not mean "impossible"
+    tac_gia: 3Blue1Brown
+    loai: video
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Đào đúng vào chỗ khó nhất của bài — mật độ so với xác suất ở biến liên tục. Xem khi bạn thấy mục "mật độ" còn gợn.
+---
+
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Con số 0.87 kia nghĩa là gì?
+
+Bạn đưa một email vào bộ lọc thư rác và nó trả về `0.87`. Bạn cho một ảnh vào mô hình phân loại, nó trả về `[0.02, 0.91, 0.07]`. Bạn gõ nửa câu vào một mô hình ngôn ngữ, nó trả về một bảng 50 000 số cho 50 000 token có thể đứng tiếp.
+
+Không mô hình nào trong số đó trả lời "có" hay "không". Chúng đều trả về **một phân phối xác suất**. Và toàn bộ cách ta huấn luyện chúng — MSE, cross-entropy, hợp lý cực đại — đều được viết bằng ngôn ngữ xác suất. Bài này là bộ từ vựng tối thiểu để đọc được phần còn lại.
+
+## Ba quy tắc, không hơn
+
+Xác suất của một biến cố là một số $P(A) \in [0, 1]$. Chỉ có ba quy tắc cần nhớ:
+
+1. **Không âm**: $P(A) \ge 0$.
+2. **Toàn thể bằng 1**: nếu liệt kê hết mọi kết quả có thể thì các xác suất cộng lại bằng 1.
+3. **Cộng được khi rời nhau**: nếu $A$ và $B$ không thể cùng xảy ra thì $P(A \cup B) = P(A) + P(B)$.
+
+Mọi thứ khác trong bài này suy ra từ ba dòng đó.
+
+## Phân phối: một vector cộng lại bằng 1
+
+Khi kết quả chỉ có hữu hạn khả năng (nhãn của ảnh, token tiếp theo), ta gói toàn bộ thông tin vào một **vector**:
+
+$$
+p = (p_1, p_2, \dots, p_K), \qquad p_k \ge 0, \qquad \sum_{k=1}^{K} p_k = 1
+$$
+
+Đầu ra `[0.02, 0.91, 0.07]` ở trên chính là một vector như vậy. Hai ràng buộc này không phải trang trí: chúng là lý do mô hình phân loại phải có một lớp **softmax** ở cuối — softmax nhận một vector số thực bất kỳ và ép nó thành đúng dạng này.
+
+Để ý một hệ quả: với $K$ lớp, bạn chỉ **tự do chọn $K-1$ số**, số cuối bị ràng buộc. Với bài toán hai lớp, chỉ cần một số $p$ là đủ mô tả cả phân phối $(p, 1-p)$.
+
+<CauHoi cau="xac-suat-co-ban/q2" />
+
+## Đồng thời và độc lập: vì sao hợp lý là một tích
+
+Hai biến cố **độc lập** khi biết cái này không thay đổi niềm tin về cái kia. Khi đó và chỉ khi đó:
+
+$$
+P(A \cap B) = P(A) \cdot P(B)
+$$
+
+Tung đồng xu lệch hai lần với $P(\text{ngua}) = 0.6$: xác suất cả hai lần ngửa là $0.6 \times 0.6 = 0.36$.
+
+Phép nhân này là chi tiết quan trọng nhất của bài. Trong ML ta luôn giả định các mẫu huấn luyện **độc lập và cùng phân phối** (i.i.d.). Với giả định đó, xác suất của cả bộ dữ liệu $n$ mẫu là
+
+$$
+P(\text{du lieu} \mid \theta) = \prod_{i=1}^{n} P(x_i \mid \theta)
+$$
+
+Cái tích đó sẽ trở thành **hàm hợp lý** ở bài [Hợp lý cực đại](/khai-niem/hop-ly-cuc-dai), và việc lấy logarit của nó sẽ đẻ ra MSE và cross-entropy.
+
+Cảnh báo: độc lập là một **giả định**, không phải sự thật. Trong câu "con mèo đang ngủ trên...", các token rõ ràng không độc lập. Naive Bayes vẫn nhân thẳng chúng — chữ "naive" nằm ở đúng chỗ đó.
+
+
+## Có điều kiện, và công thức Bayes
+
+Khi các biến cố **không** độc lập, ta cần xác suất có điều kiện. Định nghĩa của nó chỉ là "thu hẹp thế giới lại còn phần $B$ rồi tính tỉ lệ":
+
+$$
+P(A \mid B) = \frac{P(A \cap B)}{P(B)}
+$$
+
+Nhân chéo được $P(A \cap B) = P(A \mid B) P(B)$. Nhưng $A \cap B$ và $B \cap A$ là cùng một thứ, nên cũng có $P(A \cap B) = P(B \mid A) P(A)$. Cho hai vế bằng nhau rồi chia cho $P(B)$:
+
+$$
+P(A \mid B) = \frac{P(B \mid A)\, P(A)}{P(B)}
+$$
+
+Đó là toàn bộ **công thức Bayes** — nó không phải một định lý sâu xa mà chỉ là định nghĩa xác suất có điều kiện viết theo hai chiều. Mẫu số $P(B)$ thường được tính bằng cách cộng theo mọi trường hợp của $A$:
+
+$$
+P(B) = P(B \mid A)P(A) + P(B \mid \neg A)P(\neg A)
+$$
+
+Điểm dễ sai nhất: $P(A \mid B) \ne P(B \mid A)$. Chúng chỉ bằng nhau khi tình cờ $P(A) = P(B)$.
+
+## Tính tay: bộ lọc thư rác
+
+Trong hộp thư của bạn, 40% thư là spam. Cụm từ "khuyến mãi" xuất hiện trong 60% thư spam, nhưng chỉ 5% thư thường. Một thư vừa tới có chứa cụm đó. Xác suất nó là spam?
+
+| | Tiên nghiệm $P(\text{lop})$ | $P(\text{tu} \mid \text{lop})$ | Tích |
+|---|---|---|---|
+| spam | 0.40 | 0.60 | **0.24** |
+| thường | 0.60 | 0.05 | **0.03** |
+| | | Tổng $= P(\text{tu})$ | **0.27** |
+
+$$
+P(\text{spam} \mid \text{tu}) = \frac{0.24}{0.27} \approx 0.8889
+$$
+
+Hai điều đáng để ý.
+
+Thứ nhất, $P(\text{tu} \mid \text{spam}) = 0.60$ nhưng $P(\text{spam} \mid \text{tu}) \approx 0.89$ — **đảo chiều điều kiện cho ra con số hoàn toàn khác**.
+
+Thứ hai, cột "Tích" chưa phải xác suất (nó cộng lại ra 0.27 chứ không phải 1). Chia cho tổng chính là bước **chuẩn hoá**. Bạn sẽ gặp lại đúng thao tác này trong softmax: tính mọi $e^{z_k}$ rồi chia cho tổng.
+
+<CauHoi cau="xac-suat-co-ban/q4" />
+
+## Ba phân phối bạn sẽ gặp mỗi ngày
+
+| Phân phối | Kết quả | Tham số | Xuất hiện ở đâu |
+|---|---|---|---|
+| **Bernoulli** | $\{0, 1\}$ | $p$ | Phân loại nhị phân, đầu ra sigmoid |
+| **Categorical** | $\{1, \dots, K\}$ | $p_1 \dots p_K$ | Phân loại nhiều lớp, đầu ra softmax, token tiếp theo |
+| **Gauss (chuẩn)** | mọi số thực | $\mu, \sigma^2$ | Bài toán dự đoán số, nhiễu đo đạc, khởi tạo trọng số |
+
+Công thức khối lượng / mật độ:
+
+$$
+P(y \mid p) = p^{y}(1-p)^{1-y}
+\qquad
+P(y = k \mid p) = p_k
+\qquad
+f(y \mid \mu, \sigma^2) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp\!\left(-\frac{(y-\mu)^2}{2\sigma^2}\right)
+$$
+
+Công thức Bernoulli trông lạ mắt nhưng chỉ là một mẹo viết gọn: thay $y = 1$ vào được $p$, thay $y = 0$ vào được $1-p$. Mẹo đó sẽ chạy thẳng vào công thức binary cross-entropy ở bài [Cross-entropy](/khai-niem/cross-entropy).
+
+Ba dòng trong bảng này chính là ba giả định sẽ sinh ra ba hàm mất mát khác nhau. Không có gì bí ẩn ở chỗ "vì sao dùng MSE cho hồi quy và cross-entropy cho phân loại" — chỉ là bạn đã ngầm chọn dòng nào.
+
+## Biến liên tục: mật độ không phải xác suất
+
+Với biến liên tục, hỏi "xác suất chiều cao đúng bằng 170.000… cm" là vô nghĩa — câu trả lời luôn là 0, vì có vô hạn giá trị. Thay vào đó ta dùng **hàm mật độ** $f(x)$, và xác suất là **diện tích**:
+
+$$
+P(a \le X \le b) = \int_a^b f(x)\, dx, \qquad \int_{-\infty}^{\infty} f(x)\, dx = 1
+$$
+
+Hệ quả làm nhiều người sững lại: **mật độ có thể lớn hơn 1**. Với $\mathcal{N}(0, 0.2^2)$, mật độ tại 0 là
+
+$$
+\frac{1}{0.2\sqrt{2\pi}} \approx 1.9947
+$$
+
+Không có gì sai. Phân phối càng hẹp, đỉnh càng phải cao để tổng diện tích vẫn bằng 1. Chỉ **diện tích** mới bị chặn bởi 1, không phải chiều cao.
+
+Điều này lát nữa sẽ có hệ quả thực tế: log-likelihood của mô hình liên tục **có thể dương**, trong khi log-likelihood của mô hình rời rạc luôn âm. Thấy loss âm ở mô hình sinh ảnh hay flow thì đừng vội cho là bug.
+
+<CauHoi cau="xac-suat-co-ban/q7" />
+
+## Code: Bayes và chuyện tràn số
+
+```python
+import numpy as np
+
+# Bo loc thu rac, chi nhin 1 dac trung: thu co chua cum "khuyen mai" hay khong
+prior = np.array([0.4, 0.6])                      # [P(spam), P(thuong)]
+kha_nang = np.array([0.6, 0.05])                  # P(co cum | spam), P(co cum | thuong)
+dong_thoi = prior * kha_nang                      # P(lop VA tu)
+bang_chung = dong_thoi.sum()                      # P(tu) — mau so cua Bayes
+hau_nghiem = dong_thoi / bang_chung
+print("dong thoi :", dong_thoi.round(4))
+print("P(tu)     :", round(bang_chung, 4))
+print("hau nghiem:", hau_nghiem.round(4))
+print("tong = 1? :", np.isclose(hau_nghiem.sum(), 1.0))
+
+# 100 token doc lap, moi token xac suat 0.9 -> tich tut rat nhanh
+print("0.9^100   :", 0.9 ** 100)
+print("log-tich  :", round(100 * np.log(0.9), 4))
+print("0.5^2000  :", 0.5 ** 2000)
+```
+
+Kết quả:
+
+```
+dong thoi : [0.24 0.03]
+P(tu)     : 0.27
+hau nghiem: [0.8889 0.1111]
+tong = 1? : True
+0.9^100   : 2.6561398887587544e-05
+log-tich  : -10.5361
+0.5^2000  : 0.0
+```
+
+Ba dòng đầu khớp đúng bảng tính tay ở trên. Ba dòng cuối là bài học thứ hai: `0.5 ** 2000` ra **đúng số 0**. Xác suất đó không bằng 0, nó chỉ nhỏ hơn số dương nhỏ nhất mà `float64` biểu diễn được. Một câu 2000 token là chuyện thường ở NLP.
+
+## Vì sao mọi thứ đều chạy trên log
+
+Phép sửa duy nhất, và nó giải quyết ba vấn đề cùng lúc:
+
+$$
+\log \prod_{i=1}^{n} P(x_i) = \sum_{i=1}^{n} \log P(x_i)
+$$
+
+- **Không tràn số**: $-10.54$ thay vì $2.66 \times 10^{-5}$; với 2000 token thì $-1386$ thay vì $0$.
+- **Dễ lấy đạo hàm**: đạo hàm của một tổng là tổng các đạo hàm; đạo hàm của tích $n$ thừa số thì không ai muốn viết.
+- **Không đổi đáp án**: $\log$ tăng đơn điệu ngặt, nên $\arg\max$ giữ nguyên. Tối đa hoá tích và tối đa hoá tổng log cho **cùng một tham số**.
+
+Vì log của số trong $(0, 1)$ luôn âm, người ta thường lật dấu và gọi là **negative log-likelihood** (NLL) để có một đại lượng đi **tối thiểu hoá** — tức là một hàm mất mát. Cả bài [Hợp lý cực đại](/khai-niem/hop-ly-cuc-dai) chỉ là khai triển câu này.
+
+
+## Quy tắc dây chuyền: cách mô hình ngôn ngữ chấm điểm một câu
+
+Không cần giả định gì cả, định nghĩa xác suất có điều kiện cho ta một đẳng thức **luôn đúng**:
+
+$$
+P(w_1, w_2, \dots, w_T) = P(w_1)\, P(w_2 \mid w_1)\, P(w_3 \mid w_1, w_2) \cdots P(w_T \mid w_{<T})
+$$
+
+Đây chính xác là cách một mô hình ngôn ngữ tự hồi quy (GPT và họ hàng) định nghĩa xác suất của một câu: mỗi bước dự đoán một phân phối Categorical trên từ điển, rồi nhân lại. Trong code thì cộng log.
+
+Hai lưu ý thực chiến:
+
+- Bỏ hết vế điều kiện (viết $P(w_1)P(w_2)\cdots$) là **thêm** giả định độc lập. Đẳng thức trên thì không cần giả định nào.
+- Câu càng dài, tích càng **nhỏ**, log càng **âm**. Nên muốn so sánh hai câu khác độ dài thì phải chia cho số token — đó chính là gốc của **perplexity** mà bạn sẽ gặp ở bài cross-entropy.
+
+## Sai lầm hay gặp, và triệu chứng nhận biết
+
+| Sai lầm | Triệu chứng bạn sẽ thấy |
+|---|---|
+| Đảo $P(A \mid B)$ thành $P(B \mid A)$ | Kết luận "mô hình báo dương tính nên 95% là bệnh" trong khi bệnh chỉ có ở 0.1% dân số. Muốn kiểm nhanh: tính thử ra số bằng Bayes, hai chiều thường lệch nhau hàng chục lần |
+| Nhân xác suất mà quên kiểm tra độc lập | Xác suất tính ra nhỏ hơn thực tế rất nhiều; ở naive Bayes là điểm số tự tin thái quá, gần 0 hoặc gần 1 chứ hiếm khi ở giữa |
+| Nhân xác suất thay vì cộng log | Loss ra `0.0`, `nan` hoặc `-inf` ngay từ batch đầu; câu càng dài càng dễ gặp. Kiểm bằng cách in độ dài chuỗi và giá trị tích |
+| Coi mật độ là xác suất | Hoảng khi thấy "xác suất" bằng 3.4, hoặc thấy log-likelihood dương ở mô hình liên tục và tưởng là bug |
+| Vector đầu ra không cộng lại bằng 1 | `np.sum(p)` ra 0.83 hay 1.4. Thường do dùng sigmoid cho bài nhiều lớp, hoặc lỡ tay chạy softmax hai lần |
+| Lẫn độc lập với xung khắc | Viết $P(A \cap B) = P(A)P(B)$ cho hai nhãn loại trừ nhau; giá trị đúng phải là 0 |
+
+<CauHoi cau="xac-suat-co-ban/q11" />
+
+## Tra nhanh
+
+| Cần gì | Công thức / đoạn code | Nhớ kèm |
+|---|---|---|
+| Phân phối hợp lệ | `p >= 0` và `p.sum() == 1` | $K$ lớp chỉ có $K-1$ bậc tự do |
+| Đồng thời, độc lập | $P(A \cap B) = P(A)P(B)$ | Chỉ khi độc lập; nếu không, dùng $P(A\mid B)P(B)$ |
+| Có điều kiện | $P(A \mid B) = P(A \cap B) / P(B)$ | Không đối xứng |
+| Bayes | $P(A\mid B) = P(B\mid A)P(A) / P(B)$ | Mẫu số = tổng tử số theo mọi $A$ |
+| Xác suất biên | $P(B) = \sum_A P(B \mid A)P(A)$ | Chính là bước chuẩn hoá |
+| Bernoulli | $p^{y}(1-p)^{1-y}$, $y \in \{0,1\}$ | Sinh ra binary cross-entropy |
+| Categorical | $p_k$, vector shape `(K,)` | Đầu ra softmax; batch là `(n, K)` |
+| Gauss | $\frac{1}{\sqrt{2\pi\sigma^2}}e^{-(y-\mu)^2/2\sigma^2}$ | Mật độ, có thể $> 1$; sinh ra MSE |
+| Chuỗi $n$ mẫu i.i.d. | $\prod_i P(x_i \mid \theta)$ | Trong code luôn viết thành $\sum_i \log P(x_i \mid \theta)$ |
+| Lỗi hay gặp nhất | tích xác suất `-> 0.0` | Đổi sang tổng log ngay, đừng cộng epsilon |
+
+## Tóm tắt
+
+- Mô hình ML xuất ra **phân phối**, không phải câu trả lời cứng: vector không âm, tổng bằng 1.
+- Độc lập cho phép **nhân** xác suất; đó là nguồn gốc của tích trong hàm hợp lý.
+- Xác suất có điều kiện **không đối xứng**; Bayes là công thức đổi chiều, và mẫu số của nó chính là bước chuẩn hoá.
+- Với biến liên tục, **mật độ không phải xác suất** và có thể vượt 1.
+- Luôn chuyển tích thành **tổng log**: tránh tràn số, dễ đạo hàm, không đổi nghiệm.
+- Tiếp theo: [Kỳ vọng, phương sai](/khai-niem/ky-vong-phuong-sai), rồi [Hợp lý cực đại](/khai-niem/hop-ly-cuc-dai) — nơi những mảnh trên ghép lại thành hàm mất mát.

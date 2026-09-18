@@ -1,0 +1,129 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: "Vì sao không được khởi tạo toàn bộ trọng số của một lớp bằng 0?"
+    lua_chon:
+      - Vì loss sẽ ra NaN ngay
+      - "Vì mọi neuron trong lớp tính ra cùng một giá trị, nhận cùng một gradient và cập nhật giống hệt nhau mãi mãi"
+      - Vì numpy không cho phép nhân ma trận 0
+      - Vì gradient descent chỉ chạy được với số dương
+    dap_an: 1
+    giai_thich: "Đây là vấn đề ĐỐI XỨNG. Gradient descent tôn trọng mọi đối xứng có sẵn, nên nếu hai neuron bắt đầu giống hệt nhau thì chúng giống nhau mãi. Lớp 512 neuron chỉ còn sức biểu diễn của 1 neuron. Thứ duy nhất phá đối xứng là sự ngẫu nhiên lúc khởi tạo."
+
+  - id: q2
+    loai: mot
+    do_kho: 1
+    de: "Mỗi lớp nhân độ lớn tín hiệu với hệ số k = 0.9. Sau 20 lớp, tín hiệu còn lại khoảng bao nhiêu phần so với ban đầu?"
+    lua_chon:
+      - Khoảng 0.9 (gần như không đổi)
+      - Khoảng 0.12
+      - Khoảng 0.5
+      - Khoảng 18 lần lớn hơn
+    dap_an: 1
+    giai_thich: "0.9²⁰ = 0.12. Lệch 10% mỗi lớp mà qua 20 lớp đã còn hơn một phần mười. Với 96 lớp thì 0.9⁹⁶ ≈ 4×10⁻⁵. Đó là lý do khởi tạo phải nhắm k = 1 rất chính xác."
+
+  - id: q3
+    loai: mot
+    do_kho: 1
+    de: "Có nên khởi tạo bias bằng 0 không?"
+    lua_chon:
+      - "Không, bias cũng phải ngẫu nhiên để phá đối xứng"
+      - "Có, hoàn toàn ổn: đối xứng giữa các neuron đã bị ma trận trọng số ngẫu nhiên phá rồi"
+      - "Không, bias phải bằng 1"
+      - Chỉ nên đặt bias bằng 0 khi dùng sigmoid
+    dap_an: 1
+    giai_thich: "Chỉ cần một nguồn ngẫu nhiên để phá đối xứng, và W đã làm việc đó. Bias = 0 là mặc định trong mọi framework. Bias ngẫu nhiên chỉ thêm nhiễu vô ích."
+
+  - id: q4
+    loai: so
+    do_kho: 2
+    de: "Lớp có n_in = 100 đầu vào, trọng số khởi tạo với Var(w) = 0.04, đầu vào có Var(x) = 1, bias = 0. Phương sai của tổng z = Σ wᵢxᵢ bằng bao nhiêu?"
+    dap_an: 4
+    sai_so: 0.001
+    giai_thich: "Var(z) = n_in · Var(w) · Var(x) = 100 × 0.04 × 1 = 4. Đây là công thức khung mà cả Xavier lẫn He đều suy ra từ đó. Ở đây phương sai phình gấp 4 mỗi lớp — sau 20 lớp là 4²⁰ ≈ 10¹²."
+
+  - id: q5
+    loai: so
+    do_kho: 2
+    de: "Khởi tạo Xavier/Glorot bản chuẩn cho một lớp 256 → 256. Độ lệch chuẩn σ bằng bao nhiêu?"
+    dap_an: 0.0625
+    sai_so: 0.0001
+    giai_thich: "σ = √(2/(n_in + n_out)) = √(2/512) = √(1/256) = 1/16 = 0.0625. Kiểm lại công thức khung: Var(z) = 256 × (1/16)² × 1 = 1, đúng bằng phương sai đầu vào."
+
+  - id: q6
+    loai: so
+    do_kho: 2
+    de: "Khởi tạo He/Kaiming (mode fan_in) cho một lớp 784 → 256 dùng ReLU. Độ lệch chuẩn σ bằng bao nhiêu?"
+    dap_an: 0.050508
+    sai_so: 0.0005
+    giai_thich: "σ = √(2/n_in) = √(2/784) = 0.0505. Chú ý He chỉ dùng n_in, không dùng n_out — khác Xavier. Nếu nhầm sang Xavier ở đây thì σ = √(2/1040) = 0.0439."
+
+  - id: q7
+    loai: so
+    do_kho: 2
+    de: "Khởi tạo Xavier bản ĐỀU cho lớp 256 → 256, tức w ~ U(−a, a). Giá trị a bằng bao nhiêu?"
+    dap_an: 0.10825
+    sai_so: 0.0005
+    giai_thich: "Var(U(−a,a)) = a²/3, nên a = √(3·Var(w)) = √(3 × 2/512) = √(6/512) = √3/16 = 0.1083. Số 6 trong công thức quen thuộc √(6/(n_in+n_out)) chính là 3 × 2, đến từ phương sai của phân phối đều."
+
+  - id: q8
+    loai: mot
+    do_kho: 2
+    de: "Vì sao công thức He có hệ số 2 ở tử số (Var(w) = 2/n_in) còn công thức giữ phương sai cơ bản chỉ có 1/n_in?"
+    lua_chon:
+      - Vì He dùng cho mạng sâu gấp đôi
+      - "Vì ReLU đưa đúng một nửa số tín hiệu về 0, nên E[a²] = ½Var(z); hệ số 2 bù lại đúng phần bị mất"
+      - Vì phải tính cả bias
+      - Vì He dùng phân phối đều thay vì chuẩn
+    dap_an: 1
+    giai_thich: "Nếu z đối xứng quanh 0 thì E[max(0,z)²] = ½E[z²]. Thay vào Var(z_{l+1}) = n_in·σ²·E[a²] = n_in·σ²·½Var(z_l), muốn bằng Var(z_l) thì n_in·σ²/2 = 1, tức σ² = 2/n_in."
+
+  - id: q9
+    loai: mot
+    do_kho: 2
+    de: "Bạn dùng Xavier cho một mạng 20 lớp ReLU. Đo phương sai của z ở từng lớp, thấy nó giảm khoảng một nửa mỗi lớp. Điều gì đang xảy ra và sửa thế nào?"
+    lua_chon:
+      - Bình thường, cứ để vậy
+      - "Xavier không tính tới việc ReLU vứt nửa tín hiệu; đổi sang He (nhân σ với √2) để bù"
+      - Learning rate quá nhỏ, tăng lên
+      - Cần thêm nhiều lớp hơn nữa
+    dap_an: 1
+    giai_thich: "Đúng bằng chứng của việc thiếu hệ số 2. Sau 20 lớp thì 0.5¹⁹ ≈ 2×10⁻⁶: tín hiệu và gradient đều gần như biến mất. Chênh lệch giữa Xavier và He chỉ là hệ số √2 mỗi lớp, nhưng luỹ thừa 20 lần thì thành một triệu lần."
+
+  - id: q10
+    loai: mot
+    do_kho: 3
+    de: "GPT-2 nhân thêm hệ số 1/√(2L) (với L là số khối) vào trọng số của lớp chiếu cuối mỗi nhánh residual. Lý do là gì?"
+    lua_chon:
+      - Để tiết kiệm bộ nhớ
+      - "Vì mỗi khối cộng thêm phương sai vào residual stream; qua L khối (2 lần cộng mỗi khối) phương sai phình khoảng 2L lần, nên phải chia lại"
+      - Để LayerNorm chạy nhanh hơn
+      - Vì attention cần trọng số nhỏ hơn MLP
+    dap_an: 1
+    giai_thich: "Residual stream là x ← x + Attn(x) rồi x ← x + MLP(x). Phương sai của các đóng góp độc lập thì cộng dồn, nên mạng càng sâu càng phình. Chia σ cho √(2L) làm mỗi khối lúc khởi tạo gần như là ánh xạ đồng nhất: L = 12 cho σ = 0.02/√24 = 0.0041."
+
+  - id: q11
+    loai: nhieu
+    do_kho: 2
+    de: Những dấu hiệu nào cho thấy trọng số có thể đang được khởi tạo QUÁ LỚN? (chọn tất cả ý đúng)
+    lua_chon:
+      - Loss ra NaN sau vài bước huấn luyện
+      - Với tanh/sigmoid, phần lớn kích hoạt dồn về hai đầu của hàm (bão hoà) thay vì quanh giữa
+      - Phương sai kích hoạt tăng vài bậc mười qua mỗi lớp
+      - Mọi neuron trong một lớp cho ra cùng một giá trị
+    dap_an: [0, 1, 2]
+    giai_thich: "Ba ý đầu là triệu chứng của khởi tạo quá lớn (bùng nổ với ReLU, bão hoà với tanh/sigmoid). Ý cuối là triệu chứng của khởi tạo bằng 0 hoặc mọi trọng số bằng nhau, tức vấn đề đối xứng — hoàn toàn khác."
+
+  - id: q12
+    loai: mot
+    do_kho: 3
+    de: "Mạng 20 lớp của bạn có loss đứng im ở ln(10) = 2.303 (mức đoán đều 10 lớp). Bạn đã dò learning rate qua 4 bậc mười mà không cái nào chạy được. Việc nên làm tiếp theo là gì?"
+    lua_chon:
+      - Dò thêm 4 bậc mười nữa
+      - "Chạy một lượt xuôi và in phương sai của z ở từng lớp để xem tín hiệu có tắt dần hay không"
+      - Tăng số lớp lên 40
+      - Đổi sang optimizer khác
+    dap_an: 1
+    giai_thich: "Khởi tạo sai có triệu chứng giống hệt learning rate sai, nên dò η mãi không ăn thua là dấu hiệu nên nghi khởi tạo. Phép kiểm chỉ tốn một lượt xuôi, không cần huấn luyện: nếu phương sai z tụt vài bậc mười qua các lớp thì đó là vanishing do khởi tạo, đổi optimizer hay learning rate đều vô ích."

@@ -1,0 +1,133 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: "Bảng dữ liệu 500 khách hàng, mỗi người 8 đặc trưng. Theo quy ước ML, ma trận X có shape nào?"
+    lua_chon:
+      - "(500, 8)"
+      - "(8, 500)"
+      - "(500,)"
+      - "(4000,)"
+    dap_an: 0
+    giai_thich: "Quy ước: X có shape (số mẫu, số đặc trưng), mỗi HÀNG là một mẫu. Mọi công thức sau đó (X @ W.T + b) đều bám vào quy ước này."
+
+  - id: q2
+    loai: mot
+    do_kho: 1
+    de: "`np.array([1, 2, 3]).shape` trả về gì?"
+    lua_chon:
+      - "(3,)"
+      - "(1, 3)"
+      - "(3, 1)"
+      - "3"
+    dap_an: 0
+    giai_thich: "Đây là mảng MỘT chiều, shape là tuple một phần tử `(3,)`. Nó không phải vector hàng `(1, 3)` cũng không phải vector cột `(3, 1)` — ba thứ này khác nhau trong NumPy."
+
+  - id: q3
+    loai: so
+    do_kho: 1
+    de: "X có shape (4, 6). `X.T.shape[0]` bằng bao nhiêu?"
+    dap_an: 6
+    sai_so: 0.001
+    giai_thich: "Chuyển vị đảo hai chiều: (4, 6) thành (6, 4). Phần tử đầu tiên của shape là 6."
+
+  - id: q4
+    loai: mot
+    do_kho: 2
+    de: "X = [[1, 2], [3, 4], [5, 6]]. `X.reshape(2, 3)` cho kết quả nào?"
+    lua_chon:
+      - "[[1, 3, 5], [2, 4, 6]]"
+      - "[[1, 2, 3], [4, 5, 6]]"
+      - "Báo lỗi vì không đổi được shape"
+      - "[[1, 2], [3, 4]]"
+    dap_an: 1
+    giai_thich: "`reshape` đọc các số theo đúng thứ tự có sẵn (1, 2, 3, 4, 5, 6) rồi xếp vào khuôn mới. Kết quả [[1, 3, 5], [2, 4, 6]] là của `X.T`, KHÁC hẳn. Đừng dùng reshape để chuyển vị."
+
+  - id: q5
+    loai: so
+    do_kho: 1
+    de: "X có shape (3, 2). `X.sum(axis=0)` cho ra mảng có bao nhiêu phần tử?"
+    dap_an: 2
+    sai_so: 0.001
+    giai_thich: "`axis=0` nghĩa là trục 0 (dài 3) bị gộp và BIẾN MẤT, còn lại shape (2,). Mỗi số là tổng của một cột."
+
+  - id: q6
+    loai: mot
+    do_kho: 2
+    de: "A có shape (3, 2), B có shape (3, 1). `A + B` có shape nào?"
+    lua_chon:
+      - "(3, 2)"
+      - "(3, 3)"
+      - "(3, 1)"
+      - "Báo lỗi broadcasting"
+    dap_an: 0
+    giai_thich: "So từ phải sang trái: 2 với 1 (một bên bằng 1 nên nở ra thành 2), 3 với 3 (bằng nhau). Kết quả (3, 2): mỗi mẫu được cộng một số riêng vào cả hai đặc trưng."
+
+  - id: q7
+    loai: mot
+    do_kho: 2
+    de: "Bạn muốn chia mỗi hàng của X cho chuẩn L2 của chính hàng đó. Code `X / np.sqrt((X ** 2).sum(axis=1))` báo `ValueError: operands could not be broadcast together with shapes (32,10) (32,)`. Sai ở đâu?"
+    lua_chon:
+      - "Phải dùng `axis=0` thay vì `axis=1`"
+      - "Thiếu `keepdims=True` trong `sum`, nên mẫu số có shape (32,) thay vì (32, 1)"
+      - "Không được chia hai mảng NumPy cho nhau"
+      - "Phải chuyển X sang float trước"
+    dap_an: 1
+    giai_thich: "`sum(axis=1)` làm trục 1 biến mất, còn (32,). Broadcasting so (32, 10) với (32,) từ PHẢI: 10 với 32, không ai bằng 1, nên lỗi. Thêm `keepdims=True` để mẫu số là (32, 1), khi đó nó nhân bản đúng theo cột."
+
+  - id: q8
+    loai: nhieu
+    do_kho: 2
+    de: "Cặp shape nào broadcasting được với nhau? (chọn tất cả ý đúng)"
+    lua_chon:
+      - "(3, 2) và (2,)"
+      - "(3, 2) và (3,)"
+      - "(3, 2) và (3, 1)"
+      - "(4, 1, 3) và (5, 3)"
+    dap_an: [0, 2, 3]
+    giai_thich: "So từ phải sang trái, mỗi cặp chiều phải bằng nhau hoặc có một bên bằng 1 (hoặc thiếu). (3, 2) với (3,): so 2 với 3, cả hai khác 1 nên LỖI. Muốn cộng một số cho mỗi mẫu thì phải viết shape (3, 1)."
+
+  - id: q9
+    loai: so
+    do_kho: 1
+    de: "Chuẩn L2 của vector (3, 4, 12) bằng bao nhiêu?"
+    dap_an: 13
+    sai_so: 0.001
+    giai_thich: "√(9 + 16 + 144) = √169 = 13. Chuẩn L2 là Pythagore mở rộng: mỗi chiều mới thêm đúng một số hạng bình phương."
+
+  - id: q10
+    loai: mot
+    do_kho: 2
+    de: "`v = X[0]` rồi `v[0] = 999`. Điều gì xảy ra với X?"
+    lua_chon:
+      - "X không đổi, vì `X[0]` tạo bản sao"
+      - "`X[0, 0]` cũng thành 999, vì `X[0]` là một view dùng chung bộ nhớ"
+      - "Báo lỗi vì không được gán vào phần tử của mảng con"
+      - "Tuỳ dtype của X"
+    dap_an: 1
+    giai_thich: "Cắt lát cơ bản (`X[0]`, `X[:, 1:]`, `X.T`, `reshape`) trả về VIEW: cùng vùng nhớ, chỉ đọc theo cách khác. Muốn tách rời thì `X[0].copy()`. Ngược lại, chỉ mục nâng cao như `X[[0, 2]]` luôn trả bản sao."
+
+  - id: q11
+    loai: mot
+    do_kho: 3
+    de: "`v` có shape (5,). Biểu thức nào cho kết quả shape (5, 5)?"
+    lua_chon:
+      - "v + v"
+      - "v + v[:, None]"
+      - "v + v.T"
+      - "v.reshape(5, 5)"
+    dap_an: 1
+    giai_thich: "`v[:, None]` là (5, 1). So (5,) với (5, 1) từ phải: 5 với 1 nở thành 5, rồi chiều thiếu bên trái nở thành 5 → (5, 5). Lưu ý `v.T` với mảng 1 chiều KHÔNG làm gì cả, vẫn là (5,), nên `v + v.T` chỉ ra (5,). Đây là bug cộng vector rất hay gặp và NumPy không hề báo lỗi."
+
+  - id: q12
+    loai: nhieu
+    do_kho: 3
+    de: "X shape (n, d) là dữ liệu chuẩn ML. Phát biểu nào đúng? (chọn tất cả ý đúng)"
+    lua_chon:
+      - "`X.mean(axis=0)` cho trung bình của từng ĐẶC TRƯNG, shape (d,)"
+      - "`X.mean(axis=1)` cho trung bình của từng MẪU, shape (n,)"
+      - "Cộng bias cho từng đặc trưng thì bias phải có shape (d,) hoặc (1, d)"
+      - "`X.mean(axis=0, keepdims=True)` có shape (d, 1)"
+    dap_an: [0, 1, 2]
+    giai_thich: "`keepdims=True` giữ trục bị gộp lại với độ dài 1 ĐÚNG VỊ TRÍ CŨ, nên `X.mean(axis=0, keepdims=True)` có shape (1, d), không phải (d, 1). Ba ý còn lại là các quy ước cần thuộc lòng."

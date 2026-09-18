@@ -1,0 +1,125 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: "Momentum thay bước w ← w − ηg bằng v ← βv + g rồi w ← w − ηv. Biến v mang ý nghĩa gì?"
+    lua_chon:
+      - Learning rate được điều chỉnh tự động
+      - Tổng có trọng số của toàn bộ gradient trong quá khứ, gradient càng cũ càng nhẹ
+      - Gradient của bước tiếp theo, đoán trước
+      - Độ lớn trung bình của trọng số
+    dap_an: 1
+    giai_thich: "Khai triển ra: v_t = g_t + βg_{t−1} + β²g_{t−2} + … Hướng dao động thì các số hạng đổi dấu và triệt tiêu nhau, hướng ổn định thì cộng dồn. Đó là toàn bộ tác dụng của momentum."
+
+  - id: q2
+    loai: so
+    do_kho: 2
+    de: "L(w) = w², η = 0.1, β = 0.9, xuất phát w = 1 và v = 0. Dùng v ← βv + g rồi w ← w − ηv. Sau HAI bước, w bằng bao nhiêu?"
+    dap_an: 0.46
+    sai_so: 0.001
+    giai_thich: "Bước 1: g = 2, v = 0.9·0 + 2 = 2, w = 1 − 0.2 = 0.8. Bước 2: g = 1.6, v = 0.9·2 + 1.6 = 3.4, w = 0.8 − 0.34 = 0.46. SGD thường cùng η mới tới 0.64."
+
+  - id: q3
+    loai: so
+    do_kho: 2
+    de: "Momentum với β = 0.9, gradient giữ nguyên một giá trị không đổi. Ở trạng thái ổn định, bước đi dài gấp bao nhiêu lần so với SGD cùng learning rate?"
+    dap_an: 10
+    sai_so: 0.01
+    giai_thich: "v hội tụ về g(1 + β + β² + …) = g/(1 − β) = g/0.1 = 10g. Đây là lý do đổi từ SGD sang momentum mà giữ nguyên η rất dễ phân kỳ: bước đột ngột dài gấp 10."
+
+  - id: q4
+    loai: mot
+    do_kho: 2
+    de: "RMSProp cập nhật w ← w − η·g/(√s + ε) với s là trung bình trượt của g². Phép chia này đạt được điều gì?"
+    lua_chon:
+      - Làm gradient luôn dương
+      - Mỗi tham số có độ dài bước riêng, gần như không phụ thuộc độ lớn gradient của nó
+      - Giảm bộ nhớ cần dùng
+      - Thay thế cho việc xáo dữ liệu
+    dap_an: 1
+    giai_thich: "Nếu g gần như không đổi thì s → g² và bước thành η·g/|g| = ±η. Độ lớn gradient bị xoá, chỉ còn dấu. Nhờ vậy hướng dốc và hướng thoải được đối xử như nhau — đúng thứ SGD không làm được ở khe hẹp."
+
+  - id: q5
+    loai: so
+    do_kho: 3
+    de: "RMSProp với η = 0.1, β = 0.9, s khởi tạo bằng 0, ε bỏ qua. Bước ĐẦU TIÊN đi được quãng đường bao nhiêu (không phụ thuộc giá trị gradient)?"
+    dap_an: 0.3162
+    sai_so: 0.001
+    giai_thich: "s₁ = (1−β)g² nên √s₁ = √(1−β)·|g|. Bước = η|g|/(√(1−β)|g|) = η/√(1−β) = 0.1/√0.1 = 0.3162. Vì s khởi tạo bằng 0 nên mẫu số bị nhỏ đi, bước đầu bị phóng to gấp 3.16 lần. Đây chính là bệnh mà hiệu chỉnh thiên lệch của Adam chữa."
+
+  - id: q6
+    loai: mot
+    do_kho: 2
+    de: "Trong Adam, m và v lần lượt đóng vai trò gì?"
+    lua_chon:
+      - m là learning rate, v là weight decay
+      - "m cho HƯỚNG (trung bình của g, chính là momentum), v cho THANG ĐO (trung bình của g², chính là RMSProp)"
+      - m là gradient của lớp trước, v của lớp sau
+      - m là giá trị loss, v là số bước đã chạy
+    dap_an: 1
+    giai_thich: "Adam đúng nghĩa là gộp hai ý tưởng độc lập: momentum lo hướng đi, RMSProp lo độ dài bước cho từng tham số. Phần riêng của Adam là hai dòng hiệu chỉnh thiên lệch."
+
+  - id: q7
+    loai: so
+    do_kho: 2
+    de: "Adam với η = 0.1, β₁ = 0.9, β₂ = 0.999, ε = 1e−8, m = v = 0. L(w) = w², xuất phát w = 1. Sau MỘT bước, w bằng bao nhiêu?"
+    dap_an: 0.9
+    sai_so: 0.001
+    giai_thich: "g = 2. m = 0.1×2 = 0.2, v = 0.001×4 = 0.004. Hiệu chỉnh: m̂ = 0.2/(1−0.9) = 2, v̂ = 0.004/(1−0.999) = 4. Bước = 0.1 × 2/(√4 + ε) = 0.1. Nhờ hiệu chỉnh, bước ĐẦU của Adam luôn dài đúng bằng η, bất kể gradient lớn hay nhỏ — cách kiểm tra code Adam nhanh nhất."
+
+  - id: q8
+    loai: so
+    do_kho: 3
+    de: "Bạn cài Adam nhưng quên hai dòng hiệu chỉnh thiên lệch. Với β₁ = 0.9 và β₂ = 0.999, bước đầu tiên dài GẤP BAO NHIÊU LẦN so với bản có hiệu chỉnh?"
+    dap_an: 3.162
+    sai_so: 0.01
+    giai_thich: "Bước 1 không hiệu chỉnh = η·m₁/√v₁ = η(1−β₁)g / (√(1−β₂)·|g|) = η(1−β₁)/√(1−β₂) = η × 0.1/0.0316 = 3.162η. Bản có hiệu chỉnh cho đúng η. Cách nhớ: tử số m₁ hụt 10 lần, mẫu số √v₁ hụt 31.6 lần, hai cái hụt KHÔNG khử nhau mà để lại hệ số 31.6/10 = 3.16."
+
+  - id: q9
+    loai: mot
+    do_kho: 2
+    de: "Bạn đang dùng SGD với η = 0.1 chạy tốt. Bật momentum β = 0.9, giữ nguyên η, loss ra NaN sau vài chục bước. Cách sửa đầu tiên nên thử là gì?"
+    lua_chon:
+      - Tăng batch size
+      - "Chia η xuống khoảng 10 lần (0.01), vì momentum làm bước dài gấp 1/(1−β) = 10"
+      - Tăng η lên để thoát nhanh hơn
+      - Đổi sang β = 0.99
+    dap_an: 1
+    giai_thich: "Momentum không thay đổi hướng trung bình, nó nhân độ dài bước ở trạng thái ổn định lên 1/(1−β) = 10 lần. Giữ nguyên η nghĩa là vô tình tăng learning rate hiệu dụng gấp 10. Chọn β = 0.99 còn tệ hơn (gấp 100 lần)."
+
+  - id: q10
+    loai: mot
+    do_kho: 2
+    de: "Vì sao cộng L2 (λ/2)‖w‖² vào loss rồi chạy Adam KHÔNG tương đương với AdamW?"
+    lua_chon:
+      - Vì AdamW dùng learning rate khác
+      - "Vì số hạng λw đi qua phép chia cho √v̂, nên tham số có gradient lớn bị ghìm ít hơn — lực weight decay không còn là hằng số mình đặt"
+      - Vì AdamW không dùng hiệu chỉnh thiên lệch
+      - Vì L2 chỉ dùng được với hàm mất mát MSE
+    dap_an: 1
+    giai_thich: "Với SGD, w ← w − η(g + λw) = (1 − ηλ)w − ηg, đúng nghĩa weight decay. Với Adam thì λw nằm trong tử số của phân thức chia cho √v̂, nên bị bóp méo. AdamW trừ thẳng −ηλw ngoài phân thức. Lưu ý torch.optim.Adam(weight_decay=…) là bản L2 cũ, không phải AdamW."
+
+  - id: q11
+    loai: nhieu
+    do_kho: 2
+    de: Trong những tình huống nào SGD + momentum thường là lựa chọn tốt hơn Adam? (chọn tất cả ý đúng)
+    lua_chon:
+      - Phân loại ảnh với CNN, khi có ngân sách tinh chỉnh siêu tham số
+      - Khi muốn accuracy trên tập test cao nhất có thể ở các bài toán thị giác
+      - Huấn luyện Transformer ngôn ngữ từ đầu
+      - Khi bộ nhớ GPU rất chật và muốn tiết kiệm trạng thái optimizer
+    dap_an: [0, 1, 3]
+    giai_thich: "SGD+momentum vẫn giữ kỷ lục trên nhiều bài thị giác và chỉ cần 1 bản sao tham số (Adam cần 2, cho m và v). Ngược lại Transformer gần như bắt buộc dùng AdamW: SGD rất khó ổn định vì gradient các lớp chênh lệch độ lớn quá lớn."
+
+  - id: q12
+    loai: mot
+    do_kho: 3
+    de: "Huấn luyện Transformer bằng Adam với mặc định η = 1e−3. Loss giảm đẹp 80 bước rồi nổ lên rất lớn quanh bước 100. Hai cách sửa được khuyến nghị nhất là gì?"
+    lua_chon:
+      - Tăng η và tăng batch size
+      - "Thêm warmup vài trăm bước và hạ η xuống cỡ 1e−4 tới 3e−4 (có thể hạ thêm β₂ xuống 0.95)"
+      - Bỏ hiệu chỉnh thiên lệch
+      - Đổi sang SGD không momentum
+    dap_an: 1
+    giai_thich: "Với Transformer, η = 1e−3 là quá lớn và Adam không warmup là công thức chuẩn để nổ loss trong vài trăm bước đầu. Hạ β₂ giúp v phản ứng nhanh hơn với các cú vọt gradient. Bỏ hiệu chỉnh thiên lệch chỉ làm tệ hơn."

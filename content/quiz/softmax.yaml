@@ -1,0 +1,130 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: Softmax dùng để làm gì?
+    lua_chon:
+      - Biến một vector K điểm thô (logit) thành một phân phối xác suất trên K lớp
+      - Chọn ra lớp có điểm cao nhất
+      - Chuẩn hoá dữ liệu đầu vào về trung bình 0
+      - Giảm số chiều của vector đặc trưng
+    dap_an: 0
+    giai_thich: "Chọn lớp cao nhất là argmax — cứng và không có đạo hàm nên không huấn luyện được. Softmax là bản 'mềm': vẫn nghiêng về lớp lớn nhất nhưng cho ra cả một phân phối, và có đạo hàm."
+
+  - id: q2
+    loai: so
+    do_kho: 2
+    de: "Logit z = (2.0, 1.0, 0.1). Xác suất softmax của lớp ĐẦU TIÊN bằng bao nhiêu? (4 chữ số thập phân)"
+    dap_an: 0.659
+    sai_so: 0.0005
+    giai_thich: "e² = 7.389056, e¹ = 2.718282, e^0.1 = 1.105171, tổng = 11.212509. 7.389056 / 11.212509 = 0.6590. Ba xác suất là (0.6590, 0.2424, 0.0986), cộng lại đúng bằng 1."
+
+  - id: q3
+    loai: mot
+    do_kho: 2
+    de: "Cộng thêm 1000 vào MỌI logit rồi tính lại softmax. Kết quả thế nào?"
+    lua_chon:
+      - Không đổi chút nào
+      - Mọi xác suất đều tăng
+      - Phân phối trở nên nhọn hơn
+      - Kết quả là nan
+    dap_an: 0
+    giai_thich: "softmax(z + c) = softmax(z) vì e^c có mặt ở cả tử lẫn mẫu và tự triệt tiêu. Chỉ HIỆU SỐ giữa các logit mới có nghĩa. Đây cũng là lý do được phép trừ max trước khi lấy exp. (Lưu ý: nếu cài softmax mà KHÔNG trừ max thì cộng 1000 sẽ thật sự cho nan vì tràn số — nhưng đó là lỗi cài đặt, không phải bản chất toán học.)"
+
+  - id: q4
+    loai: so
+    do_kho: 3
+    de: "Vẫn logit z = (2.0, 1.0, 0.1), nhưng dùng nhiệt độ τ = 0.5. Xác suất của lớp đầu tiên bằng bao nhiêu? (4 chữ số thập phân)"
+    dap_an: 0.8638
+    sai_so: 0.0005
+    giai_thich: "Chia logit cho τ = 0.5 tức nhân đôi: z/τ = (4, 2, 0.2). e⁴ = 54.598150, e² = 7.389056, e^0.2 = 1.221403, tổng = 63.208609. 54.598150/63.208609 = 0.8638. So với 0.6590 ở τ = 1: phân phối đã nhọn hơn hẳn."
+
+  - id: q5
+    loai: mot
+    do_kho: 2
+    de: "Cho nhiệt độ τ tiến về 0 (từ phía dương). Phân phối softmax tiến tới cái gì?"
+    lua_chon:
+      - Phân phối đều, mỗi lớp 1/K
+      - One-hot tại lớp có logit lớn nhất, tức argmax
+      - Toàn số 0
+      - Không xác định
+    dap_an: 1
+    giai_thich: "Mọi hiệu (z_i − z_max)/τ tiến về âm vô cùng trừ lớp lớn nhất (hiệu bằng 0). Nên e mũ của chúng về 0, chỉ lớp lớn nhất còn lại 1. Softmax 'cứng' lại thành argmax. Trong code sinh văn bản, τ = 0 phải xử lý riêng bằng argmax chứ không được chia cho 0."
+
+  - id: q6
+    loai: mot
+    do_kho: 2
+    de: "Ngược lại, cho τ tiến ra vô cùng. Phân phối tiến tới cái gì?"
+    lua_chon:
+      - One-hot tại lớp lớn nhất
+      - Phân phối đều, mỗi lớp 1/K
+      - Toàn số 1
+      - Giữ nguyên như τ = 1
+    dap_an: 1
+    giai_thich: "Mọi z_i/τ tiến về 0, nên mọi e^(z_i/τ) tiến về 1 và mỗi lớp được 1/K. Logit bị xoá sạch ảnh hưởng: mô hình sinh văn bản ở τ rất lớn bốc từ gần như ngẫu nhiên."
+
+  - id: q7
+    loai: so
+    do_kho: 2
+    de: "Logit z = (2.0, 1.0, 0.1) cho ŷ = (0.6590, 0.2424, 0.0986). Nhãn đúng là lớp đầu tiên. Thành phần thứ HAI của gradient ∂L/∂z bằng bao nhiêu? (4 chữ số thập phân)"
+    dap_an: 0.2424
+    sai_so: 0.0005
+    giai_thich: "∂L/∂z = ŷ − y với y = (1, 0, 0). Thành phần thứ hai: 0.2424 − 0 = 0.2424. Cả vector là (−0.3410, 0.2424, 0.0986): lớp đúng có gradient âm nên logit được kéo LÊN, hai lớp sai bị kéo xuống. Tổng ba thành phần luôn bằng 0."
+
+  - id: q8
+    loai: mot
+    do_kho: 2
+    de: "Với K = 2 lớp, softmax(z₁, z₂) cho lớp 1 bằng biểu thức nào?"
+    lua_chon:
+      - "σ(z₁ − z₂)"
+      - "σ(z₁ + z₂)"
+      - "σ(z₁) · σ(z₂)"
+      - "σ(z₁)/2"
+    dap_an: 0
+    giai_thich: "Chia cả tử và mẫu cho e^z₁: e^z₁/(e^z₁ + e^z₂) = 1/(1 + e^(z₂ − z₁)) = σ(z₁ − z₂). Vậy hồi quy logistic là trường hợp riêng K = 2 của softmax, và mô hình 2 lớp chỉ cần MỘT logit."
+
+  - id: q9
+    loai: nhieu
+    do_kho: 2
+    de: Những phát biểu nào về softmax là ĐÚNG? (chọn tất cả ý đúng)
+    lua_chon:
+      - Mọi đầu ra đều dương, kể cả khi logit âm
+      - Các đầu ra cộng lại luôn bằng 1
+      - Softmax giữ nguyên thứ tự các lớp so với logit
+      - Đạo hàm của softmax là một ma trận K×K, không phải một số
+      - Xác suất softmax là độ tin cậy đã hiệu chuẩn, đọc được như tần suất thật
+    dap_an: [0, 1, 2, 3]
+    giai_thich: "Bốn ý đầu đúng. Ý cuối SAI: mạng sâu nổi tiếng là quá tự tin, 0.99 không có nghĩa đúng 99 lần trên 100. Muốn con số đọc được như tần suất phải hiệu chuẩn thêm, ví dụ temperature scaling trên tập validation."
+
+  - id: q10
+    loai: mot
+    do_kho: 3
+    de: "Đạo hàm của softmax là ma trận Jacobian K×K, nhưng ∂L/∂z của softmax + cross-entropy lại chỉ là ŷ − y. Ma trận biến đi đâu?"
+    lua_chon:
+      - Nó bị bỏ qua cho gọn, đây là một phép xấp xỉ
+      - "Thừa số p_i trong Jacobian triệt tiêu với mẫu số p_i của ∂L/∂p_i = −y_i/p_i, phần còn lại thu gọn nhờ Σy_i = 1"
+      - Jacobian của softmax luôn là ma trận đơn vị
+      - Vì y là one-hot nên chỉ có một dòng của Jacobian được dùng
+    dap_an: 1
+    giai_thich: "∂L/∂z_j = Σ_i (−y_i/p_i)·p_i(δ_ij − p_j) = −Σ_i y_i(δ_ij − p_j) = −y_j + p_j·Σ_i y_i = p_j − y_j. Hai bước then chốt: p_i triệt tiêu, và Σ_i y_i = 1 vì y là one-hot. Hoàn toàn chính xác, không xấp xỉ gì."
+
+  - id: q11
+    loai: so
+    do_kho: 2
+    de: "Logit z = (2.0, 1.0, 0.1), nhãn đúng là lớp đầu tiên. Giá trị cross-entropy loss bằng bao nhiêu? (4 chữ số thập phân)"
+    dap_an: 0.417
+    sai_so: 0.0005
+    giai_thich: "L = −ln(xác suất của lớp đúng) = −ln(0.6590) = 0.4170. Nếu nhãn đúng là lớp thứ ba thì L = −ln(0.0986) = 2.3170: sai nhiều thì phạt nặng hơn."
+
+  - id: q12
+    loai: mot
+    do_kho: 3
+    de: "Một mô hình phân loại ảnh cần gán nhiều nhãn cùng lúc (một ảnh có thể vừa là 'biển' vừa là 'hoàng hôn'). Người viết code dùng softmax ở lớp ra. Triệu chứng sẽ là gì?"
+    lua_chon:
+      - Loss ra nan ngay batch đầu
+      - Mô hình không bao giờ gán xác suất cao cho hai nhãn cùng lúc, vì tổng bị ép bằng 1
+      - Mô hình chạy chậm hơn nhiều
+      - Không có vấn đề gì, softmax dùng được cho mọi bài phân loại
+    dap_an: 1
+    giai_thich: "Softmax ép tổng bằng 1, tức các lớp CẠNH TRANH nhau: nhãn này lên thì nhãn kia phải xuống. Với nhãn chồng nhau (multi-label), cách đúng là K sigmoid độc lập, mỗi nhãn một cross-entropy nhị phân riêng."

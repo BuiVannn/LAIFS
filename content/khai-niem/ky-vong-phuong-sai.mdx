@@ -1,0 +1,404 @@
+---
+ten_vi: "Kỳ vọng, phương sai"
+ten_en: Expectation and Variance
+tang: 1
+thu_tu: 7
+tien_quyet: ["xac-suat-co-ban"]
+trang_thai: nhap
+dinh_nghia: >-
+  Kỳ vọng E[X] là trung bình có trọng số của các giá trị, mỗi giá trị nặng đúng bằng xác suất
+  của nó — "trung bình dài hạn". Phương sai Var(X) = E[(X − E[X])²] là trung bình của bình
+  phương khoảng cách tới kỳ vọng — nó đo độ tản. Độ lệch chuẩn σ = √Var(X) đưa về cùng đơn vị
+  với X.
+truc_giac: >-
+  Kỳ vọng là trọng tâm: đặt các giá trị lên thanh thước, mỗi giá trị một quả cân nặng bằng
+  xác suất của nó, thì kỳ vọng là điểm thanh thước thăng bằng. Phương sai là "các quả cân nằm
+  xa trọng tâm tới đâu". Hai bộ dữ liệu có thể cùng trung bình mà một bộ bám sát, một bộ văng
+  tứ tung — phương sai là thứ phân biệt chúng.
+hieu_nham:
+  - "Phương sai và độ lệch chuẩn khác nhau: phương sai mang đơn vị BÌNH PHƯƠNG (đồng², năm²), độ lệch chuẩn mới cùng đơn vị với dữ liệu. Muốn diễn giải thì luôn nói theo σ."
+  - "Phương sai của TỔNG chỉ cộng lại khi các biến ĐỘC LẬP (chính xác hơn: không tương quan). Nếu chúng liên quan nhau thì còn số hạng hiệp phương sai."
+  - "Var(aX) = a²Var(X) chứ không phải a·Var(X): nhân dữ liệu cho 2 thì phương sai nhân 4, còn độ lệch chuẩn mới nhân 2."
+  - "Chuẩn hoá tập kiểm thử phải dùng μ và σ tính từ tập HUẤN LUYỆN. Tính lại trên tập kiểm thử là rò rỉ thông tin và cho kết quả đánh giá ảo."
+  - "Kỳ vọng không nhất thiết là giá trị có thể xảy ra: kỳ vọng của một con xúc xắc là 3.5, mặt 3.5 không tồn tại."
+y_chinh:
+  - "E[X] = Σ p(x)·x là trung bình có trọng số; với n số liệu cùng trọng số, nó thành trung bình cộng"
+  - "Var(X) = E[(X − μ)²] = E[X²] − μ²; dùng bình phương vì nó đo độ dài L2 và cho đạo hàm mượt, khác trị tuyệt đối"
+  - "Kỳ vọng tuyến tính với MỌI biến: E[aX + bY] = aE[X] + bE[Y], không cần độc lập"
+  - "Var(aX + b) = a²Var(X); phương sai KHÔNG đổi khi tịnh tiến, và co giãn theo bình phương"
+  - "Phương sai của tổng các biến độc lập thì CỘNG lại: cộng d biến cùng σ² cho phương sai d·σ², tức σ tăng theo √d"
+  - "Đúng vì thế mà khởi tạo trọng số dùng σ_w ≈ 1/√d, và chuẩn hoá z = (x − μ)/σ đưa mọi đặc trưng về cùng thang"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=SzZ6GpcfoQY
+    tieu_de: "Calculating the Mean, Variance and Standard Deviation, Clearly Explained!!!"
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Tính tay từng bước, giải thích rõ vì sao có bản chia n và bản chia n−1. Xem đầu tiên nếu bạn muốn nắm chắc phần số học.
+  - url: https://www.youtube.com/watch?v=zeJD6dqJ5lo
+    tieu_de: But what is the Central Limit Theorem?
+    tac_gia: 3Blue1Brown
+    loai: video
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Vì sao tổng nhiều biến độc lập luôn ra hình chuông, và vì sao độ tản tăng theo √n chứ không phải n. Đây chính là cơ sở của hệ số 1/√d trong khởi tạo trọng số.
+  - url: https://www.deeplearning.ai/ai-notes/initialization/
+    tieu_de: "AI Notes: Initializing neural networks"
+    tac_gia: deeplearning.ai (Katanforoosh & Kunin)
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Bài tương tác, kéo thanh trượt để thấy activation nổ hoặc tắt qua các lớp. Đọc sau phần "Nâng cao" của bài này, nó nói đúng cùng một chuyện bằng hình.
+  - url: https://cs231n.github.io/neural-networks-2/
+    tieu_de: "CS231n: Neural Networks Part 2 — Data preprocessing and initialization"
+    tac_gia: Andrej Karpathy (Stanford CS231n)
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Mục "Data Preprocessing" và "Weight Initialization" là bản tham chiếu kinh điển, có cả phần dẫn ra hệ số √(2/n) cho ReLU.
+---
+
+import PhuongSaiQuaLop from '../../src/viz/PhuongSaiQuaLop.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Tình huống: mạng 8 lớp, loss thành NaN ở epoch đầu tiên
+
+Bạn dựng một mạng 8 lớp, mỗi lớp 100 neuron, khởi tạo trọng số bằng `np.random.randn(...)` (tức là lấy ngẫu nhiên với độ lệch chuẩn 1). Chạy một lượt xuôi, chưa học gì cả, và giá trị ở lớp cuối đã là $10^8$. Vài bước sau, loss là `nan`.
+
+Bạn sửa bằng cách nhân trọng số cho 0.01 cho chắc ăn. Lần này lớp cuối toàn số cỡ $10^{-16}$, gradient bằng 0 sạch, mạng không học gì hết.
+
+Hai tai nạn đó không phải lỗi code. Chúng là hệ quả trực tiếp của một công thức về **phương sai của tổng**, và có một con số duy nhất chữa được cả hai: $1/\sqrt{d}$. Bài này đi từ định nghĩa tới con số đó.
+
+Cùng lúc, có một tình huống khác dễ gặp hơn: bảng dữ liệu có cột "thu nhập" chạy từ 0 tới 100 triệu và cột "số con" chạy từ 0 tới 5. Gradient descent sẽ chật vật, vì một bước đủ nhỏ cho cột thu nhập thì gần như không nhúc nhích cột số con. Cách chữa cũng nằm trong bài này: chuẩn hoá bằng $\mu$ và $\sigma$.
+
+## Trực giác: trọng tâm và độ tản
+
+**Kỳ vọng** là trọng tâm. Đặt các giá trị lên một thanh thước, mỗi giá trị một quả cân nặng đúng bằng xác suất (hoặc tần suất) của nó. Kỳ vọng là điểm thanh thước thăng bằng.
+
+Vì nó là điểm thăng bằng chứ không phải một giá trị cụ thể, kỳ vọng hoàn toàn có thể là con số **không bao giờ xảy ra**: kỳ vọng của một con xúc xắc là 3.5.
+
+**Phương sai** trả lời câu hỏi tiếp theo: các quả cân bám sát trọng tâm hay văng tứ tung? Hai lớp học cùng điểm trung bình 7.0 — một lớp ai cũng 6.5–7.5, lớp kia nửa được 4 nửa được 10 — là hai lớp rất khác nhau, và trung bình không hề phân biệt được.
+
+## Dẫn công thức
+
+### Kỳ vọng
+
+Với biến ngẫu nhiên rời rạc nhận giá trị $x_1, \dots, x_k$ với xác suất $p_1, \dots, p_k$:
+
+$$
+\mathbb{E}[X] = \sum_i p_i \, x_i
+$$
+
+Đây là trung bình **có trọng số**, trọng số là xác suất. Khi bạn có $n$ số liệu và coi mỗi số có xác suất $1/n$ như nhau, công thức thành trung bình cộng quen thuộc $\frac{1}{n}\sum x_i$. Hai thứ là một.
+
+### Phương sai: vì sao lại bình phương?
+
+Ta muốn một số đo "trung bình khoảng cách tới $\mu$". Thử cách ngây thơ nhất trước — trung bình của $(x_i - \mu)$:
+
+$$
+\mathbb{E}[X - \mu] = \mathbb{E}[X] - \mu = 0
+$$
+
+Luôn bằng 0, với mọi dữ liệu. Vô dụng: các lệch dương và lệch âm triệt tiêu nhau (đúng theo định nghĩa trọng tâm). Phải bỏ dấu đi. Có hai cách bỏ dấu:
+
+- **Trị tuyệt đối** $\mathbb{E}|X - \mu|$ — gọi là độ lệch tuyệt đối trung bình. Đúng và dễ hiểu, nhưng có góc gãy tại 0 nên đạo hàm không liên tục, và không có công thức cộng dồn gọn gàng.
+- **Bình phương** $\mathbb{E}[(X - \mu)^2]$ — mượt, đạo hàm đơn giản, và (quan trọng nhất) **cộng được** khi các biến độc lập.
+
+Cách thứ hai thắng, và đó là **phương sai**:
+
+$$
+\operatorname{Var}(X) = \mathbb{E}\big[(X - \mu)^2\big], \qquad \sigma = \sqrt{\operatorname{Var}(X)}
+$$
+
+Bình phương ở đây cùng gốc với bình phương trong chuẩn L2 và trong MSE: tất cả đều đang đo độ dài Euclid của một vector độ lệch. Vì bình phương làm sai đơn vị (thu nhập tính bằng đồng thì phương sai tính bằng đồng bình phương), ta lấy căn để có **độ lệch chuẩn** $\sigma$, cùng đơn vị với dữ liệu. Khi cần diễn giải bằng lời, luôn nói theo $\sigma$.
+
+### Công thức rút gọn
+
+Khai triển bình phương:
+
+$$
+\operatorname{Var}(X) = \mathbb{E}[X^2 - 2\mu X + \mu^2] = \mathbb{E}[X^2] - 2\mu\,\mathbb{E}[X] + \mu^2 = \mathbb{E}[X^2] - \mu^2
+$$
+
+Tiện khi tính tay, nhưng **nguy hiểm khi tính bằng máy**: nếu $\mathbb{E}[X^2]$ và $\mu^2$ đều rất lớn và gần bằng nhau, phép trừ mất gần hết chữ số có nghĩa, thậm chí cho phương sai âm. NumPy không dùng công thức này; nó tính trung bình trước rồi mới bình phương độ lệch.
+
+<CauHoi cau="ky-vong-phuong-sai/q2" />
+
+### Hai quy tắc phải thuộc
+
+**Tuyến tính của kỳ vọng** — đúng với **mọi** biến, độc lập hay không:
+
+$$
+\mathbb{E}[aX + bY] = a\,\mathbb{E}[X] + b\,\mathbb{E}[Y]
+$$
+
+**Phương sai với phép co giãn và tịnh tiến:**
+
+$$
+\operatorname{Var}(aX + b) = a^2 \operatorname{Var}(X)
+$$
+
+Hai điều đọc ra từ đây. Thứ nhất, cộng thêm hằng số $b$ **không đổi** phương sai — dời cả đám sang phải 100 đơn vị thì độ tản giữ nguyên, hợp lý. Thứ hai, hệ số là $a^2$ chứ không phải $a$: phương sai mang đơn vị bình phương nên nó phải co giãn theo bình phương. Theo $\sigma$ thì gọn hơn: $\sigma_{aX} = |a|\sigma_X$.
+
+## Tính tay
+
+Lấy một cột dữ liệu 8 số: $x = (2, 4, 4, 4, 5, 5, 7, 9)$.
+
+**Bước 1 — kỳ vọng.** $\mu = \frac{2+4+4+4+5+5+7+9}{8} = \frac{40}{8} = 5$.
+
+**Bước 2 — độ lệch và bình phương.**
+
+| $x_i$ | 2 | 4 | 4 | 4 | 5 | 5 | 7 | 9 |
+|---|---|---|---|---|---|---|---|---|
+| $x_i - \mu$ | −3 | −1 | −1 | −1 | 0 | 0 | 2 | 4 |
+| $(x_i-\mu)^2$ | 9 | 1 | 1 | 1 | 0 | 0 | 4 | 16 |
+
+Tổng cột lệch: $-3-1-1-1+0+0+2+4 = 0$ — đúng như đã nói, luôn bằng 0. Tổng cột bình phương: $9+1+1+1+0+0+4+16 = 32$.
+
+**Bước 3 — phương sai và độ lệch chuẩn.**
+
+$$
+\sigma^2 = \frac{32}{8} = 4, \qquad \sigma = \sqrt{4} = 2
+$$
+
+**Kiểm bằng công thức rút gọn.** $\mathbb{E}[X^2] = \frac{4+16+16+16+25+25+49+81}{8} = \frac{232}{8} = 29$, và $29 - 5^2 = 4$. Khớp.
+
+**Bước 4 — chuẩn hoá (z-score).** Trừ đi $\mu$ rồi chia cho $\sigma$:
+
+$$
+z_i = \frac{x_i - \mu}{\sigma}
+$$
+
+| $x_i$ | 2 | 4 | 4 | 4 | 5 | 5 | 7 | 9 |
+|---|---|---|---|---|---|---|---|---|
+| $z_i$ | −1.5 | −0.5 | −0.5 | −0.5 | 0 | 0 | 1 | 2 |
+
+Cột mới có kỳ vọng 0 (vì đã trừ $\mu$) và phương sai 1 (vì đã chia cho $\sigma$, mà $\operatorname{Var}(X/\sigma) = \sigma^2/\sigma^2 = 1$). Đọc được ngay: giá trị 9 nằm cách trung bình **2 độ lệch chuẩn**, bất kể đơn vị gốc là đồng hay năm hay mét.
+
+<CauHoi cau="ky-vong-phuong-sai/q5" />
+
+## Code
+
+```python
+import numpy as np
+
+x = np.array([2., 4, 4, 4, 5, 5, 7, 9])
+
+mu = x.mean()
+var = ((x - mu) ** 2).mean()
+print("kỳ vọng μ       =", mu)
+print("phương sai σ²   =", var, "| np.var:", x.var())
+print("E[X²] − μ²      =", (x ** 2).mean() - mu ** 2)   # công thức rút gọn
+print("độ lệch chuẩn σ =", np.sqrt(var))
+
+z = (x - mu) / np.sqrt(var)                 # chuẩn hoá z-score
+print("z               =", z)
+print("mean(z), var(z) =", round(z.mean(), 12), round(z.var(), 12))
+
+# Phương sai của TỔNG các biến độc lập thì CỘNG lại -> hệ số 1/√d
+rng = np.random.default_rng(0)
+d = 100
+x_in = rng.normal(size=(20000, d))                      # d đầu vào, phương sai 1
+for sigma_w in (1.0, 1 / np.sqrt(d)):
+    W = rng.normal(scale=sigma_w, size=(d, d))
+    print(f"σ_w = {sigma_w:.2f} -> phương sai đầu ra ≈ {(x_in @ W.T).var():.2f}  (dự đoán {d * sigma_w ** 2:.2f})")
+```
+
+Kết quả:
+
+```
+kỳ vọng μ       = 5.0
+phương sai σ²   = 4.0 | np.var: 4.0
+E[X²] − μ²      = 4.0
+độ lệch chuẩn σ = 2.0
+z               = [-1.5 -0.5 -0.5 -0.5  0.   0.   1.   2. ]
+mean(z), var(z) = 0.0 1.0
+σ_w = 1.00 -> phương sai đầu ra ≈ 99.43  (dự đoán 100.00)
+σ_w = 0.10 -> phương sai đầu ra ≈ 0.99  (dự đoán 1.00)
+```
+
+Hai dòng cuối là điều quan trọng nhất trong bài. Chúng ta sẽ dẫn ra ngay bây giờ.
+
+## Nâng cao
+
+### Phương sai của tổng: vì sao cộng lại được
+
+Đây là tính chất khiến bình phương thắng trị tuyệt đối. Với $X$ và $Y$ **độc lập**:
+
+$$
+\operatorname{Var}(X + Y) = \operatorname{Var}(X) + \operatorname{Var}(Y)
+$$
+
+Vì sao? Đặt $\tilde{X} = X - \mu_X$, $\tilde{Y} = Y - \mu_Y$ (độ lệch, kỳ vọng 0). Khai triển:
+
+$$
+\mathbb{E}[(\tilde{X}+\tilde{Y})^2] = \mathbb{E}[\tilde{X}^2] + \mathbb{E}[\tilde{Y}^2] + 2\,\mathbb{E}[\tilde{X}\tilde{Y}]
+$$
+
+Số hạng chéo $\mathbb{E}[\tilde{X}\tilde{Y}]$ chính là **hiệp phương sai**. Khi hai biến độc lập nó bằng $\mathbb{E}[\tilde{X}]\,\mathbb{E}[\tilde{Y}] = 0$ và biến mất, chỉ còn hai số hạng đầu. Nếu chúng **không** độc lập thì số hạng chéo còn đó, và phương sai của tổng có thể lớn hơn hoặc nhỏ hơn tổng phương sai. (Trường hợp cực đoan: $Y = -X$ cho $\operatorname{Var}(X+Y) = 0$.)
+
+Hệ quả cho $d$ biến độc lập cùng phương sai $\sigma^2$:
+
+$$
+\operatorname{Var}\Big(\sum_{k=1}^{d} X_k\Big) = d\,\sigma^2 \quad\Longrightarrow\quad \sigma_{\text{tong}} = \sqrt{d}\,\sigma
+$$
+
+**Phương sai cộng tuyến tính, còn độ lệch chuẩn tăng theo $\sqrt{d}$.** Đây là lý do trung bình của $n$ mẫu có sai số $\sigma/\sqrt{n}$ (gấp bốn số liệu mới giảm được một nửa sai số), là lý do mini-batch lớn cho gradient ít nhiễu hơn nhưng lợi ích giảm dần, và là lý do của con số tiếp theo.
+
+### Từ đó ra hệ số 1/√d
+
+Một neuron tính $z = \sum_{k=1}^{d} w_k x_k$. Giả sử các $w_k$ độc lập, kỳ vọng 0, phương sai $\sigma_w^2$; các $x_k$ độc lập với $w$, kỳ vọng 0, phương sai $\sigma_x^2$. Mỗi số hạng có phương sai
+
+$$
+\operatorname{Var}(w_k x_k) = \mathbb{E}[w_k^2 x_k^2] - 0 = \sigma_w^2 \sigma_x^2
+$$
+
+và có $d$ số hạng độc lập, nên
+
+$$
+\operatorname{Var}(z) = d\,\sigma_w^2\,\sigma_x^2
+$$
+
+Ta muốn tín hiệu **không nở ra cũng không teo đi** qua mỗi lớp, tức $\operatorname{Var}(z) = \sigma_x^2$. Giải ra:
+
+$$
+d\,\sigma_w^2 = 1 \quad\Longrightarrow\quad \boxed{\;\sigma_w = \frac{1}{\sqrt{d}}\;}
+$$
+
+Nhìn theo hệ số nhân thì rõ hơn nữa: mỗi lớp nhân độ lệch chuẩn với $\sqrt{d}\,\sigma_w$. Hệ số đó bằng 1.0 thì tín hiệu giữ nguyên; bằng 2 thì sau 8 lớp nó gấp $2^8 = 256$ lần; bằng 0.5 thì còn $0.5^8 \approx 0.0039$. Luỹ thừa theo độ sâu — nên mạng càng sâu, sai lệch nhỏ ở khởi tạo càng chí mạng.
+
+Với $d = 100$: $\sigma_w = 0.1$. Đúng con số trong đoạn code trên.
+
+<PhuongSaiQuaLop
+  client:visible
+  sigma={0.2}
+  d={100}
+  duDoan={{
+    de: "d = 100 đầu vào mỗi neuron, khởi tạo với σ_w = 0.2. Sau 8 lớp, độ lệch chuẩn của activation (bắt đầu từ 1) sẽ là bao nhiêu?",
+    lua_chon: ["Vẫn khoảng 1", "Khoảng 1.6 (0.2 × 8)", "Khoảng 256", "Khoảng 0.004"],
+    dap_an: 2,
+    giai_thich: "Hệ số mỗi lớp là √d · σ_w = 10 × 0.2 = 2. Sau 8 lớp: 2⁸ = 256. Không phải cộng dồn mà là NHÂN dồn — sai lệch nhỏ ở khởi tạo nở theo luỹ thừa độ sâu. Vài lớp nữa là tràn số thành inf."
+  }}
+/>
+
+<PhuongSaiQuaLop
+  client:visible
+  sigma={0.05}
+  d={100}
+  duDoan={{
+    de: "Vẫn d = 100 nhưng giờ khởi tạo rất nhỏ cho an toàn: σ_w = 0.05. Sau 8 lớp thì sao?",
+    lua_chon: ["Vẫn khoảng 1, an toàn", "Khoảng 0.004 — tín hiệu gần như tắt hẳn", "Khoảng 256"],
+    dap_an: 1,
+    giai_thich: "Hệ số = 10 × 0.05 = 0.5, nên 0.5⁸ ≈ 0.0039. Khởi tạo quá nhỏ không an toàn hơn chút nào: tín hiệu tắt dần, gradient tắt theo, mạng đứng im. Chỉ hệ số ĐÚNG BẰNG 1 mới ổn, tức σ_w = 1/√d = 0.1."
+  }}
+/>
+
+Bảng tự do — kéo $d$ và $\sigma_w$, hoặc bấm nút để đặt $\sigma_w = 1/\sqrt{d}$:
+
+<PhuongSaiQuaLop client:visible />
+
+Trong thực tế có hai biến thể của cùng phép tính này:
+
+- **Xavier/Glorot** (cho tanh, sigmoid): $\sigma_w = \sqrt{2/(d_{\text{in}} + d_{\text{out}})}$ — cân bằng cả lượt xuôi lẫn lượt ngược, vì lượt ngược nhân với $W^\top$ nên nó quan tâm $d_{\text{out}}$.
+- **He/Kaiming** (cho ReLU): $\sigma_w = \sqrt{2/d_{\text{in}}}$ — thêm hệ số 2 vì ReLU cắt bỏ một nửa số đầu ra, làm phương sai giảm đúng một nửa, nên phải bù lại.
+
+Cả hai đều là một dòng đại số từ $\operatorname{Var}(z) = d\,\sigma_w^2\,\sigma_x^2$.
+
+<CauHoi cau="ky-vong-phuong-sai/q8" />
+
+### Chuẩn hoá dữ liệu: cùng một công thức, chỗ khác
+
+| Cách | Công thức | Dùng khi |
+|---|---|---|
+| Chuẩn hoá z-score | $(x - \mu)/\sigma$ | Mặc định cho dữ liệu dạng bảng, hồi quy tuyến tính/logistic, SVM, k-NN |
+| Min–max | $(x - \min)/(\max - \min)$ | Cần dữ liệu nằm gọn trong [0, 1], ví dụ ảnh chia cho 255 |
+| Robust | $(x - \text{median})/\text{IQR}$ | Có ngoại lai nặng — $\mu$ và $\sigma$ rất nhạy với một giá trị cực đoan |
+
+Có hai cạm bẫy đi kèm, cả hai đều tốn tiền thật:
+
+1. **Thống kê phải lấy từ tập huấn luyện.** Tính $\mu, \sigma$ trên toàn bộ dữ liệu (kể cả tập kiểm thử) là rò rỉ thông tin: điểm đánh giá đẹp hơn thực tế, và khi lên production gặp dữ liệu mới thì hỏng. Đúng quy trình: `fit` trên train, `transform` cho cả train lẫn test bằng đúng thống kê đó.
+2. **`np.var` chia cho $n$, còn `pandas.Series.var()` chia cho $n-1$.** Hai thư viện, hai mặc định khác nhau. Xem mục tiếp theo.
+
+### Chia n hay chia n−1
+
+Chia cho $n$ cho **phương sai của đúng tập số liệu bạn đang có**. Chia cho $n-1$ (`ddof=1`) cho **ước lượng không chệch của phương sai quần thể** khi bạn coi dữ liệu là mẫu lấy từ một quần thể lớn hơn: vì $\mu$ cũng được ước lượng từ chính mẫu đó, các độ lệch bị "bám" hơi sát về phía $\bar{x}$, nên chia $n$ sẽ hơi thấp một cách hệ thống.
+
+Với dữ liệu $x$ ở trên: chia 8 cho 4.0, chia 7 cho $32/7 \approx 4.571$.
+
+Trong deep learning gần như luôn dùng $n$ (`ddof=0`, mặc định của NumPy và của PyTorch `BatchNorm`) vì $n$ là cỡ batch, thường hàng chục tới hàng nghìn, chênh lệch không đáng kể và điều ta cần là chuẩn hoá chứ không phải suy diễn thống kê. Trong thống kê suy diễn thì dùng $n-1$.
+
+### Liên hệ DL/NLP
+
+- **Batch norm / layer norm** làm đúng việc chuẩn hoá z-score nhưng ở **giữa** mạng và **trong lúc** huấn luyện, rồi cho mạng học lại hai tham số $\gamma, \beta$ để tự chọn thang. Nhờ đó không phải trông chờ khởi tạo hoàn hảo.
+- **Chia cho $\sqrt{d_k}$ trong attention** chính là công thức này: $\mathbf{q}\cdot\mathbf{k}$ là tổng của $d_k$ số hạng độc lập, nên có độ lệch chuẩn $\sqrt{d_k}$. Không chia thì với $d_k = 64$, điểm số có biên độ cỡ 8, softmax bão hoà thành gần như one-hot và gradient biến mất. Chia cho $\sqrt{d_k}$ kéo phương sai về 1.
+- **Weight decay và dropout** đều can thiệp vào phương sai của activation; dropout với tỉ lệ $p$ nhân activation còn lại cho $1/(1-p)$ đúng để giữ kỳ vọng không đổi.
+- **Ước lượng gradient bằng mini-batch** là kỳ vọng mẫu: gradient của batch cỡ $B$ có độ lệch chuẩn cỡ $1/\sqrt{B}$ so với gradient thật. Tăng batch gấp 4 chỉ giảm nhiễu một nửa — lý do batch rất lớn cho lợi ích giảm dần.
+
+<CauHoi cau="ky-vong-phuong-sai/q11" />
+
+## Sai lầm hay gặp
+
+**1. Lẫn phương sai với độ lệch chuẩn.**
+*Triệu chứng*: câu kết luận sai đơn vị ("độ lệch chuẩn 4 triệu đồng bình phương"); hoặc chuẩn hoá bằng `(x - mu) / var` thay vì `/ std`, làm dữ liệu vẫn lệch thang và model hội tụ chậm bất thường.
+*Cách sửa*: nhớ $\sigma = \sqrt{\sigma^2}$, và luôn kiểm bằng `X_chuan.std(axis=0)` — phải ra toàn số 1.
+
+**2. Cộng phương sai của các biến phụ thuộc.**
+*Triệu chứng*: khoảng tin cậy hẹp hơn thực tế; mô hình "chắc chắn" một cách vô lý; phương sai dự đoán không khớp với phương sai quan sát được.
+*Cách sửa*: chỉ cộng khi các biến độc lập (hoặc ít nhất không tương quan). Có nghi ngờ thì tính ma trận tương quan `np.corrcoef` xem có gì gần ±1 không.
+
+**3. Chuẩn hoá bằng thống kê của tập kiểm thử.**
+*Triệu chứng*: điểm validation đẹp bất thường, nhưng khi chạy thật hoặc khi dự đoán từng mẫu một thì tệ hẳn. Dấu hiệu rõ: bạn không thể chuẩn hoá được **một** mẫu đơn lẻ nếu code cần cả tập để tính $\mu$.
+*Cách sửa*: lưu $\mu, \sigma$ của tập train lại như một phần của mô hình. Tự kiểm: chuẩn hoá một mẫu đơn phải cho cùng kết quả như khi nó nằm trong cả tập.
+
+**4. Dùng `ddof` sai hoặc không biết mặc định của thư viện.**
+*Triệu chứng*: cùng dữ liệu mà NumPy và pandas cho hai con số phương sai khác nhau, chênh khoảng $n/(n-1)$.
+*Cách sửa*: `np.var` mặc định `ddof=0`, `pandas.var()` mặc định `ddof=1`. Viết rõ `ddof=` khi kết quả được so sánh giữa hai thư viện.
+
+**5. Tưởng khởi tạo càng nhỏ càng an toàn.**
+*Triệu chứng*: loss gần như không đổi qua nhiều epoch; gradient ở các lớp đầu nhỏ cỡ $10^{-10}$; activation ở lớp cuối gần như bằng 0 hết.
+*Cách sửa*: in độ lệch chuẩn của activation **từng lớp** ở lượt xuôi đầu tiên, trước khi học. Nó phải giữ cỡ hằng số qua các lớp. Không thì đổi sang He (ReLU) hoặc Xavier (tanh), hoặc thêm layer norm.
+
+**6. Dùng $\mathbb{E}[X^2] - \mu^2$ trên dữ liệu có giá trị lớn.**
+*Triệu chứng*: phương sai ra **âm**, hoặc bằng 0 với dữ liệu rõ ràng có tản.
+*Cách sửa*: dùng `np.var` (nó trừ trung bình trước). Nếu tự cài đặt luồng dữ liệu chảy, dùng thuật toán Welford thay vì cộng dồn $\sum x^2$.
+
+## Tra nhanh
+
+| Đại lượng | Công thức | Đơn vị |
+|---|---|---|
+| Kỳ vọng | $\mathbb{E}[X] = \sum_i p_i x_i$; với $n$ số: $\frac{1}{n}\sum x_i$ | như $X$ |
+| Phương sai | $\operatorname{Var}(X) = \mathbb{E}[(X-\mu)^2] = \mathbb{E}[X^2] - \mu^2$ | bình phương của $X$ |
+| Độ lệch chuẩn | $\sigma = \sqrt{\operatorname{Var}(X)}$ | như $X$ |
+| Chuẩn hoá z-score | $z = (x - \mu)/\sigma$ | không đơn vị |
+
+| Quy tắc | Điều kiện |
+|---|---|
+| $\mathbb{E}[aX + bY] = a\mathbb{E}[X] + b\mathbb{E}[Y]$ | luôn đúng |
+| $\operatorname{Var}(aX + b) = a^2\operatorname{Var}(X)$ | luôn đúng |
+| $\operatorname{Var}(X+Y) = \operatorname{Var}(X) + \operatorname{Var}(Y)$ | **chỉ khi** không tương quan |
+| $\operatorname{Var}(\sum_{k=1}^d X_k) = d\sigma^2$, $\;\sigma_{\text{tong}} = \sqrt{d}\,\sigma$ | $d$ biến độc lập cùng $\sigma^2$ |
+
+| Việc | NumPy | Shape vào → ra |
+|---|---|---|
+| Trung bình mỗi đặc trưng | `X.mean(axis=0)` | `(n, d)` → `(d,)` |
+| Độ lệch chuẩn mỗi đặc trưng | `X.std(axis=0)` | `(n, d)` → `(d,)` |
+| Chuẩn hoá cột (giữ shape) | `(X - X.mean(0, keepdims=True)) / X.std(0, keepdims=True)` | `(n, d)` → `(n, d)` |
+| Phương sai mẫu (chia n−1) | `X.var(ddof=1)` | |
+| Hiệp phương sai / tương quan | `np.cov(X.T)`, `np.corrcoef(X.T)` | `(n, d)` → `(d, d)` |
+
+| Khởi tạo | $\sigma_w$ | Dùng với |
+|---|---|---|
+| Chuẩn cơ bản | $1/\sqrt{d_{\text{in}}}$ | lớp tuyến tính, không kích hoạt |
+| Xavier / Glorot | $\sqrt{2/(d_{\text{in}} + d_{\text{out}})}$ | tanh, sigmoid |
+| He / Kaiming | $\sqrt{2/d_{\text{in}}}$ | ReLU và họ hàng |
+
+| Triệu chứng | Nghi ngờ đầu tiên |
+|---|---|
+| Activation/loss thành `inf` hoặc `nan` ngay lượt đầu | $\sqrt{d}\,\sigma_w > 1$ — khởi tạo quá lớn |
+| Loss đứng im, gradient cỡ $10^{-10}$ | $\sqrt{d}\,\sigma_w < 1$ — khởi tạo quá nhỏ |
+| Validation quá đẹp rồi production tệ | Chuẩn hoá bằng thống kê của cả tập, không phải của train |
+| Hai thư viện cho hai phương sai khác nhau | `ddof` — NumPy mặc định 0, pandas mặc định 1 |
+| Phương sai tính ra âm | Đang dùng $\mathbb{E}[X^2]-\mu^2$ trên số lớn — đổi sang `np.var` |
+
+**Một câu phải thuộc**: cộng $d$ thứ độc lập thì **phương sai cộng lại**, nên **độ lệch chuẩn nhân $\sqrt{d}$** — từ đó mà ra $1/\sqrt{d}$ trong khởi tạo và $1/\sqrt{d_k}$ trong attention.

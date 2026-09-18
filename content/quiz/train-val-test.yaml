@@ -1,0 +1,137 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: Vai trò của ba tập train / validation / test lần lượt là gì?
+    lua_chon:
+      - "Chỉnh tham số · chọn giữa các phương án · ước lượng khách quan, mở đúng một lần"
+      - "Chỉnh tham số · kiểm tra code chạy được · trình bày cho khách hàng"
+      - "Ba tập giống hệt nhau, chia ra chỉ để chạy song song cho nhanh"
+      - "Huấn luyện lần 1 · huấn luyện lần 2 · huấn luyện lần 3"
+    dap_an: 0
+    giai_thich: "Train là bài tập về nhà, validation là đề thi thử (làm nhiều lần nên điểm bị thổi), test là đề thi thật niêm phong tới cuối."
+
+  - id: q2
+    loai: mot
+    do_kho: 2
+    de: "Bạn thử 20 cấu hình mô hình, tất cả đều thật sự đúng 80%, và đo trên tập validation 200 mẫu. Điểm validation của cấu hình \"thắng\" trung bình sẽ là bao nhiêu?"
+    lua_chon:
+      - Khoảng 0.80, vì mọi cấu hình đều như nhau
+      - Khoảng 0.85 — cao hơn sự thật, vì lấy max của nhiều phép đo nhiễu là lấy sự thật cộng một cú may
+      - Khoảng 0.75, vì chọn nhiều lần làm ước lượng bi quan đi
+      - Không đoán được, hoàn toàn ngẫu nhiên
+    dap_an: 1
+    giai_thich: "Mỗi phép đo trên 200 mẫu có độ lệch chuẩn khoảng 0.028. Lấy giá trị lớn nhất của 20 phép đo như vậy cho trung bình 0.851 — thổi hơn 5 điểm phần trăm. Với 200 cấu hình thì lên 0.874. Đây là overfitting lên tập validation qua việc chọn lựa."
+
+  - id: q3
+    loai: mot
+    do_kho: 2
+    de: "Đội của bạn đã dùng tập test để so 12 kiến trúc và chọn kiến trúc tốt nhất. Giờ muốn báo cáo kết quả của kiến trúc đó trên chính tập test. Nhận định đúng?"
+    lua_chon:
+      - "Con số đó đã bị thổi phồng: tập test đã biến thành một tập validation, không còn là ước lượng khách quan"
+      - "Không sao, miễn là mô hình chưa được huấn luyện trên tập test"
+      - "Không sao, vì so sánh kiến trúc không phải là huấn luyện"
+      - "Chỉ có vấn đề nếu số kiến trúc vượt quá 50"
+    dap_an: 0
+    giai_thich: "Quy tắc: tập nào bạn dùng để CHỌN thì tập đó không dùng để BÁO CÁO. Mô hình không cần nhìn thấy dữ liệu test — chỉ cần BẠN nhìn nhiều lần rồi chọn theo nó là đủ để con số bị lệch lạc quan."
+
+  - id: q4
+    loai: so
+    do_kho: 1
+    de: "Có 10 mẫu và chạy k-fold với k = 5. Mỗi mẫu được dùng làm mẫu validation bao nhiêu lần?"
+    dap_an: 1
+    sai_so: 0.001
+    giai_thich: "Đúng một lần. k-fold cắt dữ liệu thành k đoạn rời nhau, mỗi đoạn làm validation đúng một vòng và làm train ở k − 1 vòng còn lại. Ở đây mỗi fold có 10/5 = 2 mẫu."
+
+  - id: q5
+    loai: nhieu
+    do_kho: 2
+    de: Hành động nào gây RÒ RỈ DỮ LIỆU? (chọn tất cả ý đúng)
+    lua_chon:
+      - Chuẩn hoá toàn bộ bảng dữ liệu bằng trung bình và độ lệch chuẩn của cả bảng, rồi mới chia
+      - Nhân bản lớp thiểu số để cân bằng lớp, rồi mới chia train/test
+      - Chia trước, rồi tính trung bình trên train và áp cùng giá trị đó lên val và test
+      - Chọn 50 đặc trưng tương quan cao nhất với nhãn trên toàn bộ dữ liệu, rồi mới chia
+    dap_an: [0, 1, 3]
+    giai_thich: "Bất kỳ thống kê nào tính trên toàn bộ dữ liệu đều mang thông tin của test sang train. Nhân bản trước khi chia đẩy bản gốc và bản sao về hai phía. Phương án 3 là cách làm ĐÚNG: ước lượng mọi thống kê chỉ trên train."
+
+  - id: q6
+    loai: mot
+    do_kho: 2
+    de: "Trong code có dòng `scaler.fit(X)` đứng TRƯỚC dòng chia train/test. Vì sao đây là lỗi, và sửa thế nào?"
+    lua_chon:
+      - "Trung bình và độ lệch chuẩn đã chứa thông tin của test; phải chia trước rồi `fit` chỉ trên train và `transform` lên val/test"
+      - "Không phải lỗi, vì chuẩn hoá không dùng tới nhãn y"
+      - "Là lỗi vì chậm; sửa bằng cách chuẩn hoá từng batch"
+      - "Là lỗi vì đổi kiểu dữ liệu; sửa bằng cách ép về float32"
+    dap_an: 0
+    giai_thich: "Rò rỉ không cần tới nhãn. Chỉ riêng việc biết phân bố của tập test (trung bình, phương sai, phân vị) đã là thông tin mà mô hình lẽ ra không được có. Gói mọi bước tiền xử lý vào một pipeline được fit trên train là cách chặn lỗi này vĩnh viễn."
+
+  - id: q7
+    loai: mot
+    do_kho: 2
+    de: "Bạn có 4000 ảnh X-quang từ 200 bệnh nhân (mỗi bệnh nhân khoảng 20 ảnh). Chia train/test thế nào?"
+    lua_chon:
+      - Chia ngẫu nhiên theo BỆNH NHÂN, mọi ảnh của một bệnh nhân đi cùng nhau về một tập
+      - Chia ngẫu nhiên theo ảnh, vì 4000 ảnh là đủ nhiều để ngẫu nhiên hoạt động tốt
+      - "Chia theo thứ tự file: 3200 ảnh đầu làm train, 800 ảnh cuối làm test"
+      - Cho mỗi bệnh nhân 16 ảnh vào train và 4 ảnh vào test để hai tập đều đại diện
+    dap_an: 0
+    giai_thich: "Chia theo ảnh (hoặc phương án 4, tệ hơn) đẩy ảnh của cùng một bệnh nhân sang cả hai bên. Mô hình học \"nhận ra bệnh nhân này\" thay vì \"nhận ra bệnh\", điểm test cao mà sập ngay với bệnh nhân mới. Đơn vị chia phải là chủ thể, không phải dòng dữ liệu."
+
+  - id: q8
+    loai: mot
+    do_kho: 3
+    de: "Mô hình dự đoán nhiễm trùng huyết đạt AUC 0.99. Kiểm lại thấy đặc trưng mạnh nhất là `đã_dùng_kháng_sinh` — biến chỉ được đặt sau khi bác sĩ đã nghi ngờ nhiễm trùng. Đây là chuyện gì?"
+    lua_chon:
+      - "Target leakage: đặc trưng chứa thông tin chỉ có SAU khi điều cần dự đoán đã xảy ra, nên lúc chạy thật nó không tồn tại"
+      - Mô hình đã tìm ra một dấu hiệu lâm sàng mới, nên giữ nguyên đặc trưng đó
+      - "Overfitting thông thường: thêm regularization là hết"
+      - Tập test quá nhỏ nên AUC bị thổi phồng
+    dap_an: 0
+    giai_thich: "Câu hỏi vàng cho mọi đặc trưng: \"lúc tôi cần ra quyết định, giá trị này đã có chưa?\". Ở đây chưa — kháng sinh chỉ được kê sau khi đã nghi ngờ. Triệu chứng kinh điển của target leakage: một đặc trưng duy nhất giải thích gần hết, bỏ nó ra thì mô hình rơi về mức đoán bừa."
+
+  - id: q9
+    loai: mot
+    do_kho: 2
+    de: "Dữ liệu là giao dịch theo ngày từ 2023-01 tới 2025-01, mục tiêu dự đoán giao dịch tương lai. Cách chia đúng?"
+    lua_chon:
+      - "Train là đoạn quá khứ, val là đoạn kế tiếp, test là đoạn mới nhất — không bao giờ train ở tương lai của val"
+      - Xáo trộn ngẫu nhiên rồi chia 60/20/20 như bình thường
+      - Chia theo tháng chẵn làm train và tháng lẻ làm test để hai tập cùng phân bố
+      - Lấy 20% ngày ngẫu nhiên rải đều trong hai năm làm test
+    dap_an: 0
+    giai_thich: "Ba phương án còn lại đều huấn luyện trên tương lai để dự đoán quá khứ — chuyện không bao giờ xảy ra khi chạy thật. Với k-fold thì dùng kiểu \"cửa sổ tiến\": fold sau luôn train trên toàn bộ dữ liệu trước mốc validation của nó."
+
+  - id: q10
+    loai: so
+    do_kho: 2
+    de: "Tập test có 100 mẫu và mô hình đạt accuracy 0.90. Sai số chuẩn của ước lượng này, tính theo căn bậc hai của p(1−p)/n, bằng bao nhiêu?"
+    dap_an: 0.03
+    sai_so: 0.002
+    giai_thich: "Căn của (0.9 × 0.1 / 100) = căn của 0.0009 = 0.03. Khoảng tin cậy 95% khoảng ±0.06, tức [0.84, 0.96]. Hai mô hình chênh nhau 2 điểm trên tập test 100 mẫu là không phân biệt được."
+
+  - id: q11
+    loai: mot
+    do_kho: 2
+    de: k-fold cross-validation có thay thế được tập test không?
+    lua_chon:
+      - "Không. k-fold vẫn là chọn lựa lặp lại trên cùng dữ liệu nên vẫn bị lạc quan; cần một tập test niêm phong ở ngoài"
+      - Có, vì mọi mẫu đều đã được dùng làm validation một lần
+      - "Có, miễn là k đủ lớn (từ 10 trở lên)"
+      - Không, vì k-fold chỉ dùng được cho hồi quy
+    dap_an: 0
+    giai_thich: "k-fold cho ước lượng tốt hơn một lần chia và cho biết độ dao động giữa các fold, nhưng nếu bạn dùng nó để CHỌN siêu tham số thì điểm k-fold của phương án thắng cuộc đã bị thổi. Có đủ dữ liệu thì cắt test ra trước, k-fold bên trong phần còn lại."
+
+  - id: q12
+    loai: nhieu
+    do_kho: 2
+    de: Triệu chứng nào gợi ý đang có rò rỉ dữ liệu? (chọn tất cả ý đúng)
+    lua_chon:
+      - Kết quả test đẹp bất thường với một mô hình rất đơn giản
+      - Khoảng cách giữa điểm train và điểm test gần như bằng 0
+      - Một đặc trưng duy nhất giải thích gần hết, bỏ nó ra thì mô hình rơi về mức đoán bừa
+      - Điểm train cao hơn điểm test khoảng vài điểm phần trăm
+    dap_an: [0, 1, 2]
+    giai_thich: "Ba dấu hiệu đầu đều là cờ đỏ. Ý cuối là chuyện BÌNH THƯỜNG: mô hình luôn tốt hơn một chút trên dữ liệu đã thấy. Chính khoảng cách BẰNG KHÔNG mới là bất thường."

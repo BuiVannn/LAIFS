@@ -1,0 +1,395 @@
+---
+ten_vi: "Softmax & phân loại nhiều lớp"
+ten_en: "Softmax"
+tang: 2
+thu_tu: 17
+tien_quyet: ["cross-entropy"]
+trang_thai: nhap
+dinh_nghia: >-
+  Hàm biến một vector K điểm thô (logit) thành một phân phối xác suất trên K lớp:
+  softmax(z)_i = e^(z_i) / tổng các e^(z_k). Mọi giá trị đều dương và cộng lại bằng 1.
+  Đây là bản tổng quát của sigmoid cho nhiều hơn hai lớp.
+truc_giac: >-
+  Hình dung mỗi lớp giữ một cây nến, logit là chiều cao ngọn lửa. Softmax hỏi
+  "mỗi ngọn chiếm bao nhiêu phần trăm tổng ánh sáng". Hàm mũ khiến ngọn cao hơn
+  một chút lại sáng hơn nhiều lần, nên softmax nghiêng hẳn về lớp dẫn đầu mà vẫn
+  chừa một phần nhỏ cho các lớp còn lại — "max mềm", khác argmax cứng nhắc chỉ trả về một số 1.
+hieu_nham:
+  - "Softmax KHÔNG phải chuẩn hoá tỉ lệ thuần (z_i chia cho tổng z): nó lấy mũ trước, nên chênh lệch logit được khuếch đại theo cấp số nhân và mọi đầu vào âm vẫn ra xác suất dương."
+  - "Cộng cùng một hằng số vào MỌI logit không làm đổi kết quả — chỉ hiệu số giữa các logit mới có ý nghĩa, nên giá trị tuyệt đối của logit không đọc được thành gì cả."
+  - "Xác suất softmax không phải là độ tin cậy đã hiệu chuẩn: mô hình có thể cho 0.99 mà vẫn sai, vì huấn luyện chỉ ép nó xếp đúng thứ tự chứ không ép nó nói đúng tần suất."
+  - "Đạo hàm của softmax là một MA TRẬN Jacobian K×K (mỗi đầu ra phụ thuộc mọi đầu vào), không phải một số như sigmoid; chỉ khi ghép với cross-entropy nó mới rút gọn thành ŷ − y."
+  - "Nhiều lớp loại trừ nhau thì dùng softmax; nhãn có thể chồng nhau (một ảnh vừa 'biển' vừa 'hoàng hôn') thì dùng K sigmoid độc lập."
+y_chinh:
+  - "softmax(z)_i = e^(z_i) / Σ_k e^(z_k): mọi phần tử dương, tổng bằng 1"
+  - "Bất biến với phép cộng hằng số: softmax(z + c) = softmax(z) — cơ sở của mẹo trừ max để tránh tràn số"
+  - "Với K = 2, softmax rút gọn đúng về sigmoid của hiệu hai logit"
+  - "Nhiệt độ τ: softmax(z/τ) — τ nhỏ làm phân phối nhọn (tiến tới argmax), τ lớn làm phẳng (tiến tới đều)"
+  - "Đạo hàm softmax là Jacobian ∂p_i/∂z_j = p_i(δ_ij − p_j)"
+  - "Ghép softmax với cross-entropy thì Jacobian rút gọn hoàn toàn: ∂L/∂z = ŷ − y"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=KpKog-L9veg
+    tieu_de: "Neural Networks Part 5: ArgMax and SoftMax"
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Vì sao cần softmax thay vì argmax khi huấn luyện. Nên xem đầu tiên.
+  - url: https://www.youtube.com/watch?v=M59JElEPgIg
+    tieu_de: "The SoftMax Derivative, Step-by-Step!!!"
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Dẫn Jacobian của softmax từng bước. Xem song song với phần dẫn công thức ở đây nếu thấy khó.
+  - url: https://www.youtube.com/watch?v=LLux1SW--oM
+    tieu_de: Softmax Regression (C2W3L08)
+    tac_gia: DeepLearningAI (Andrew Ng)
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Đặt softmax vào bối cảnh lớp ra của mạng neuron, kèm cách viết cho cả batch.
+  - url: https://eli.thegreenplace.net/2016/the-softmax-function-and-its-derivative/
+    tieu_de: The Softmax function and its derivative
+    tac_gia: Eli Bendersky
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Bản viết đầy đủ nhất về Jacobian softmax và phép rút gọn với cross-entropy. Tra lại khi quên chi tiết.
+---
+
+import SoftmaxNhietDo from '../../src/viz/SoftmaxNhietDo.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Tình huống: mô hình đoán từ tiếp theo
+
+Một mô hình ngôn ngữ đang đọc câu "Hôm nay trời rất ___" và phải chọn từ tiếp theo. Lớp cuối của mạng trả về một điểm thô cho mỗi từ trong từ điển:
+
+| từ | đẹp | nóng | lạnh | xanh | buồn |
+|---|---|---|---|---|---|
+| logit $z$ | 3.2 | 2.8 | 2.1 | 1.0 | 0.2 |
+
+Những con số này gọi là **logit**: chúng có thể âm, có thể lớn tuỳ ý, và không cộng lại thành gì cả. Chúng không dùng trực tiếp được, vì hai việc quan trọng đều cần xác suất:
+
+1. **Huấn luyện**: hàm mất mát [cross-entropy](/khai-niem/cross-entropy) cần xác suất mà mô hình gán cho lớp đúng.
+2. **Sinh văn bản**: muốn bốc ngẫu nhiên một từ theo mức độ hợp lý thì phải có phân phối để bốc.
+
+Lấy argmax thì mất hết thông tin (chỉ còn "đẹp"), lại còn không có đạo hàm nên không huấn luyện được. Ta cần một cách biến 5 con số tuỳ ý thành 5 xác suất **giữ nguyên thứ tự** và cộng lại bằng 1.
+
+## Trực giác: chia phần ánh sáng
+
+Ý nghĩ đầu tiên: chia mỗi số cho tổng. Hỏng ngay — logit âm cho xác suất âm, và tổng có thể bằng 0.
+
+Cách chữa là đẩy mọi số qua $e^x$ trước. Hàm mũ có hai tính chất cần đúng lúc: nó **luôn dương** (giải quyết logit âm) và nó **tăng rất nhanh** (chênh lệch nhỏ ở logit thành chênh lệch lớn ở xác suất). Sau đó mới chia cho tổng:
+
+$$
+\text{softmax}(\mathbf{z})_i = \frac{e^{z_i}}{\sum_{k=1}^{K} e^{z_k}}
+$$
+
+Tên gọi "softmax" là **max mềm**: argmax cứng trả về $(1, 0, 0, \dots)$, còn softmax trả về một phân phối nghiêng về lớp lớn nhất nhưng vẫn chừa phần cho các lớp khác. Cái "mềm" đó là thứ cho ta đạo hàm để học.
+
+<CauHoi cau="softmax/q1" />
+
+## Ba tính chất phải nhớ
+
+### 1. Luôn là một phân phối xác suất
+
+Mọi $e^{z_i} > 0$ nên mọi $p_i > 0$; mẫu số là tổng các tử số nên $\sum_i p_i = 1$. Không cần kiểm tra gì thêm.
+
+### 2. Bất biến khi cộng hằng số
+
+Đây là tính chất quan trọng nhất về mặt thực hành. Với mọi hằng số $c$:
+
+$$
+\text{softmax}(\mathbf{z} + c)_i
+= \frac{e^{z_i + c}}{\sum_k e^{z_k + c}}
+= \frac{e^{c} \, e^{z_i}}{e^{c} \sum_k e^{z_k}}
+= \frac{e^{z_i}}{\sum_k e^{z_k}}
+= \text{softmax}(\mathbf{z})_i
+$$
+
+Thừa số $e^c$ có ở cả tử lẫn mẫu nên tự triệt tiêu. Hai hệ quả:
+
+- **Chỉ hiệu số giữa các logit mới có nghĩa.** Vector $(1000, 1001, 1002)$ và $(0, 1, 2)$ cho ra **cùng một** phân phối $(0.0900, 0.2447, 0.6652)$. Nói "logit của lớp này là 1002, cao lắm" là câu vô nghĩa nếu không nói các lớp khác bao nhiêu.
+- **Được phép trừ max trước khi tính.** Chọn $c = -\max_k z_k$ thì số mũ lớn nhất thành 0, không bao giờ tràn. Bài [Ổn định số](/khai-niem/on-dinh-so) khai thác đúng chỗ này.
+
+### 3. Với hai lớp, softmax chính là sigmoid
+
+$$
+\text{softmax}(z_1, z_2)_1
+= \frac{e^{z_1}}{e^{z_1} + e^{z_2}}
+= \frac{1}{1 + e^{z_2 - z_1}}
+= \frac{1}{1 + e^{-(z_1 - z_2)}}
+= \sigma(z_1 - z_2)
+$$
+
+(bước giữa là chia cả tử và mẫu cho $e^{z_1}$.) Vậy [hồi quy logistic](/khai-niem/hoi-quy-logistic) là trường hợp riêng $K = 2$, và mô hình 2 lớp chỉ cần **một** logit chứ không cần hai — logit thứ hai luôn có thể đặt bằng 0 mà không mất tổng quát. Kiểm nhanh: $\text{softmax}(2, 1) = (0.7311, 0.2689)$ và $\sigma(2 - 1) = \sigma(1) = 0.7311$. Khớp.
+
+<CauHoi cau="softmax/q3" />
+
+## Dẫn công thức: Jacobian của softmax
+
+Đây là phần người học hay bỏ qua rồi học thuộc kết quả. Làm chậm một lần thì sau này tự dựng lại được.
+
+Đặt $S = \sum_k e^{z_k}$, nên $p_i = e^{z_i}/S$. Cần $\partial p_i / \partial z_j$ cho **mọi cặp** $(i, j)$, vì $z_j$ có mặt trong mẫu số của mọi $p_i$. Lưu ý $\partial S/\partial z_j = e^{z_j}$.
+
+**Trường hợp $i = j$.** Dùng quy tắc thương $\left(\frac{u}{v}\right)' = \frac{u'v - uv'}{v^2}$ với $u = e^{z_i}$, $v = S$:
+
+$$
+\frac{\partial p_i}{\partial z_i}
+= \frac{e^{z_i} \cdot S - e^{z_i} \cdot e^{z_i}}{S^2}
+= \frac{e^{z_i}}{S} - \frac{e^{z_i}}{S}\cdot\frac{e^{z_i}}{S}
+= p_i - p_i^2 = p_i(1 - p_i)
+$$
+
+**Trường hợp $i \ne j$.** Lúc này tử số $e^{z_i}$ không phụ thuộc $z_j$, nên $u' = 0$:
+
+$$
+\frac{\partial p_i}{\partial z_j}
+= \frac{0 \cdot S - e^{z_i} \cdot e^{z_j}}{S^2}
+= -\frac{e^{z_i}}{S}\cdot\frac{e^{z_j}}{S}
+= -\,p_i p_j
+$$
+
+Gộp hai trường hợp bằng ký hiệu Kronecker $\delta_{ij}$ (bằng 1 khi $i = j$, bằng 0 khi khác):
+
+$$
+\boxed{\;\frac{\partial p_i}{\partial z_j} = p_i\,(\delta_{ij} - p_j)\;}
+$$
+
+Kết quả là một **ma trận $K \times K$** (Jacobian), không phải một số. Dấu cũng đọc được: đẩy $z_j$ lên làm $p_j$ tăng (đường chéo dương) và kéo **mọi** $p_i$ khác xuống (ngoài đường chéo âm) — đúng, vì tổng luôn phải giữ nguyên bằng 1.
+
+## Dẫn công thức: ghép với cross-entropy
+
+Với nhãn đúng mã hoá one-hot $\mathbf{y}$ (đúng một phần tử bằng 1, còn lại 0), cross-entropy là
+
+$$
+L = -\sum_{i=1}^{K} y_i \ln p_i
+$$
+
+Bây giờ tính $\partial L / \partial z_j$. Vì $z_j$ ảnh hưởng tới **mọi** $p_i$, quy tắc chuỗi phải cộng qua tất cả $i$:
+
+$$
+\frac{\partial L}{\partial z_j} = \sum_{i=1}^{K} \frac{\partial L}{\partial p_i}\cdot\frac{\partial p_i}{\partial z_j}
+$$
+
+**Bước 1.** $\dfrac{\partial L}{\partial p_i} = -\dfrac{y_i}{p_i}$.
+
+**Bước 2.** Thay vào cùng với Jacobian vừa dẫn:
+
+$$
+\frac{\partial L}{\partial z_j}
+= \sum_{i} \left(-\frac{y_i}{p_i}\right) p_i(\delta_{ij} - p_j)
+= -\sum_{i} y_i(\delta_{ij} - p_j)
+$$
+
+Thừa số $p_i$ triệt tiêu với mẫu số $p_i$ — **đây chính là chỗ phép màu xảy ra**, y hệt chuyện $\sigma'$ triệt tiêu ở hồi quy logistic.
+
+**Bước 3.** Tách tổng làm hai phần:
+
+$$
+-\sum_{i} y_i \delta_{ij} + p_j \sum_{i} y_i
+$$
+
+Tổng thứ nhất: $\delta_{ij}$ chỉ khác 0 khi $i = j$, nên nó bằng $y_j$. Tổng thứ hai: $\sum_i y_i = 1$ vì $\mathbf{y}$ là one-hot. Vậy:
+
+$$
+\boxed{\;\frac{\partial L}{\partial z_j} = p_j - y_j
+\qquad\text{hay}\qquad
+\frac{\partial L}{\partial \mathbf{z}} = \hat{\mathbf{y}} - \mathbf{y}\;}
+$$
+
+Toàn bộ ma trận Jacobian $K\times K$ biến mất, chỉ còn một phép trừ vector.
+
+### Đường tắt: dẫn lại bằng log-softmax
+
+Có một lối đi ngắn hơn, và nó nối thẳng sang bài Ổn định số. Viết softmax dưới dạng logarit:
+
+$$
+\ln p_i = z_i - \ln \sum_k e^{z_k} = z_i - \operatorname{LSE}(\mathbf{z})
+$$
+
+trong đó $\operatorname{LSE}(\mathbf{z}) = \ln\sum_k e^{z_k}$ là **log-sum-exp**. Đạo hàm của nó chính là softmax:
+
+$$
+\frac{\partial}{\partial z_j}\operatorname{LSE}(\mathbf{z}) = \frac{e^{z_j}}{\sum_k e^{z_k}} = p_j
+$$
+
+Thay vào $L = -\sum_i y_i (z_i - \operatorname{LSE}(\mathbf{z}))$:
+
+$$
+\frac{\partial L}{\partial z_j} = -\left( y_j - \Big(\sum_i y_i\Big) p_j \right) = p_j - y_j
+$$
+
+Ba dòng, không cần Jacobian. Bài học rút ra: **làm việc với $\ln p$ thay vì $p$ thì cả toán lẫn code đều gọn và an toàn hơn.**
+
+<CauHoi cau="softmax/q10" />
+
+## Ví dụ tính tay
+
+Ba lớp, logit $\mathbf{z} = (2.0,\ 1.0,\ 0.1)$, nhãn đúng là lớp 1 (chỉ số 0), tức $\mathbf{y} = (1, 0, 0)$.
+
+**Bước 1 — trừ max** (ở đây $\max = 2.0$): $\mathbf{z} - 2 = (0,\ -1,\ -1.9)$.
+
+**Bước 2 — lấy mũ:**
+
+| lớp | $z_i - \max$ | $e^{z_i - \max}$ |
+|---|---|---|
+| 1 | 0 | 1.000000 |
+| 2 | −1 | 0.367879 |
+| 3 | −1.9 | 0.149569 |
+
+Tổng $S = 1.517448$.
+
+**Bước 3 — chia:** $\hat{\mathbf{y}} = (1/1.517448,\ 0.367879/1.517448,\ 0.149569/1.517448) = (0.659001,\ 0.242433,\ 0.098566)$. Cộng lại đúng bằng 1.
+
+Không trừ max thì $e^{2} = 7.389056$, $e^{1} = 2.718282$, $e^{0.1} = 1.105171$, tổng 11.212509, và $7.389056/11.212509 = 0.659001$ — **kết quả y hệt**, đúng như tính chất 2.
+
+**Bước 4 — loss:** $L = -\ln(0.659001) = 0.4170$.
+
+**Bước 5 — gradient:** $\hat{\mathbf{y}} - \mathbf{y} = (0.659001 - 1,\ 0.242433 - 0,\ 0.098566 - 0) = (-0.340999,\ 0.242433,\ 0.098566)$.
+
+Đọc gradient: lớp đúng có gradient **âm**, nên bước cập nhật sẽ **tăng** logit của nó; hai lớp sai có gradient dương nên logit của chúng bị **kéo xuống**. Và tổng ba thành phần luôn bằng 0 (vì cả $\hat{\mathbf{y}}$ lẫn $\mathbf{y}$ đều cộng bằng 1), nghĩa là softmax chỉ quan tâm tới chênh lệch, đúng như tính chất bất biến.
+
+<CauHoi cau="softmax/q7" />
+
+## Code: khớp từng con số ở trên
+
+```python
+import numpy as np
+
+def softmax(z, tau=1.0):
+    s = z / tau
+    e = np.exp(s - np.max(s))          # tru max: ket qua khong doi, khong tran so
+    return e / e.sum()
+
+z = np.array([2.0, 1.0, 0.1])
+y = np.array([1.0, 0.0, 0.0])          # one-hot: lop dung la lop 0
+
+p = softmax(z)
+print("softmax   :", np.round(p, 6), " tong =", p.sum())
+print("loss      :", round(float(-np.sum(y * np.log(p))), 6))
+print("gradient  :", np.round(p - y, 6))
+
+J = np.diag(p) - np.outer(p, p)        # Jacobian p_i(delta_ij - p_j)
+print("kiem tra  :", np.allclose(J.T @ (-y / p), p - y))   # duong dai == duong tat
+
+print("bat bien  :", np.allclose(softmax(z + 1000.0), p))
+print("K = 2     :", softmax(np.array([2.0, 1.0]))[0], 1 / (1 + np.exp(-1.0)))
+for tau in (0.5, 1.0, 2.0):
+    print(f"tau={tau}: ", np.round(softmax(z, tau), 6))
+```
+
+Kết quả:
+
+```
+softmax   : [0.659001 0.242433 0.098566]  tong = 1.0
+loss      : 0.41703
+gradient  : [-0.340999  0.242433  0.098566]
+kiem tra  : True
+bat bien  : True
+K = 2     : 0.7310585786300049 0.7310585786300049
+tau=0.5:  [0.863777 0.1169   0.019323]
+tau=1.0:  [0.659001 0.242433 0.098566]
+tau=2.0:  [0.501688 0.304289 0.194023]
+```
+
+Dòng `kiem tra` xác nhận hai đường dẫn cho cùng kết quả: nhân thủ công Jacobian với $\partial L/\partial p$ ra đúng $\hat{\mathbf{y}} - \mathbf{y}$.
+
+## Nhiệt độ: núm vặn độ nhọn
+
+Thêm một tham số $\tau > 0$ chia vào logit trước khi lấy softmax:
+
+$$
+\text{softmax}(\mathbf{z}/\tau)_i = \frac{e^{z_i/\tau}}{\sum_k e^{z_k/\tau}}
+$$
+
+$\tau$ gọi là **nhiệt độ** (temperature), mượn từ vật lý thống kê. Nó không đổi thứ tự các lớp, chỉ đổi độ chênh lệch:
+
+| $\tau$ | 0.5 | 1.0 | 2.0 |
+|---|---|---|---|
+| $\text{softmax}(\mathbf{z}/\tau)$ với $\mathbf{z} = (2, 1, 0.1)$ | (0.8638, 0.1169, 0.0193) | (0.6590, 0.2424, 0.0986) | (0.5017, 0.3043, 0.1940) |
+
+Hai giới hạn giải thích vì sao:
+
+- **$\tau \to 0^{+}$**: mọi hiệu số $(z_i - z_{\max})/\tau$ tiến về $-\infty$ trừ lớp lớn nhất (hiệu bằng 0). Phân phối tiến tới one-hot, tức **argmax**. Softmax "cứng" lại.
+- **$\tau \to \infty$**: mọi $z_i/\tau$ tiến về 0, nên mọi $e^{z_i/\tau}$ tiến về 1. Phân phối tiến tới **đều**, $1/K$ cho mỗi lớp. Logit bị xoá sạch ảnh hưởng.
+
+Đây chính là núm "temperature" khi dùng LLM sinh văn bản. $\tau = 0.2$ cho văn bản an toàn, lặp lại, luôn chọn từ dễ đoán nhất — hợp khi cần trích xuất dữ liệu. $\tau = 1.2$ cho văn bản đa dạng, bất ngờ, và dễ lạc đề — hợp khi viết sáng tạo. Lưu ý $\tau$ chỉ tồn tại lúc **dùng** mô hình; lúc huấn luyện thì $\tau = 1$ (trừ vài kỹ thuật riêng như chưng cất tri thức).
+
+### Tự thử: đoán trước, rồi kéo thanh trượt
+
+<SoftmaxNhietDo
+  client:visible
+  tau={0.2}
+  duDoan={{
+    de: "Ở τ = 1, từ 'đẹp' (logit 3.2) có xác suất 46.2%. Hạ nhiệt độ xuống τ = 0.2 thì xác suất của nó thành khoảng bao nhiêu?",
+    lua_chon: ["Giảm, vì chia logit cho số nhỏ", "Vẫn ~46%, vì thứ tự không đổi", "Tăng mạnh lên trên 90%"],
+    dap_an: 2,
+    giai_thich: "Chia cho τ = 0.2 tức NHÂN logit với 5: hiệu số giữa 'đẹp' và 'nóng' từ 0.4 thành 2.0, và hàm mũ khuếch đại chênh lệch đó. Xác suất lên 87.8%. Cho τ tiếp tục về 0 thì phân phối tiến tới one-hot, tức argmax."
+  }}
+/>
+
+<SoftmaxNhietDo
+  client:visible
+  tau={5}
+  duDoan={{
+    de: "Giờ ngược lại: nâng lên τ = 5. Entropy của phân phối (độ 'phẳng', tối đa ln 5 ≈ 1.6094) sẽ đi về đâu?",
+    lua_chon: ["Giảm về gần 0", "Tăng về gần 1.6094", "Không đổi, vì logit không đổi"],
+    dap_an: 1,
+    giai_thich: "τ lớn kéo mọi z/τ về gần 0, nên mọi e^(z/τ) về gần 1 và phân phối tiến tới đều 1/5 = 20% mỗi từ. Entropy tiến tới ln 5 ≈ 1.6094. Ở τ = 5 nó đã là 1.5860."
+  }}
+/>
+
+Bảng tự do, kéo τ từ 0.1 tới 5 để thấy toàn bộ dải:
+
+<SoftmaxNhietDo client:visible />
+
+## Nâng cao
+
+**Cho cả batch.** Với $N$ mẫu, logit là ma trận $Z$ kích thước $N \times K$ và softmax lấy theo **trục lớp**, tức từng hàng riêng biệt. Trong NumPy: `np.max(Z, axis=1, keepdims=True)` rồi `np.sum(..., axis=1, keepdims=True)`. Quên `keepdims=True` là lỗi kinh điển: broadcasting âm thầm chạy sai trục thay vì báo lỗi.
+
+**Vì sao thư viện không có hàm softmax trong hàm loss.** `torch.nn.CrossEntropyLoss` nhận **logit thô**, tự làm cả softmax lẫn log bên trong. Lý do là ổn định số: tính $p$ rồi $\ln p$ làm mất thông tin ở các đuôi (lớp có $p$ rất nhỏ thành $\ln 0 = -\infty$), còn tính thẳng $\ln p_i = z_i - \operatorname{LSE}(\mathbf{z})$ thì không. Chi tiết ở bài [Ổn định số](/khai-niem/on-dinh-so). Hệ quả thực hành: **đừng đặt softmax ở lớp ra** nếu hàm loss của bạn đã nhận logit.
+
+**Từ điển khổng lồ.** Mô hình ngôn ngữ có $K$ cỡ 50.000 tới hàng trăm nghìn. Mẫu số của softmax phải cộng qua toàn bộ từ điển ở **mỗi** vị trí token, nên lớp softmax thường là phần tốn nhất của mạng. Các cách né: sampled softmax, hierarchical softmax, hoặc thay bằng mục tiêu tương phản kiểu InfoNCE.
+
+**Softmax và attention.** Cơ chế [chú ý](/khai-niem/attention) cũng dùng đúng hàm này: điểm tương hợp $\to$ softmax $\to$ trọng số cộng bằng 1. Ở đó $1/\sqrt{d_k}$ đóng vai trò gần như nghịch đảo nhiệt độ: thiếu nó thì với $d_k$ lớn, tích vô hướng phình to, softmax bão hoà về one-hot và gradient tắt.
+
+**Softmax không phải độ tin cậy thật.** Mạng sâu hiện đại nổi tiếng là **quá tự tin**: 0.99 không có nghĩa là đúng 99 lần trên 100. Muốn con số đọc được như tần suất thật thì phải hiệu chuẩn, chẳng hạn temperature scaling — học đúng một tham số $\tau$ trên tập validation sau khi đã huấn luyện xong.
+
+## Sai lầm hay gặp, kèm triệu chứng
+
+| Sai lầm | Triệu chứng nhìn thấy | Cách sửa |
+|---|---|---|
+| Áp softmax rồi lại đưa vào loss vốn đã nhận logit | Loss giảm nhưng chững lại rất sớm ở mức cao; xác suất đầu ra dồn vào khoảng hẹp, không bao giờ vượt ~0.6 | Bỏ softmax ở lớp ra, để loss tự lo (xem [Ổn định số](/khai-niem/on-dinh-so)) |
+| Quên `keepdims=True` khi trừ max hoặc chia tổng | Không báo lỗi, nhưng tổng theo hàng khác 1; hoặc lỗi shape `(N,K)` với `(N,)` | Luôn `np.max(Z, axis=-1, keepdims=True)`; kiểm tra `p.sum(axis=-1)` phải ra toàn 1 |
+| Softmax sai trục trong batch | Tổng theo **cột** bằng 1 thay vì theo hàng; loss lạ lùng, accuracy quanh mức ngẫu nhiên nhưng không tăng | In `p.sum(axis=1)` — phải là vector toàn 1 dài $N$ |
+| Không trừ max | `RuntimeWarning: overflow encountered in exp`, rồi `nan` lan ra toàn bộ loss | Trừ `np.max` theo đúng trục, hoặc dùng thẳng `log_softmax` |
+| Dùng softmax cho nhãn chồng nhau (multi-label) | Mô hình không bao giờ gán xác suất cao cho **hai** nhãn cùng lúc, vì tổng bị ép bằng 1 | Dùng $K$ sigmoid độc lập, mỗi nhãn một BCE riêng |
+| Đọc logit tuyệt đối như độ tin cậy | Kết luận sai kiểu "logit 8.5 nên chắc chắn lắm" | Chỉ hiệu số có nghĩa; cộng hằng số vào tất cả logit không đổi gì cả |
+| Đặt $\tau = 0$ trong code sinh văn bản | `ZeroDivisionError` hoặc `nan` ngay token đầu tiên | $\tau = 0$ nghĩa là argmax — xử lý riêng bằng `np.argmax`, đừng chia cho 0 |
+
+## Tra nhanh
+
+| Cần gì | Công thức |
+|---|---|
+| Softmax | $p_i = \dfrac{e^{z_i}}{\sum_k e^{z_k}}$, mọi $p_i > 0$, $\sum_i p_i = 1$ |
+| Bản ổn định số | $p_i = \dfrac{e^{z_i - m}}{\sum_k e^{z_k - m}}$ với $m = \max_k z_k$ |
+| Bất biến | $\text{softmax}(\mathbf{z} + c) = \text{softmax}(\mathbf{z})$ với mọi hằng số $c$ |
+| Hai lớp | $\text{softmax}(z_1, z_2)_1 = \sigma(z_1 - z_2)$ |
+| Log-softmax | $\ln p_i = z_i - \operatorname{LSE}(\mathbf{z})$, với $\operatorname{LSE}(\mathbf{z}) = \ln\sum_k e^{z_k}$ |
+| Đạo hàm LSE | $\partial \operatorname{LSE}/\partial z_j = p_j$ |
+| Jacobian | $\dfrac{\partial p_i}{\partial z_j} = p_i(\delta_{ij} - p_j)$, dạng ma trận $\operatorname{diag}(\mathbf{p}) - \mathbf{p}\mathbf{p}^{\top}$ |
+| Ghép cross-entropy | $\dfrac{\partial L}{\partial \mathbf{z}} = \hat{\mathbf{y}} - \mathbf{y}$ (tổng các thành phần luôn bằng 0) |
+| Nhiệt độ | $\text{softmax}(\mathbf{z}/\tau)$; $\tau \to 0$ cho argmax, $\tau \to \infty$ cho phân phối đều |
+| Batch | softmax theo trục lớp, nhớ `keepdims=True` |
+
+Mốc số nên thuộc: $\text{softmax}(0, 1, 2) = (0.0900,\ 0.2447,\ 0.6652)$.
+
+## Tóm tắt
+
+- Softmax biến $K$ logit tuỳ ý thành một phân phối xác suất, là bản tổng quát của sigmoid.
+- Chỉ **hiệu số** giữa các logit có nghĩa; cộng hằng số không đổi gì, và đó là cơ sở của mẹo trừ max.
+- Nhiệt độ $\tau$ là núm chỉnh độ nhọn: nhỏ thì tiến tới argmax, lớn thì tiến tới đều.
+- Jacobian là ma trận $K\times K$, nhưng ghép với cross-entropy thì rút gọn sạch thành $\hat{\mathbf{y}} - \mathbf{y}$.
+- Tiếp theo: [Ổn định số](/khai-niem/on-dinh-so) — vì sao thư viện gộp softmax vào chung hàm loss.

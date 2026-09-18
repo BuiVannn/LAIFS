@@ -1,0 +1,133 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: so
+    do_kho: 1
+    de: "Tích vô hướng của u = (1, 2, 3) và v = (4, 0, −1) bằng bao nhiêu?"
+    dap_an: 1
+    sai_so: 0.001
+    giai_thich: "1×4 + 2×0 + 3×(−1) = 4 + 0 − 3 = 1. Nhân từng cặp phần tử tương ứng rồi cộng hết lại, kết quả là MỘT số."
+
+  - id: q2
+    loai: mot
+    do_kho: 1
+    de: "Trong NumPy, `A * B` với A và B cùng shape (3, 3) làm gì?"
+    lua_chon:
+      - Nhân ma trận theo đúng nghĩa đại số tuyến tính
+      - Nhân từng phần tử một, kết quả cũng shape (3, 3)
+      - Báo lỗi, phải dùng `A @ B`
+      - Tích vô hướng, trả về một số
+    dap_an: 1
+    giai_thich: "`*` luôn là nhân TỪNG PHẦN TỬ. Nhân ma trận là `@`. Vì cùng shape nên không có lỗi nào, code chạy êm và cho kết quả sai — đây là bug im lặng phổ biến nhất khi mới học NumPy."
+
+  - id: q3
+    loai: mot
+    do_kho: 1
+    de: "A có shape (4, 7), B có shape (7, 3). `A @ B` có shape nào?"
+    lua_chon:
+      - "(4, 3)"
+      - "(7, 7)"
+      - "(3, 4)"
+      - Báo lỗi vì shape không khớp
+    dap_an: 0
+    giai_thich: "Viết hai shape cạnh nhau: (4, 7) (7, 3). Hai số GIỮA phải bằng nhau (7 = 7, hợp lệ) và triệt tiêu; hai số NGOÀI là kết quả: (4, 3)."
+
+  - id: q4
+    loai: so
+    do_kho: 2
+    de: "A = [[1, 2, 3], [4, 5, 6]], B = [[1, 0], [0, 1], [1, 1]]. Phần tử C[1, 0] của C = A @ B bằng bao nhiêu?"
+    dap_an: 10
+    sai_so: 0.001
+    giai_thich: "C[1, 0] = (hàng 1 của A) chấm (cột 0 của B) = (4, 5, 6) · (1, 0, 1) = 4 + 0 + 6 = 10."
+
+  - id: q5
+    loai: mot
+    do_kho: 2
+    de: "(AB)ᵀ bằng gì?"
+    lua_chon:
+      - "AᵀBᵀ"
+      - "BᵀAᵀ"
+      - "AB"
+      - "BA"
+    dap_an: 1
+    giai_thich: "Chuyển vị của tích ĐẢO thứ tự: (AB)ᵀ = BᵀAᵀ. Kiểm bằng shape: A là (m, n), B là (n, p) nên (AB)ᵀ là (p, m); Bᵀ là (p, n) nhân Aᵀ là (n, m) cho (p, m) — khớp. Còn AᵀBᵀ là (n, m)(p, n), thường không nhân được."
+
+  - id: q6
+    loai: so
+    do_kho: 2
+    de: "M = [[3, 1], [2, 4]] biến hình vuông đơn vị thành hình bình hành có diện tích bao nhiêu?"
+    dap_an: 10
+    sai_so: 0.001
+    giai_thich: "Diện tích = |định thức| = |ad − bc| = |3×4 − 1×2| = 10. Hai cạnh của hình bình hành chính là hai CỘT của M: (3, 2) và (1, 4)."
+
+  - id: q7
+    loai: mot
+    do_kho: 2
+    de: "Code một lớp neuron báo lỗi `shapes (32,784) and (128,784) not aligned: 784 (dim 1) != 128 (dim 0)`. Biết X là (32 mẫu, 784 đặc trưng) và W là (128 neuron ra, 784 đặc trưng vào). Sửa thế nào?"
+    lua_chon:
+      - "Đổi `X @ W` thành `X @ W.T`"
+      - "Đổi `X @ W` thành `X.T @ W`"
+      - "Đổi `X @ W` thành `X * W`"
+      - "Đổi shape của X thành (784, 32)"
+    dap_an: 0
+    giai_thich: "Thông báo nói hai số GIỮA không khớp: 784 với 128. `W.T` có shape (784, 128), khi đó (32, 784) @ (784, 128) cho (32, 128) — đúng là 32 mẫu, mỗi mẫu 128 số ra. `X.T @ W` sẽ cho (784, ...) tức mất luôn chiều batch."
+
+  - id: q8
+    loai: mot
+    do_kho: 2
+    de: "Vì sao deep learning viết `X @ W.T + b` thay vì `W @ X` như sách giáo khoa?"
+    lua_chon:
+      - "Vì `@` chạy nhanh hơn khi ma trận bên trái lớn hơn"
+      - "Vì X xếp mỗi mẫu là một HÀNG, nên phải chuyển vị công thức Z = (WXᵀ)ᵀ = XWᵀ"
+      - "Vì NumPy không hỗ trợ nhân ma trận với vector cột"
+      - "Vì bias b bắt buộc phải là vector hàng"
+    dap_an: 1
+    giai_thich: "Sách viết cho một mẫu là vector CỘT: z = Wx + b. Dữ liệu thật xếp mỗi mẫu một HÀNG (đọc file, cắt mini-batch, xáo dữ liệu đều theo hàng). Chuyển vị hai vế của Zᵀ = WXᵀ cho Z = XWᵀ. `.T` không tốn gì vì NumPy chỉ đổi cách đọc bộ nhớ, không sao chép."
+
+  - id: q9
+    loai: nhieu
+    do_kho: 2
+    de: "Phát biểu nào về nhân ma trận là ĐÚNG? (chọn tất cả ý đúng)"
+    lua_chon:
+      - "AB và BA nói chung khác nhau, thậm chí BA có thể không tồn tại"
+      - "(AB)C luôn bằng A(BC) khi các shape hợp lệ"
+      - "Nếu AB = 0 thì A = 0 hoặc B = 0"
+      - "Cột j của AB là một tổ hợp tuyến tính các cột của A"
+    dap_an: [0, 1, 3]
+    giai_thich: "Nhân ma trận KHÔNG giao hoán nhưng CÓ kết hợp. AB = 0 với A, B đều khác 0 là chuyện bình thường: ví dụ [[1,0],[0,0]] @ [[0,0],[0,1]] = 0. Góc nhìn tổ hợp cột là chìa khoá hiểu LoRA và hạng của ma trận."
+
+  - id: q10
+    loai: mot
+    do_kho: 3
+    de: "Trong attention, Q có shape (8, 4, 20, 64) và Kᵀ có shape (8, 4, 64, 20). `Q @ K_T` có shape nào?"
+    lua_chon:
+      - "(8, 4, 20, 20)"
+      - "(8, 4, 64, 64)"
+      - "(20, 20)"
+      - "(8, 4, 20, 64, 20)"
+    dap_an: 0
+    giai_thich: "Với ndim > 2, `@` coi HAI TRỤC CUỐI là ma trận và broadcasting mọi trục trước đó như batch. (20, 64) @ (64, 20) cho (20, 20); hai trục đầu (8 câu, 4 đầu attention) giữ nguyên. Kết quả là điểm khớp giữa mọi truy vấn và mọi khoá trong từng câu."
+
+  - id: q11
+    loai: mot
+    do_kho: 3
+    de: "Cần tính A(1000×1000) · B(1000×1) · C(1×1000). Thứ tự nào rẻ hơn nhiều?"
+    lua_chon:
+      - "(AB)C — khoảng 2 triệu phép nhân"
+      - "A(BC) — khoảng 2 triệu phép nhân"
+      - "Hai cách tốn như nhau vì kết quả giống nhau"
+      - "Không tính được vì shape không khớp"
+    dap_an: 0
+    giai_thich: "(AB) là (1000, 1): tốn 10⁶. Rồi nhân C được (1000, 1000): thêm 10⁶. Tổng 2 triệu. Ngược lại (BC) là (1000, 1000) tốn 10⁶, rồi A nhân nó tốn 10⁹ — gấp 500 lần. Cùng kết quả, khác hẳn chi phí. Đây là mẹo đứng sau LoRA."
+
+  - id: q12
+    loai: mot
+    do_kho: 2
+    de: "Tích vô hướng của hai vector khác 0 bằng đúng 0 nghĩa là gì?"
+    lua_chon:
+      - Ít nhất một trong hai vector phải bằng 0
+      - Hai vector vuông góc với nhau
+      - Hai vector cùng hướng
+      - Hai vector có cùng độ dài
+    dap_an: 1
+    giai_thich: "u·v = ‖u‖‖v‖cos θ. Cả hai độ dài đều khác 0 nên chỉ còn cos θ = 0, tức θ = 90°. Đây là nền của cosine similarity: tích vô hướng chuẩn hoá chính là cos của góc giữa hai vector."

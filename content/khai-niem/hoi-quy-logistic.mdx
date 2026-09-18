@@ -1,0 +1,334 @@
+---
+ten_vi: "Hồi quy logistic & sigmoid"
+ten_en: "Logistic Regression"
+tang: 2
+thu_tu: 15
+tien_quyet: ["hoi-quy-tuyen-tinh", "xac-suat-co-ban"]
+trang_thai: nhap
+dinh_nghia: >-
+  Mô hình phân loại: tính một điểm thô tuyến tính z = w·x + b rồi ép z về khoảng (0, 1)
+  bằng hàm sigmoid để được xác suất ŷ = σ(z) của lớp dương. Huấn luyện bằng gradient descent
+  trên hàm mất mát cross-entropy nhị phân, không dùng MSE.
+truc_giac: >-
+  Hồi quy tuyến tính trả về một con số chạy từ âm vô cùng tới dương vô cùng, còn câu hỏi
+  "có hay không" cần một xác suất nằm giữa 0 và 1. Sigmoid là cái phễu bóp trục số vô hạn
+  đó lại vừa khít đoạn (0, 1): số rất âm ra gần 0, số rất dương ra gần 1, số 0 ra đúng 0.5.
+  Điều mô hình thật sự học tuyến tính không phải xác suất, mà là log-odds của nó.
+hieu_nham:
+  - "Tên có chữ 'hồi quy' nhưng đây là mô hình PHÂN LOẠI: đầu ra là xác suất của một lớp, không phải một giá trị liên tục cần dự báo."
+  - "Mô hình không tuyến tính theo xác suất mà tuyến tính theo log-odds: tăng x thêm 1 đơn vị làm log-odds cộng thêm w, còn xác suất thì tăng nhiều hay ít tuỳ đang ở đoạn nào của đường sigmoid."
+  - "Không dùng MSE cho phân loại: mặt lỗi khi đó không lồi (có đoạn lõm nên gradient descent dễ kẹt) và gradient teo về 0 đúng lúc mô hình sai nặng nhất."
+  - "Ngưỡng 0.5 chỉ là mặc định, không phải chân lý: khi hai lớp lệch nhau hoặc chi phí sai hai chiều khác nhau, phải chọn ngưỡng khác."
+  - "Đạo hàm gọn (ŷ − y)x KHÔNG phải vì ai đó bỏ qua đạo hàm sigmoid, mà vì thừa số σ′(z) = ŷ(1 − ŷ) triệt tiêu đúng với mẫu số do cross-entropy sinh ra."
+y_chinh:
+  - "ŷ = σ(w·x + b) với σ(z) = 1/(1 + e^(−z)): đầu ra luôn nằm trong (0, 1) nên đọc được như xác suất"
+  - "Mô hình tuyến tính theo log-odds: log(p/(1 − p)) = w·x + b"
+  - "Hàm mất mát là cross-entropy nhị phân, không phải MSE: MSE làm mặt lỗi không lồi và gradient teo khi sai nặng"
+  - "Đạo hàm rút gọn thành ∂L/∂z = ŷ − y, nên ∂L/∂w = (ŷ − y)x và ∂L/∂b = ŷ − y"
+  - "Ngưỡng quyết định mặc định p ≥ 0.5 tương đương z ≥ 0; đổi ngưỡng là đổi điểm cân bằng giữa bỏ sót và báo động nhầm"
+  - "Nhiều lớp: thay sigmoid bằng softmax, cross-entropy nhị phân thành cross-entropy nhiều lớp, dạng đạo hàm giữ nguyên"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=yIYKR4sgzI8
+    tieu_de: "StatQuest: Logistic Regression"
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Giới thiệu chậm rãi vì sao cần ép đường thẳng thành đường cong chữ S. Nên xem đầu tiên.
+  - url: https://www.youtube.com/watch?v=vN5cNN2-HWE
+    tieu_de: "Logistic Regression Details Pt1: Coefficients"
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Giải thích hệ số w đọc theo log-odds như thế nào. Xem sau khi đã nắm phần log-odds trong bài này.
+  - url: https://www.youtube.com/watch?v=SHEPb1JHw5o
+    tieu_de: Logistic Regression Cost Function (C1W2L03)
+    tac_gia: DeepLearningAI (Andrew Ng)
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Vì sao hàm mất mát là cross-entropy chứ không phải bình phương sai số. Khớp đúng phần dẫn công thức ở đây.
+  - url: https://developers.google.com/machine-learning/crash-course/logistic-regression/sigmoid-function
+    tieu_de: "Logistic regression: Calculating a probability"
+    tac_gia: Google Machine Learning Crash Course
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Bản viết ngắn, có hình sigmoid và ví dụ log-odds. Tiện để tra lại khi quên công thức.
+---
+
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Tình huống: phòng khám và một xét nghiệm
+
+Một phòng khám muốn ước lượng khả năng một người mắc bệnh dựa vào chỉ số xét nghiệm $x$. Nếu dùng [hồi quy tuyến tính](/khai-niem/hoi-quy-tuyen-tinh), mô hình cho ra $\hat{y} = wx + b$, một con số chạy từ $-\infty$ tới $+\infty$. Với $x$ đủ lớn, mô hình trả lời "khả năng mắc bệnh là 1.7". Với $x$ đủ nhỏ, "khả năng là −0.4". Cả hai đều vô nghĩa.
+
+Vấn đề không phải ở chỗ mô hình tính sai, mà ở chỗ **miền giá trị sai**. Xác suất phải nằm trong $[0, 1]$. Ta cần một cách ép trục số vô hạn vào đoạn đó mà vẫn giữ được thứ tự: $x$ lớn hơn thì xác suất cao hơn.
+
+## Trực giác: cái phễu tên là sigmoid
+
+Hàm **sigmoid** (hay hàm logistic) làm đúng việc ép đó:
+
+$$
+\sigma(z) = \frac{1}{1 + e^{-z}}
+$$
+
+| $z$ | −6 | −2 | 0 | 2 | 6 |
+|---|---|---|---|---|---|
+| $\sigma(z)$ | 0.0025 | 0.1192 | 0.5 | 0.8808 | 0.9975 |
+
+Đọc bảng theo lối kể chuyện: $z$ là **mức độ tin** rằng câu trả lời là "có". $z$ rất âm nghĩa là rất tin "không", $z = 0$ nghĩa là hoàn toàn phân vân, $z$ rất dương nghĩa là rất tin "có". Sigmoid dịch mức độ tin đó sang ngôn ngữ xác suất.
+
+Mô hình hoàn chỉnh chỉ là hồi quy tuyến tính nối thêm cái phễu:
+
+$$
+z = \mathbf{w} \cdot \mathbf{x} + b, \qquad \hat{y} = \sigma(z) = P(y = 1 \mid \mathbf{x})
+$$
+
+Phần tuyến tính giữ nguyên, kể cả cách diễn giải trọng số. Cái thay đổi là đơn vị của đầu ra.
+
+<CauHoi cau="hoi-quy-logistic/q1" />
+
+## Log-odds: đại lượng thật sự tuyến tính
+
+Đây là chỗ hay bị bỏ qua nhưng lại là linh hồn của mô hình. Từ $p = \sigma(z)$, ta đảo ngược hàm:
+
+$$
+p = \frac{1}{1 + e^{-z}}
+\;\Longrightarrow\;
+1 - p = \frac{e^{-z}}{1 + e^{-z}}
+\;\Longrightarrow\;
+\frac{p}{1 - p} = e^{z}
+\;\Longrightarrow\;
+\ln\frac{p}{1 - p} = z
+$$
+
+Tỉ số $\dfrac{p}{1-p}$ gọi là **odds** (tỉ lệ cược): $p = 0.75$ thì odds $= 3$, đọc là "khả năng có gấp 3 lần khả năng không". Lấy logarit tự nhiên của odds ta được **log-odds**, còn gọi là **logit**. Kết luận:
+
+$$
+\boxed{\;\ln\frac{p}{1-p} = \mathbf{w} \cdot \mathbf{x} + b\;}
+$$
+
+Mô hình **tuyến tính theo log-odds**, không tuyến tính theo xác suất. Hệ quả đọc được ngay:
+
+- Tăng $x_j$ thêm 1 đơn vị làm log-odds **cộng thêm** $w_j$, tức odds được **nhân với** $e^{w_j}$. Với $w_j = 0.8$, odds nhân $e^{0.8} \approx 2.2255$: gấp hơn đôi, bất kể đang xuất phát từ đâu.
+- Xác suất thì không tăng đều như vậy. Từ $p = 0.5$ tăng 1 đơn vị $x$ với $w = 0.8$ cho $p \approx 0.6900$ (tăng 0.19). Nhưng từ $p = 0.95$ thì chỉ lên $\approx 0.9769$ (tăng 0.027). Càng gần biên, sigmoid càng phẳng, xác suất càng khó nhích.
+
+Đây cũng là lý do một mô hình đã rất tự tin thì học rất chậm: phần đuôi của sigmoid gần như nằm ngang. Bài [Hàm kích hoạt](/khai-niem/ham-kich-hoat) gọi hiện tượng đó là **bão hoà**.
+
+## Vì sao không dùng MSE
+
+Phản xạ tự nhiên là lấy lại hàm mất mát quen thuộc: $L = (\hat{y} - y)^2$. Với phân loại, nó hỏng vì hai lý do độc lập nhau.
+
+### Lý do 1: mặt lỗi không còn lồi
+
+Với hồi quy tuyến tính, $L(w) = (wx + b - y)^2$ là một parabol, luôn **lồi**: một đáy duy nhất, gradient descent xuất phát ở đâu cũng tới đúng chỗ đó.
+
+Ghép thêm sigmoid vào giữa, $L(w) = (\sigma(wx+b) - y)^2$ không còn lồi nữa. Lấy ví dụ nhỏ nhất có thể: một điểm dữ liệu $x = 1$, $y = 1$, $b = 0$, nên $L(w) = (\sigma(w) - 1)^2$. Tính đạo hàm cấp hai trên lưới $w \in [-6, 6]$ sẽ thấy $L''(w) < 0$ với mọi $w < -0.7$: cả một vùng **lõm**. Mặt lỗi có chỗ lồi chỗ lõm thì gradient descent mất đảm bảo, và với nhiều tham số có thể dừng ở cực tiểu cục bộ (bài [Gradient Descent](/khai-niem/gradient-descent)).
+
+### Lý do 2: gradient teo đúng lúc cần nhất
+
+Tệ hơn cả chuyện lồi. Đạo hàm của MSE theo $z$:
+
+$$
+\frac{\partial}{\partial z} (\sigma(z) - y)^2 = 2(\sigma(z) - y) \cdot \sigma'(z) = 2(\hat{y} - y)\,\hat{y}(1 - \hat{y})
+$$
+
+Thừa số $\hat{y}(1-\hat{y})$ là tử thần. Giả sử đáp án đúng là $y = 1$ nhưng mô hình đang tin chắc ngược lại, $z = -6$ nên $\hat{y} = 0.002473$. Đây là trường hợp **sai nặng nhất**, đáng ra phải sửa mạnh tay nhất:
+
+| Hàm mất mát | $\partial L/\partial z$ tại $z = -6$, $y = 1$ |
+|---|---|
+| MSE | $2(0.002473 - 1)(0.002473)(0.997527) = -0.004921$ |
+| Cross-entropy | $0.002473 - 1 = -0.997527$ |
+
+Chênh nhau hơn **200 lần**. Với MSE, mô hình sai nặng lại nhận tín hiệu sửa gần như bằng 0, nằm lì ở đó rất lâu. Cross-entropy cho tín hiệu sửa tỉ lệ thẳng với độ sai.
+
+<CauHoi cau="hoi-quy-logistic/q4" />
+
+## Dẫn công thức: cross-entropy và đạo hàm gọn
+
+Hàm mất mát đúng cho phân loại nhị phân là **cross-entropy nhị phân** (binary cross-entropy, BCE), còn gọi là log loss:
+
+$$
+L(\hat{y}, y) = -\big[\, y \ln \hat{y} + (1 - y)\ln(1 - \hat{y}) \,\big]
+$$
+
+Đọc nó bằng cách tách hai trường hợp: nếu $y = 1$ thì $L = -\ln \hat{y}$, nếu $y = 0$ thì $L = -\ln(1 - \hat{y})$. Cả hai đều nói cùng một câu: **phạt bằng âm logarit của xác suất mà mô hình gán cho đáp án đúng**. Đoán đúng với xác suất 1 thì phạt 0; đoán đáp án đúng với xác suất tiến về 0 thì phạt tiến ra vô cùng.
+
+Giờ tính đạo hàm theo $z$, qua ba bước.
+
+**Bước 1 — đạo hàm của loss theo $\hat{y}$:**
+
+$$
+\frac{\partial L}{\partial \hat{y}}
+= -\frac{y}{\hat{y}} + \frac{1-y}{1-\hat{y}}
+= \frac{-y(1-\hat{y}) + (1-y)\hat{y}}{\hat{y}(1-\hat{y})}
+= \frac{-y + y\hat{y} + \hat{y} - y\hat{y}}{\hat{y}(1-\hat{y})}
+= \frac{\hat{y} - y}{\hat{y}(1-\hat{y})}
+$$
+
+**Bước 2 — đạo hàm của sigmoid.** Viết $\sigma = \sigma(z)$:
+
+$$
+\sigma'(z) = \frac{d}{dz}(1 + e^{-z})^{-1} = \frac{e^{-z}}{(1+e^{-z})^2} = \sigma(z)\big(1 - \sigma(z)\big) = \hat{y}(1 - \hat{y})
+$$
+
+**Bước 3 — nhân lại bằng quy tắc chuỗi.** Mẫu số ở bước 1 và thừa số ở bước 2 **giống hệt nhau**, nên chúng triệt tiêu:
+
+$$
+\frac{\partial L}{\partial z}
+= \frac{\partial L}{\partial \hat{y}} \cdot \frac{\partial \hat{y}}{\partial z}
+= \frac{\hat{y} - y}{\hat{y}(1-\hat{y})} \cdot \hat{y}(1-\hat{y})
+= \hat{y} - y
+$$
+
+Từ đó, vì $z = \mathbf{w} \cdot \mathbf{x} + b$:
+
+$$
+\boxed{\;\frac{\partial L}{\partial \mathbf{w}} = (\hat{y} - y)\,\mathbf{x}, \qquad \frac{\partial L}{\partial b} = \hat{y} - y\;}
+$$
+
+Với một batch $N$ mẫu, lấy trung bình: $\nabla_{\mathbf{w}} L = \frac{1}{N}\sum_i (\hat{y}_i - y_i)\mathbf{x}_i$.
+
+Hãy nhìn kỹ dạng này: nó **giống hệt** gradient của hồi quy tuyến tính với MSE (sai số nhân đầu vào). Đó không phải trùng hợp — cross-entropy được chọn (qua [hợp lý cực đại](/khai-niem/hop-ly-cuc-dai)) chính là hàm mất mát "khớp" với sigmoid theo nghĩa làm thừa số bão hoà biến mất.
+
+## Ví dụ tính tay
+
+Dữ liệu 4 sinh viên: $x$ là số giờ ôn bài, $y = 1$ nghĩa là đỗ.
+
+| $x$ | 1 | 2 | 3 | 4 |
+|---|---|---|---|---|
+| $y$ | 0 | 0 | 1 | 1 |
+
+Khởi tạo $w = 0$, $b = 0$, learning rate $\eta = 1$.
+
+**Bước 1.** Mọi $z_i = 0$, nên mọi $\hat{y}_i = \sigma(0) = 0.5$. Loss $= -\ln 0.5 = 0.6931$ (mô hình đang tung đồng xu).
+
+$$
+\frac{\partial L}{\partial w} = \frac{1}{4}\Big[(0.5-0)(1) + (0.5-0)(2) + (0.5-1)(3) + (0.5-1)(4)\Big] = \frac{0.5 + 1.0 - 1.5 - 2.0}{4} = -0.5
+$$
+
+$$
+\frac{\partial L}{\partial b} = \frac{0.5 + 0.5 - 0.5 - 0.5}{4} = 0
+$$
+
+Cập nhật: $w \leftarrow 0 - 1 \times (-0.5) = 0.5$, còn $b$ giữ nguyên 0.
+
+**Bước 2.** Giờ $z_i = 0.5 x_i$:
+
+| $x$ | $z = 0.5x$ | $\hat{y} = \sigma(z)$ | $y$ | $\hat{y} - y$ | $(\hat{y}-y)x$ |
+|---|---|---|---|---|---|
+| 1 | 0.5 | 0.6225 | 0 | 0.6225 | 0.6225 |
+| 2 | 1.0 | 0.7311 | 0 | 0.7311 | 1.4622 |
+| 3 | 1.5 | 0.8176 | 1 | −0.1824 | −0.5473 |
+| 4 | 2.0 | 0.8808 | 1 | −0.1192 | −0.4768 |
+
+$\partial L/\partial w = (0.6225 + 1.4622 - 0.5473 - 0.4768)/4 = 0.2651$ và $\partial L/\partial b = (0.6225 + 0.7311 - 0.1824 - 0.1192)/4 = 0.2630$.
+
+Cập nhật: $w = 0.5 - 0.2651 = 0.2349$, $b = 0 - 0.2630 = -0.2630$. Loss giảm từ 0.6931 xuống 0.6539 rồi 0.5972.
+
+Bước 1 kéo $w$ lên vì cột $(\hat{y}-y)x$ nghiêng về phía các sinh viên đỗ (có $x$ lớn). Bước 2 kéo $b$ xuống vì mô hình đang gán xác suất đỗ quá cao cho cả những người trượt.
+
+<CauHoi cau="hoi-quy-logistic/q5" />
+
+## Code: 2 bước tính tay, rồi huấn luyện đủ
+
+```python
+import numpy as np
+
+x = np.array([1.0, 2.0, 3.0, 4.0])
+y = np.array([0.0, 0.0, 1.0, 1.0])
+sigmoid = lambda z: 1.0 / (1.0 + np.exp(-z))
+
+def buoc(w, b, lr):
+    p = sigmoid(w * x + b)                     # y mu
+    loss = -np.mean(y * np.log(p) + (1 - y) * np.log(1 - p))
+    gw, gb = np.mean((p - y) * x), np.mean(p - y)   # dao ham gon: (p - y) * x
+    return w - lr * gw, b - lr * gb, loss, gw, gb
+
+w = b = 0.0
+for i in range(2):                             # khop bang tinh tay o tren
+    w, b, loss, gw, gb = buoc(w, b, lr=1.0)
+    print(f"buoc {i+1}: loss={loss:.4f} gw={gw:+.4f} gb={gb:+.4f} -> w={w:.4f} b={b:.4f}")
+
+w = b = 0.0
+for _ in range(2000):                          # huan luyen day du, lr nho hon
+    w, b, loss, _, _ = buoc(w, b, lr=0.5)
+print(f"cuoi: w={w:.4f} b={b:.4f} loss={loss:.4f} nguong x = {-b / w:.4f}")
+```
+
+Kết quả:
+
+```
+buoc 1: loss=0.6931 gw=-0.5000 gb=+0.0000 -> w=0.5000 b=0.0000
+buoc 2: loss=0.6539 gw=+0.2651 gb=+0.2630 -> w=0.2349 b=-0.2630
+cuoi: w=5.7988 b=-14.3120 loss=0.0273 nguong x = 2.4681
+```
+
+Hai dòng đầu khớp đúng bảng tính tay.
+
+## Ngưỡng quyết định
+
+Mô hình cho ra xác suất, nhưng phòng khám cần một câu trả lời "có" hoặc "không". Quy tắc mặc định là ngưỡng $0.5$:
+
+$$
+\hat{y} \ge 0.5 \iff \sigma(z) \ge 0.5 \iff z \ge 0 \iff \mathbf{w} \cdot \mathbf{x} + b \ge 0
+$$
+
+Ba phát biểu này tương đương nhau, và câu cuối cho thấy **biên quyết định luôn là một siêu phẳng** trong không gian đặc trưng — một đường thẳng khi có 2 đặc trưng. Hồi quy logistic là mô hình tuyến tính; sigmoid chỉ đổi đơn vị đầu ra, không làm biên cong đi.
+
+Trong ví dụ trên, biên là $5.7988x - 14.3120 = 0$, tức $x = 2.4681$ giờ. Ai ôn trên chừng đó giờ thì mô hình đoán "đỗ".
+
+Nhưng 0.5 không thiêng. Sàng lọc một bệnh hiếm mà nguy hiểm thì bỏ sót tốn kém hơn báo động nhầm rất nhiều, nên hạ ngưỡng xuống 0.2 để bắt được nhiều ca hơn (đổi lại nhiều báo động nhầm hơn). Chặn thư rác thì ngược lại, nên nâng ngưỡng lên 0.9 để không vứt nhầm thư thật. **Đổi ngưỡng không cần huấn luyện lại** — chỉ là đọc lại cùng một cột xác suất bằng một vạch khác.
+
+## Nâng cao
+
+**Phân loại nhiều lớp.** Với $K$ lớp, thay sigmoid bằng [softmax](/khai-niem/softmax): mô hình cho ra $K$ điểm thô $z_1, \dots, z_K$ rồi chuẩn hoá thành một phân phối tổng bằng 1. Hàm mất mát thành cross-entropy nhiều lớp, và đạo hàm vẫn giữ nguyên dạng $\hat{\mathbf{y}} - \mathbf{y}$ (với $\mathbf{y}$ là vector one-hot). Sigmoid chính là softmax cho $K = 2$ — bài Softmax chứng minh điều đó.
+
+Khi các lớp **không loại trừ nhau** (một bức ảnh vừa có "biển" vừa có "hoàng hôn"), đừng dùng softmax: dùng $K$ sigmoid độc lập, mỗi cái một BCE riêng. Kiểu này gọi là one-vs-rest hay multi-label.
+
+**Dữ liệu tách được hoàn hảo.** Nếu tồn tại một đường thẳng chia đôi dữ liệu không sót điểm nào, thì nhân mọi trọng số lên gấp đôi luôn làm loss giảm thêm một chút (các xác suất tiến sát 0 và 1 hơn). Không có cực tiểu hữu hạn: $\|\mathbf{w}\|$ tăng mãi, loss tiệm cận 0 nhưng không bao giờ đạt. Triệu chứng là trọng số phình lên hàng trăm, hàng nghìn sau nhiều epoch. Cách chữa là [regularization](/khai-niem/regularization) — thêm phạt $\lambda\|\mathbf{w}\|^2$ để giữ trọng số hữu hạn.
+
+**Từ đâu ra cross-entropy?** Không phải ai đó chọn cho tiện. Giả sử mỗi nhãn $y_i$ là một lần tung đồng xu lệch với xác suất $\hat{y}_i$. Xác suất quan sát được toàn bộ tập dữ liệu là $\prod_i \hat{y}_i^{y_i}(1-\hat{y}_i)^{1-y_i}$. Lấy logarit rồi đổi dấu để chuyển "cực đại hoá" thành "cực tiểu hoá", ta được đúng tổng các BCE. Chi tiết ở bài [Hợp lý cực đại](/khai-niem/hop-ly-cuc-dai).
+
+**Đặc trưng phi tuyến.** Biên là siêu phẳng trong không gian **đặc trưng**, không nhất thiết trong không gian dữ liệu gốc. Thêm $x_1^2, x_2^2, x_1x_2$ vào đầu vào thì biên trong mặt phẳng gốc thành hình elip. Đây là mẹo cũ, ngày nay thường thay bằng cho một [mạng nhiều lớp](/khai-niem/mlp) tự học đặc trưng, rồi đặt đúng một lớp logistic ở cuối.
+
+## Sai lầm hay gặp, kèm triệu chứng
+
+| Sai lầm | Triệu chứng nhìn thấy | Cách sửa |
+|---|---|---|
+| Dùng MSE thay cross-entropy | Loss giảm cực chậm rồi đứng im ở mức cao; các mẫu sai nặng mãi không được sửa; đổi khởi tạo cho kết quả cuối khác hẳn nhau | Đổi sang BCE; kiểm tra lại bằng cách in $\partial L/\partial z$ trên một mẫu sai nặng, phải gần ±1 |
+| Quên sigmoid ở lớp ra, đưa thẳng $z$ vào BCE | Loss ra `nan` ngay batch đầu, hoặc ra số âm | Dùng phiên bản nhận logit (`BCEWithLogitsLoss`, xem [Ổn định số](/khai-niem/on-dinh-so)), đừng tự ghép `sigmoid` rồi `log` |
+| Áp sigmoid **hai lần** (lớp ra đã sigmoid, lại truyền vào hàm loss "with logits") | Loss giảm nhưng đứng lại quanh 0.6–0.7; mọi xác suất dồn vào khoảng hẹp 0.38–0.73 | Chọn một trong hai: hoặc lớp ra trả logit thô, hoặc dùng loss nhận xác suất |
+| Không chuẩn hoá đặc trưng | Một đặc trưng đơn vị "nghìn đồng" làm $z$ nhảy lên hàng trăm; sigmoid bão hoà, gradient $\approx 0$, loss đứng im từ epoch 1 | Chuẩn hoá về trung bình 0 độ lệch chuẩn 1 trước khi huấn luyện |
+| Đọc $w$ như "xác suất tăng thêm $w$" | Kết luận sai kiểu "thêm 1 giờ ôn thì tăng 0.8 xác suất đỗ" | $w$ là số cộng vào **log-odds**; odds nhân $e^{w}$, còn xác suất tăng bao nhiêu thì tuỳ đang đứng ở đâu |
+| Đánh giá bằng accuracy trên dữ liệu lệch lớp | Accuracy 99% trông rất đẹp, nhưng mô hình đoán "không" cho mọi mẫu và bắt được 0 ca dương | Xem precision/recall, chọn ngưỡng theo chi phí thật (bài [Đánh giá mô hình](/khai-niem/danh-gia-mo-hinh)) |
+
+<CauHoi cau="hoi-quy-logistic/q11" />
+
+## Tra nhanh
+
+| Cần gì | Công thức |
+|---|---|
+| Sigmoid | $\sigma(z) = \dfrac{1}{1 + e^{-z}}$, ảnh là $(0, 1)$, $\sigma(0) = 0.5$ |
+| Đạo hàm sigmoid | $\sigma'(z) = \sigma(z)\big(1 - \sigma(z)\big)$, lớn nhất $= 0.25$ tại $z = 0$ |
+| Mô hình | $\hat{y} = \sigma(\mathbf{w}\cdot\mathbf{x} + b)$ |
+| Log-odds (logit) | $\ln\dfrac{p}{1-p} = \mathbf{w}\cdot\mathbf{x} + b$; đảo lại $p = \sigma(\text{logit})$ |
+| Odds từ xác suất | $\text{odds} = \dfrac{p}{1-p}$; ngược lại $p = \dfrac{\text{odds}}{1 + \text{odds}}$ |
+| Ý nghĩa $w_j$ | $x_j$ tăng 1 thì odds nhân $e^{w_j}$ |
+| Loss (BCE) | $L = -\big[y\ln\hat{y} + (1-y)\ln(1-\hat{y})\big]$ |
+| Gradient | $\dfrac{\partial L}{\partial z} = \hat{y} - y$; $\;\nabla_{\mathbf{w}}L = (\hat{y}-y)\mathbf{x}$; $\;\dfrac{\partial L}{\partial b} = \hat{y}-y$ |
+| Batch $N$ mẫu | $\nabla_{\mathbf{w}}L = \dfrac{1}{N}X^{\top}(\hat{\mathbf{y}} - \mathbf{y})$ |
+| Biên quyết định | $\hat{y} \ge 0.5 \iff z \ge 0 \iff \mathbf{w}\cdot\mathbf{x} + b \ge 0$ |
+| Nhiều lớp | sigmoid $\to$ softmax, BCE $\to$ cross-entropy; gradient vẫn $\hat{\mathbf{y}} - \mathbf{y}$ |
+
+Ba mốc số nên thuộc: $\sigma(0) = 0.5$, $\sigma(2) = 0.8808$, $\sigma(-2) = 0.1192$.
+
+## Tóm tắt
+
+- Hồi quy logistic = hồi quy tuyến tính + sigmoid, cho ra xác suất thay vì một số thực tuỳ ý.
+- Cái tuyến tính thật sự là **log-odds**: $\ln\frac{p}{1-p} = \mathbf{w}\cdot\mathbf{x}+b$.
+- MSE hỏng vì mặt lỗi không lồi **và** gradient teo khi sai nặng; cross-entropy chữa cả hai.
+- Đạo hàm rút gọn đẹp đẽ thành $\hat{y} - y$ nhờ $\sigma'$ triệt tiêu với mẫu số của BCE.
+- Tiếp theo: [Cross-entropy](/khai-niem/cross-entropy), rồi [Softmax](/khai-niem/softmax) cho nhiều lớp.

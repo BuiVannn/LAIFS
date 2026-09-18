@@ -74,13 +74,17 @@ Cấu trúc 11 module của AIO (Python → NumPy/xác suất → ML cơ bản �
 
 ## 3. Nội dung sẽ thêm
 
-### 3.1 Điền các khái niệm còn là stub (ưu tiên cao, 15 bài)
+### 3.1 Điền các khái niệm nền ✅ xong 2026-09-18 (20 bài, không phải 15)
 
 Đã có sẵn trong lộ trình nhưng chưa có nội dung, và đều cần cho DL/NLP:
 
 `vector-ma-tran` · `nhan-ma-tran` · `xac-suat-co-ban` · `ml-la-gi` · `train-val-test` · `hoi-quy-logistic` · `cross-entropy` · `softmax` · `overfitting` · `regularization` (L1/L2) · `danh-gia-mo-hinh` · `sgd-mini-batch` · `khoi-tao-trong-so` · `optimizer` (momentum, Adam) · `dropout` · `batch-norm`
 
-Để sau (chỉ cần khi mở rộng sang ML cổ điển): `knn`, `k-means`, `cay-quyet-dinh`, `ky-vong-phuong-sai`.
+Thêm 4 khái niệm mà danh sách 15 ban đầu còn thiếu: `ky-vong-phuong-sai`, `hop-ly-cuc-dai` (MLE — lý do MSE và cross-entropy là hai loss "đúng"), `on-dinh-so` (log-sum-exp, trừ max, epsilon), `gradient-bien-mat`.
+
+Để sau (chỉ cần khi mở rộng sang ML cổ điển): `knn`, `k-means`, `cay-quyet-dinh`.
+
+**Kết quả đợt 3.1:** 20 bài (mỗi bài dài gấp 2–4 lần bài mẫu cũ, có mục "Tra nhanh"), 240 câu trắc nghiệm, 32 bài code, 10 viz mới. Lộ trình đánh số lại còn 46 khái niệm, 43 bài đã có nội dung.
 
 ### 3.2 Nhánh mới: Công cụ cho người mới (4 bài)
 

@@ -1,0 +1,291 @@
+---
+ten_vi: "ML là gì: dữ liệu, mô hình, học có/không giám sát"
+ten_en: "What is Machine Learning: data, models, supervised / unsupervised / self-supervised learning"
+tang: 2
+thu_tu: 8
+tien_quyet: []
+trang_thai: nhap
+dinh_nghia: >-
+  Machine learning là cách làm phần mềm trong đó ta không viết luật bằng tay, mà đưa ví dụ cho
+  máy rồi để một thuật toán tự chỉnh tham số của một hàm sao cho hàm đó khớp với ví dụ. Ba mảnh
+  ghép bắt buộc: dữ liệu, một họ hàm có tham số (mô hình), và một hàm mất mát cùng thuật toán tối ưu
+  để đo và giảm mức sai.
+truc_giac: >-
+  Lập trình thường: bạn viết luật, máy chạy luật trên dữ liệu và cho ra đáp án. Machine learning
+  đảo chiều mũi tên: bạn đưa dữ liệu KÈM đáp án, máy đi tìm luật. Bạn không còn dạy máy "thư nào
+  là spam", bạn chỉ đưa vài nghìn thư đã dán nhãn và một thước đo "sai bao nhiêu" — phần còn lại
+  là bài toán tìm cực tiểu.
+hieu_nham:
+  - "\"Học\" ở đây không có gì huyền bí: nó chỉ là tìm bộ số (tham số) làm hàm mất mát nhỏ nhất. Không có hiểu biết, không có ý định, chỉ có tối ưu hoá."
+  - "Mục tiêu KHÔNG phải khớp dữ liệu đã có thật khít. Một bảng tra cứu học thuộc lòng toàn bộ dữ liệu huấn luyện có sai số bằng 0 mà vô dụng. Mục tiêu là đúng trên dữ liệu CHƯA từng thấy."
+  - "Học không giám sát không phải \"học mà không cần nhãn nên tiện hơn\": nó trả lời câu hỏi khác hẳn (cấu trúc nào có trong dữ liệu), và không có đáp án đúng để chấm điểm."
+  - "Học tự giám sát (self-supervised) vẫn có nhãn — nhãn được sinh ra từ chính dữ liệu (từ tiếp theo, mảnh bị che), chứ không phải do người gán. Đây là cách LLM được huấn luyện, và nó vẫn là học có giám sát về mặt kỹ thuật."
+  - "Không phải bài nào cũng nên dùng ML. Luật rõ ràng, ít ngoại lệ, cần giải thích được thì `if/else` vừa rẻ hơn vừa đáng tin hơn."
+y_chinh:
+  - "Lập trình thường đi từ luật ra đáp án; ML đi từ (dữ liệu + đáp án) ra luật"
+  - "Ba mảnh ghép: dữ liệu, mô hình (họ hàm có tham số), hàm mất mát + thuật toán tối ưu"
+  - "Huấn luyện = tìm tham số làm hàm mất mát nhỏ nhất; đây là bài toán tối ưu, không phải phép màu"
+  - "Có giám sát: có (x, y) do người gán. Không giám sát: chỉ có x, đi tìm cấu trúc. Tự giám sát: nhãn sinh ra từ chính dữ liệu"
+  - "Tự giám sát là nền của LLM: che một phần văn bản rồi bắt mô hình đoán lại, nên dữ liệu huấn luyện gần như vô hạn"
+  - "Thước đo thành công là kết quả trên dữ liệu chưa từng thấy, không phải sai số trên dữ liệu huấn luyện"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=Gv9_4yMHFhI
+    tieu_de: A Gentle Introduction to Machine Learning
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: 12 phút, dựng đúng bộ khung train/test và ý "mục tiêu là dữ liệu mới". Xem đầu tiên nếu chưa từng học ML.
+  - url: https://www.youtube.com/watch?v=i_LwzRVP7bg
+    tieu_de: Machine Learning for Everybody — Full Course
+    tac_gia: Kylie Ying (freeCodeCamp.org)
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    moc: "0:00–25:00"
+    ghi_chu: 25 phút đầu định nghĩa feature, nhãn, các kiểu học và vòng huấn luyện bằng code thật. Phần sau là các thuật toán cụ thể, xem dần cũng được.
+  - url: https://developers.google.com/machine-learning/intro-to-ml/supervised
+    tieu_de: "Introduction to Machine Learning: Supervised Learning"
+    tac_gia: Google Machine Learning Education
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Trang ngắn, chuẩn thuật ngữ. Đọc để thống nhất cách gọi feature / label / example / model trước khi đọc tài liệu khác.
+  - url: https://ai.meta.com/blog/self-supervised-learning-the-dark-matter-of-intelligence/
+    tieu_de: "Self-supervised learning: The dark matter of intelligence"
+    tac_gia: Yann LeCun, Ishan Misra (Meta AI)
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Giải thích vì sao học tự giám sát mở khoá được dữ liệu quy mô internet, và vì sao nó khó hơn ở ảnh so với văn bản. Đọc sau khi đã nắm phần "ba kiểu học" trong bài này.
+---
+
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Tình huống: 200 luật vẫn không đủ
+
+Bộ phận chăm sóc khách hàng nhận khoảng 3000 email mỗi ngày. Việc cần làm rất đơn giản: tách thư **khẩn** (mất tiền, mất tài khoản, sự cố đang diễn ra) ra khỏi thư thường, để người trực xử lý trước.
+
+Cách đầu tiên ai cũng nghĩ ra là viết luật:
+
+```python
+if "không đăng nhập được" in thu: return "khẩn"
+if "mất tiền" in thu: return "khẩn"
+if "bị trừ tiền" in thu: return "khẩn"
+```
+
+Sau hai tuần, file luật dài 200 dòng và vẫn hỏng. Khách viết "tự nhiên tài khoản bay sạch" — không luật nào khớp. Khách khác viết "tôi sợ mất tiền nên muốn hỏi trước" — khớp luật `mất tiền` nhưng không hề khẩn. Mỗi luật thêm vào lại phá một luật cũ. Không ai dám sửa file đó nữa.
+
+Vấn đề không nằm ở người viết luật. Vấn đề là **luật đúng tồn tại nhưng không ai phát biểu nổi bằng lời**. Bạn nhìn 50 thư là phân loại được ngay, nhưng bảo bạn viết ra quy tắc bạn vừa dùng thì bạn chịu.
+
+Machine learning sinh ra đúng cho tình huống đó: **bạn không viết luật, bạn đưa ví dụ**.
+
+## Trực giác: đảo chiều mũi tên
+
+| | Đầu vào | Đầu ra |
+|---|---|---|
+| Lập trình thường | luật + dữ liệu | đáp án |
+| Machine learning | dữ liệu + **đáp án** | luật |
+
+Bạn đưa 5000 email đã dán nhãn khẩn/thường. Một thuật toán chạy qua chúng và trả về một chương trình — thường là một hàm với vài nghìn con số bên trong — làm được việc mà file 200 luật kia không làm nổi.
+
+Phải trả giá: cần dữ liệu đã dán nhãn, và **chương trình thu được không giải thích được bằng lời**. Đây là đánh đổi thật, không phải chi tiết kỹ thuật. Với bài toán mà luật rõ ràng và ít ngoại lệ (tính thuế VAT, kiểm tra số căn cước hợp lệ), `if/else` vẫn thắng: rẻ hơn, đúng 100%, và khi sai thì bạn chỉ ra được sai ở dòng nào.
+
+## Ba mảnh ghép của mọi bài toán ML
+
+Mọi hệ ML, từ hồi quy tuyến tính tới GPT, đều gồm đúng ba thứ:
+
+**1. Dữ liệu.** Một tập các *mẫu* (example). Mỗi mẫu có *đặc trưng* (feature) $x$ — thứ mô hình được nhìn — và với học có giám sát thì có thêm *nhãn* (label) $y$ — đáp án đúng.
+
+**2. Mô hình.** Không phải một hàm, mà **một họ hàm** $f_w$ đánh số bởi tham số $w$. Ví dụ họ hàm tuyến tính một biến $f_w(x) = wx$: mỗi giá trị $w$ cho một hàm khác nhau. Chọn họ hàm là chọn *hình dạng* lời giải; chọn $w$ là chọn lời giải cụ thể trong hình dạng đó.
+
+**3. Hàm mất mát + thuật toán tối ưu.** Hàm mất mát $L(w)$ biến câu hỏi mơ hồ "mô hình này tốt không?" thành một con số. Thuật toán tối ưu đi tìm $w$ làm con số đó nhỏ nhất.
+
+Gộp lại, **huấn luyện** chỉ là một dòng:
+
+$$
+w^\star = \arg\min_{w} \; L(w) = \arg\min_{w} \; \frac{1}{n}\sum_{i=1}^{n} \ell\big(f_w(x_i),\, y_i\big)
+$$
+
+Đọc: *trong tất cả các hàm thuộc họ đã chọn, lấy hàm nào sai ít nhất trên dữ liệu đã có.* Không có gì hơn thế. Cái gọi là "máy học" chỉ là đi tìm cực tiểu của một hàm số.
+
+<CauHoi cau="ml-la-gi/q2" />
+
+## Tính tay: học một tham số
+
+Một cửa hàng ghi lại số bánh bán được ($x$, trăm cái) và doanh thu ($y$, triệu đồng) trong bốn ngày:
+
+| Ngày | $x$ | $y$ |
+|---|---|---|
+| 1 | 1 | 2.1 |
+| 2 | 2 | 3.9 |
+| 3 | 3 | 6.2 |
+| 4 | 4 | 7.8 |
+
+Chọn họ hàm đơn giản nhất: $f_w(x) = wx$ (giá trung bình mỗi trăm cái là $w$). Chọn hàm mất mát MSE:
+
+$$
+L(w) = \frac{1}{4}\sum_{i=1}^{4}\big(w x_i - y_i\big)^2
+$$
+
+**Học** nghĩa là tìm $w$ làm $L$ nhỏ nhất. Ở đây $L$ là một parabol theo $w$ nên giải thẳng được: lấy đạo hàm, cho bằng 0.
+
+$$
+L'(w) = \frac{2}{4}\sum_i x_i\,(w x_i - y_i) = 0
+\;\Longleftrightarrow\;
+w \sum_i x_i^2 = \sum_i x_i y_i
+\;\Longleftrightarrow\;
+w = \frac{\sum_i x_i y_i}{\sum_i x_i^2}
+$$
+
+Thay số:
+
+- $\sum x_i y_i = 1(2.1) + 2(3.9) + 3(6.2) + 4(7.8) = 2.1 + 7.8 + 18.6 + 31.2 = 59.7$
+- $\sum x_i^2 = 1 + 4 + 9 + 16 = 30$
+- $w^\star = 59.7 / 30 = 1.99$
+
+Kiểm lại bằng cách thử vài giá trị quanh đó:
+
+| $w$ | $L(w)$ |
+|---|---|
+| 1.90 | 0.0850 |
+| **1.99** | **0.0243** |
+| 2.10 | 0.1150 |
+
+Đúng là 1.99 thắng. Ba điều rút ra, và chúng đúng cho cả mô hình 100 tỉ tham số:
+
+1. **Tham số** ($w = 1.99$) do dữ liệu quyết định. **Siêu tham số** (chọn họ hàm tuyến tính, chọn MSE) do bạn quyết định trước khi học.
+2. Không hàm nào trong họ đạt $L = 0$. $L^\star = 0.0243 > 0$ vì dữ liệu có nhiễu và họ hàm quá hẹp. Đó là chuyện bình thường, không phải lỗi.
+3. Ở đây giải được bằng công thức đóng vì $L$ là parabol. Với mô hình thật thì không, nên ta dùng [gradient descent](/khai-niem/gradient-descent) mò dần xuống đáy — nhưng mục tiêu $\arg\min L$ thì y hệt.
+
+## Code: 20 dòng, đúng ba mảnh ghép
+
+```python
+import numpy as np
+
+x = np.array([1.0, 2.0, 3.0, 4.0])          # đặc trưng
+y = np.array([2.1, 3.9, 6.2, 7.8])          # nhãn
+
+def mo_hinh(w, x):                          # (2) họ hàm f_w(x) = w·x
+    return w * x
+
+def mat_mat(w):                             # (3) hàm mất mát MSE
+    return np.mean((mo_hinh(w, x) - y) ** 2)
+
+w_hoc = (x * y).sum() / (x * x).sum()       # nghiệm đóng của argmin L(w)
+print("tổng x·y =", (x * y).sum())          # 59.7
+print("tổng x²  =", (x * x).sum())          # 30.0
+print("w học được =", w_hoc)                # 1.99
+
+for w in [1.90, w_hoc, 2.10]:               # kiểm: 1.99 cho loss nhỏ nhất
+    print(f"L({w:.2f}) = {mat_mat(w):.4f}")
+# L(1.90) = 0.0850   L(1.99) = 0.0243   L(2.10) = 0.1150
+
+print("dự đoán cho x = 5:", mo_hinh(w_hoc, 5.0))   # 9.95
+```
+
+Dòng `w_hoc = ...` chính là toàn bộ phần "học". Mọi thứ còn lại trong ML — mạng neuron, transformer, GPU — chỉ là cách làm dòng đó khi không có công thức đóng.
+
+<CauHoi cau="ml-la-gi/q4" />
+
+## Ba kiểu học
+
+### Học có giám sát (supervised)
+
+Dữ liệu là các cặp $(x, y)$ với $y$ **do người gán**. Mô hình học ánh xạ $x \mapsto y$.
+
+- $y$ là một lớp trong tập hữu hạn → **phân loại** (classification): thư khẩn/thường, ảnh chụp X-quang có/không có tổn thương.
+- $y$ là số thực → **hồi quy** (regression): dự đoán doanh thu, dự đoán thời gian giao hàng.
+
+Đây là kiểu học được hiểu rõ nhất và cũng dễ đánh giá nhất: có đáp án đúng nên chấm điểm được. Nút thắt luôn là **nhãn**: gán nhãn 50 000 ảnh X-quang cần bác sĩ, tốn tiền và tốn tháng.
+
+### Học không giám sát (unsupervised)
+
+Chỉ có $x$, không có $y$. Câu hỏi đổi hẳn: *dữ liệu này có cấu trúc gì?*
+
+- **Phân cụm** ([k-means](/khai-niem/k-means)): chia 100 000 khách hàng thành 5 nhóm hành vi mà không ai nói trước là có 5 nhóm.
+- **Giảm chiều** (PCA): nén 300 đặc trưng xuống 2 chiều để vẽ ra nhìn.
+- **Phát hiện bất thường**: đánh dấu giao dịch không giống bất kỳ giao dịch nào trước đó.
+
+Điểm khó nhất không phải thuật toán, mà là **không có đáp án để chấm**. Chia khách hàng thành 5 cụm hay 8 cụm — cụm nào "đúng"? Không có câu trả lời khách quan; phải người có chuyên môn nhìn từng cụm và nói nó có ý nghĩa kinh doanh hay không.
+
+### Học tự giám sát (self-supervised) — nền của LLM
+
+Đây là chỗ thú vị nhất, và cũng hay bị hiểu sai nhất.
+
+Ý tưởng: **lấy chính dữ liệu làm nhãn**. Che một phần dữ liệu đi, bắt mô hình đoán lại phần bị che. Nhãn có sẵn — nó chính là phần bạn vừa che.
+
+Lấy đúng một câu: `học máy là học từ dữ liệu` (7 token). Đặt luật "đoán token tiếp theo từ mọi token đứng trước", ta thu được 6 mẫu huấn luyện, **không ai gán nhãn cả**:
+
+| # | Đầu vào $x$ (ngữ cảnh) | Nhãn $y$ (token tiếp theo) |
+|---|---|---|
+| 1 | `học` | `máy` |
+| 2 | `học máy` | `là` |
+| 3 | `học máy là` | `học` |
+| 4 | `học máy là học` | `từ` |
+| 5 | `học máy là học từ` | `dữ` |
+| 6 | `học máy là học từ dữ` | `liệu` |
+
+Một câu 7 chữ → 6 bài tập có đáp án. Một tỉ câu → sáu tỉ bài tập. **Đó là lý do LLM tồn tại được**: nút thắt "phải có người gán nhãn" biến mất, và dữ liệu huấn luyện trở thành mọi văn bản đọc được trên đời.
+
+Hai biến thể chính:
+
+- **Đoán token tiếp theo** (causal / autoregressive) — GPT và họ hàng. Đúng như bảng trên.
+- **Đoán token bị che** (masked) — BERT và họ hàng. Thay vì cắt đuôi câu, ta khoét một lỗ ở giữa: `học máy là ___ từ dữ liệu`, nhãn là `học`. Mô hình được nhìn cả hai phía.
+
+Về mặt kỹ thuật, tự giám sát **vẫn là học có giám sát** — vẫn có cặp $(x, y)$, vẫn tối thiểu hoá [cross-entropy](/khai-niem/cross-entropy). Chỉ khác ở chỗ $y$ đến từ đâu. Vì thế mới có cách nói: *"self-supervised là học có giám sát với nhãn miễn phí"*.
+
+Một LLM hoàn chỉnh dùng cả ba kiểu nối tiếp nhau: **pre-training** tự giám sát trên hàng nghìn tỉ token, rồi **fine-tuning** có giám sát trên vài chục nghìn cặp hỏi–đáp do người viết, rồi **học tăng cường** từ phản hồi người dùng. Giai đoạn 1 dạy mô hình tiếng Việt và kiến thức thế giới; giai đoạn 2 và 3 dạy nó cư xử ra sao.
+
+<CauHoi cau="ml-la-gi/q7" />
+
+## Nâng cao
+
+**Mục tiêu thật không phải là $L$ nhỏ.** Bạn tối thiểu hoá loss trên dữ liệu đã có, nhưng thứ bạn cần là loss nhỏ trên dữ liệu **chưa từng thấy**. Hai đại lượng đó khác nhau, và khoảng cách giữa chúng là chủ đề của [overfitting](/khai-niem/overfitting) và [chia train/val/test](/khai-niem/train-val-test). Một bảng tra cứu học thuộc toàn bộ tập huấn luyện có $L = 0$ mà vô dụng.
+
+**Không có bữa trưa miễn phí.** Muốn tổng quát hoá được, mô hình phải mang sẵn một giả định về thế giới — gọi là *inductive bias*. Chọn họ hàm tuyến tính là đã giả định "quan hệ gần như thẳng". Chọn CNN là giả định "vật thể trong ảnh giữ nguyên ý nghĩa khi dịch chuyển". Không có mô hình nào tốt cho mọi bài toán; *định lý no free lunch* nói chính xác điều đó. Việc của người làm ML phần lớn là **chọn giả định hợp với bài toán**, chứ không phải chọn thuật toán mạnh nhất.
+
+**Dữ liệu quyết định trần chất lượng.** Mô hình chỉ học được những gì có trong dữ liệu. Nếu 5000 email huấn luyện chỉ đến từ khách hàng doanh nghiệp, mô hình sẽ hỏng ngay ngày đầu chạy trên email khách cá nhân. Đây là *distribution shift*, và nó là nguyên nhân số một khiến mô hình chạy tốt trong phòng thí nghiệm mà chết ngoài thực tế.
+
+**Còn học tăng cường?** Kiểu học thứ tư: không có nhãn đúng, chỉ có **phần thưởng** sau một chuỗi hành động. Dùng cho chơi cờ, điều khiển robot, và giai đoạn căn chỉnh LLM. Không nằm trong phạm vi bài này, nhưng nên biết là nó tồn tại và nó **không** phải học có giám sát.
+
+**Khi nào KHÔNG dùng ML.** Luật đã rõ và ổn định; cần giải thích được từng quyết định trước toà hoặc trước thanh tra; không có đủ dữ liệu lịch sử; cái giá của một lỗi quá cao mà không có người kiểm tra lại. Một hệ thống `if/else` tốt luôn là đường cơ sở (baseline) phải vượt qua — nếu mô hình ML không hơn được nó, đừng triển khai mô hình.
+
+## Sai lầm hay gặp
+
+**Lẫn "mô hình" với "một hàm cụ thể".** Mô hình là *họ hàm*; một bộ tham số mới cho ra một hàm. *Triệu chứng:* bạn nói "mô hình sai" khi ý bạn là "tham số học được chưa tốt", rồi đi đổi kiến trúc trong khi lẽ ra chỉ cần huấn luyện lại hoặc thêm dữ liệu.
+
+**Tưởng loss huấn luyện thấp là xong.** *Triệu chứng:* báo cáo chỉ có một con số duy nhất, và đó là số đo trên chính dữ liệu đã dùng để học. Lúc chạy thật, kết quả tụt thảm. Cách nhận biết sớm: hỏi "con số này đo trên dữ liệu nào, mô hình đã nhìn thấy nó chưa?" — nếu câu trả lời là "rồi" thì con số đó vô nghĩa.
+
+**Nhận "dữ liệu không nhãn" rồi ép làm bài toán có giám sát.** *Triệu chứng:* bạn thấy mình đang tự ngồi gán nhãn cho 2000 mẫu để "chạy thử" và tự gán theo cảm tính lúc mệt. Nhãn nhiễu do chính bạn tạo ra sẽ trở thành trần chất lượng của mô hình. Hoặc gán nhãn cho đàng hoàng (có định nghĩa viết ra, có hai người gán độc lập, có đo độ đồng thuận), hoặc đổi sang bài toán không giám sát.
+
+**Dùng ML cho việc mà `if/else` làm được.** *Triệu chứng:* bạn không giải thích nổi cho đồng nghiệp vì sao mô hình từ chối một hồ sơ, và độ chính xác của nó chỉ nhỉnh hơn luật tay vài phần trăm. Chi phí vận hành, gỡ lỗi và giải trình đã ăn hết phần vài phần trăm đó.
+
+**Coi nhãn là chân lý.** *Triệu chứng:* mô hình "sai" ở một nhóm mẫu, bạn đi thêm dữ liệu và đổi kiến trúc mãi không lên. Mở ra xem tay 50 mẫu sai đó: rất hay là nhãn sai, không phải mô hình sai. Đọc dữ liệu bằng mắt trước khi đổ lỗi cho mô hình.
+
+<CauHoi cau="ml-la-gi/q10" />
+
+## Tra nhanh
+
+| Câu hỏi | Trả lời 30 giây |
+|---|---|
+| ML là gì trong một câu? | Tìm bộ tham số $w$ làm hàm mất mát nhỏ nhất trên dữ liệu, thay vì viết luật bằng tay |
+| Ba mảnh ghép bắt buộc | Dữ liệu · họ hàm có tham số (mô hình) · hàm mất mát + thuật toán tối ưu |
+| "Huấn luyện" nghĩa là gì? | $w^\star = \arg\min_w \frac{1}{n}\sum_i \ell(f_w(x_i), y_i)$ |
+| Tham số vs siêu tham số | Tham số do dữ liệu quyết định ($w$); siêu tham số do bạn chọn trước (họ hàm, loss, learning rate) |
+| Có giám sát | Có $(x, y)$, $y$ do người gán → phân loại (lớp) hoặc hồi quy (số) |
+| Không giám sát | Chỉ có $x$, đi tìm cấu trúc → phân cụm, giảm chiều, phát hiện bất thường. Không có đáp án để chấm |
+| Tự giám sát | Nhãn sinh từ chính dữ liệu: đoán token tiếp theo / đoán token bị che. Nền của LLM |
+| Vì sao tự giám sát quan trọng? | Gỡ được nút thắt nhãn → dữ liệu huấn luyện gần như vô hạn |
+| Câu 7 token cho bao nhiêu mẫu "đoán token tiếp theo"? | 6 |
+| Thước đo thành công thật sự | Kết quả trên dữ liệu **chưa từng thấy**, không phải loss huấn luyện |
+| Khi nào đừng dùng ML | Luật rõ và ổn định · cần giải thích được · thiếu dữ liệu · sai một lần là hỏng nặng |
+| Bước tiếp theo | [Chia train/val/test](/khai-niem/train-val-test) — làm sao đo được "dữ liệu chưa từng thấy" |
+
+## Tóm tắt
+
+- Lập trình thường: luật + dữ liệu → đáp án. ML: dữ liệu + đáp án → luật.
+- Mọi bài ML đều gồm dữ liệu, một họ hàm có tham số, và một hàm mất mát cùng thuật toán tối ưu.
+- Huấn luyện = $\arg\min_w L(w)$. Với ví dụ một tham số ở trên, đáp số là $w = \sum x_i y_i / \sum x_i^2 = 1.99$.
+- Có giám sát cần nhãn người gán; không giám sát đi tìm cấu trúc và không chấm điểm khách quan được; tự giám sát tự sinh nhãn từ dữ liệu và là nền của LLM.
+- Mục tiêu là đúng trên dữ liệu chưa từng thấy. Bài sau, [chia train/val/test](/khai-niem/train-val-test), nói cách đo cho đúng thứ đó.

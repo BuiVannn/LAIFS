@@ -1,0 +1,323 @@
+---
+ten_vi: Cross-entropy
+ten_en: Cross-Entropy
+tang: 2
+thu_tu: 16
+tien_quyet: ["hoi-quy-logistic"]
+trang_thai: nhap
+dinh_nghia: >-
+  Hàm mất mát cho bài toán phân loại: cross-entropy H(p, q) = −Σ p·log q đo số "bit bất ngờ"
+  trung bình khi thực tế xảy ra theo p nhưng mô hình lại tin vào q. Nó tách được thành
+  H(p, q) = H(p) + KL(p‖q): một phần sàn không hạ được, cộng phần sai lệch của mô hình.
+truc_giac: >-
+  Bạn phải chuẩn bị sẵn câu trả lời cho mọi tình huống, và mất công tỉ lệ với việc bạn bất ngờ
+  đến đâu khi tình huống thật xảy ra. Nếu bạn dồn hết sự chuẩn bị vào một khả năng mà rồi khả năng
+  khác xảy ra, bạn trả giá rất đắt. Cross-entropy chính là mức phạt trung bình đó.
+hieu_nham:
+  - "Cross-entropy không xuống được 0 trừ khi nhãn là chắc chắn. Sàn của nó là H(p), entropy của phân phối thật. Chỉ vì nhãn one-hot có H(p) = 0 nên ta mới quen thấy loss tiến về 0."
+  - "KL không phải khoảng cách. Nó không đối xứng (KL(p‖q) khác KL(q‖p)) và không thoả bất đẳng thức tam giác. Đảo hai vế là đổi hẳn hành vi của mô hình."
+  - "Cross-entropy không phải cùng một thứ với entropy. Entropy chỉ phụ thuộc p; cross-entropy phụ thuộc cả hai, và luôn lớn hơn hoặc bằng entropy."
+  - "Không sửa log(0) bằng cách cộng epsilon vào xác suất. Vấn đề nằm ở chỗ tính softmax rồi mới lấy log; cách đúng là gộp thành log-softmax."
+  - "Độ chính xác cao không kéo theo loss thấp. Độ chính xác chỉ nhìn lớp thắng; cross-entropy nhìn cả mức tự tin, nên vài mẫu sai một cách rất tự tin đủ để giữ loss ở mức cao."
+y_chinh:
+  - "Cross-entropy H(p, q) = −Σ p·log q; với nhãn one-hot rút gọn thành −log q của lớp đúng"
+  - "Entropy H(p) là sàn không hạ được; KL(p‖q) = H(p, q) − H(p) là phần do mô hình sai"
+  - "Tối thiểu cross-entropy chính là tối thiểu KL giữa phân phối thật và phân phối dự đoán"
+  - "Cross-entropy là NLL của giả định Bernoulli (2 lớp) hoặc Categorical (K lớp)"
+  - "Gradient của softmax + cross-entropy theo logit rút gọn thành q − p, không bị bão hoà như MSE"
+  - "Perplexity = exp(cross-entropy) — cách đọc cross-entropy thành 'lưỡng lự giữa bao nhiêu lựa chọn'"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=ErfnhcEV1O8
+    tieu_de: A Short Introduction to Entropy, Cross-Entropy and KL-Divergence
+    tac_gia: Aurélien Géron
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: 10 phút, đi đúng mạch entropy → cross-entropy → KL bằng ví dụ truyền tin. Trùng khớp với bố cục bài này, nên xem đầu tiên.
+  - url: https://www.youtube.com/watch?v=YtebGVx-Fxw
+    tieu_de: Entropy (for data science) Clearly Explained!!!
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Chỉ riêng entropy, giải thích rất chậm bằng ví dụ tung xúc xắc. Xem nếu phần "sàn không hạ được" còn mơ hồ.
+  - url: https://colah.github.io/posts/2015-09-Visual-Information/
+    tieu_de: Visual Information Theory
+    tac_gia: Christopher Olah
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Bài viết kinh điển, vẽ entropy và cross-entropy thành diện tích và độ dài mã. Đọc sau khi đã nắm công thức, nó sẽ biến công thức thành hình.
+  - url: https://www.countbayesie.com/blog/2017/5/9/kullback-leibler-divergence-explained
+    tieu_de: Kullback-Leibler Divergence Explained
+    tac_gia: Will Kurt (Count Bayesie)
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Dùng KL để chọn giữa hai mô hình trên một bộ dữ liệu thật, kèm code. Chỗ tốt nhất để thấy tính KHÔNG đối xứng của KL có hậu quả gì.
+---
+
+import EntropyKL from '../../src/viz/EntropyKL.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Vì sao không dùng tiếp MSE?
+
+Bạn có mô hình phân loại ảnh 3 lớp. Lớp cuối là softmax, ra `[0.7, 0.2, 0.1]`. Nhãn thật là lớp 1, tức `[1, 0, 0]`. Có hai vector cùng shape, cùng cộng bằng 1 — sao không lấy MSE giữa chúng như ở bài hồi quy?
+
+Chạy thì vẫn chạy. Loss vẫn giảm. Nhưng mô hình học chậm một cách khó hiểu, và những mẫu nó đoán **sai một cách rất tự tin** thì gần như không được sửa. Bài này giải thích vì sao, bằng cách đi qua ba đại lượng nối liền nhau: entropy, cross-entropy, KL divergence.
+
+Và nó khép lại mạch của [Hợp lý cực đại](/khai-niem/hop-ly-cuc-dai): ở đó ta thấy giả định Categorical sinh ra cross-entropy; ở đây ta thấy cross-entropy thực ra đang đo **khoảng lệch giữa phân phối thật và phân phối mô hình**.
+
+## Trực giác: bất ngờ, đo bằng số
+
+Bắt đầu từ một câu hỏi không dính gì tới ML: *một sự kiện xảy ra thì bất ngờ đến mức nào?*
+
+Ba yêu cầu tự nhiên cho một thước đo bất ngờ:
+
+1. Sự kiện càng ít khả năng thì càng bất ngờ — bất ngờ là hàm giảm của $p$.
+2. Sự kiện chắc chắn ($p = 1$) thì bất ngờ bằng 0.
+3. Hai sự kiện độc lập xảy ra cùng lúc thì bất ngờ **cộng** lại, trong khi xác suất **nhân** lại.
+
+Yêu cầu thứ ba ép ra đúng một dạng hàm: logarit. Đặt
+
+$$
+I(x) = -\log p(x)
+$$
+
+Kiểm lại: $p = 1$ cho $I = 0$; $p$ nhỏ cho $I$ lớn; và $-\log(p_1 p_2) = -\log p_1 - \log p_2$, đúng yêu cầu cộng. Nếu dùng $\log_2$ thì đơn vị là **bit**, dùng $\ln$ thì đơn vị là **nat**. ML gần như luôn dùng nat vì đạo hàm của $\ln$ gọn hơn.
+
+## Entropy: sàn không hạ được
+
+**Entropy** là bất ngờ *trung bình*, lấy kỳ vọng theo chính $p$:
+
+$$
+H(p) = \mathbb{E}_{x \sim p}\big[-\log p(x)\big] = -\sum_k p_k \log p_k
+$$
+
+Vài giá trị để có cảm giác (đơn vị nat):
+
+| $p$ | $H(p)$ | Đọc là |
+|---|---|---|
+| $[1, 0, 0]$ | 0 | Không có gì bất định |
+| $[0.5, 0.3, 0.2]$ | 1.0297 | Hơi lưỡng lự |
+| $[1/3, 1/3, 1/3]$ | 1.0986 | Lưỡng lự tối đa với 3 lớp |
+
+Phân phối đều luôn có entropy lớn nhất, bằng $\log K$. Phân phối chắc chắn có entropy 0. Quy ước $0\log 0 = 0$ (giới hạn khi $p \to 0$) là thứ giữ cho công thức chạy được với nhãn one-hot — và là thứ làm code của bạn ra `nan` nếu quên cài.
+
+Điểm cần nhớ: **$H(p)$ không chứa mô hình**. Nó là tính chất của dữ liệu. Không thuật toán nào hạ được nó.
+
+
+## Cross-entropy và KL: dẫn công thức
+
+Giờ thêm mô hình vào. Thực tế xảy ra theo $p$, nhưng bạn chuẩn bị theo $q$. Bất ngờ của bạn khi thấy $x$ là $-\log q(x)$ (vì bạn tin vào $q$), còn tần suất gặp $x$ lại do $p$ quyết định. Lấy kỳ vọng theo $p$ của bất ngờ tính theo $q$:
+
+$$
+H(p, q) = -\sum_k p_k \log q_k
+$$
+
+Đó là **cross-entropy** — chữ "cross" nằm ở chỗ trọng số lấy từ $p$ còn logarit lấy của $q$. Đừng bao giờ đảo hai vai trò này.
+
+Bây giờ trừ đi phần sàn:
+
+$$
+H(p, q) - H(p)
+= -\sum_k p_k \log q_k + \sum_k p_k \log p_k
+= \sum_k p_k \log \frac{p_k}{q_k}
+\;=\; D_{KL}(p \,\Vert\, q)
+$$
+
+Đại lượng vừa hiện ra là **KL divergence**. Sắp xếp lại được đẳng thức trung tâm của cả bài:
+
+$$
+\boxed{\ H(p, q) = H(p) + D_{KL}(p \,\Vert\, q)\ }
+$$
+
+Đọc bằng lời: *cái giá phải trả = mức bất định vốn có của bài toán + phần bạn tự chuốc vì tin sai*.
+
+Từ bất đẳng thức Jensen ta có $D_{KL} \ge 0$, và bằng 0 **khi và chỉ khi** $q = p$. Vậy cross-entropy luôn $\ge$ entropy, và chạm sàn đúng lúc mô hình đoán chuẩn phân phối thật.
+
+Hệ quả cho việc huấn luyện, và đây là câu trả lời cho tiêu đề mục:
+
+$$
+\arg\min_\theta H(p, q_\theta) = \arg\min_\theta D_{KL}(p \,\Vert\, q_\theta)
+\qquad \text{vi } H(p) \text{ khong chua } \theta
+$$
+
+**Tối thiểu cross-entropy chính là kéo phân phối dự đoán về sát phân phối thật theo nghĩa KL.** Ta tối thiểu cross-entropy chứ không tối thiểu KL trực tiếp chỉ vì tiện: hai bài toán có cùng nghiệm và cùng gradient, mà cross-entropy thì không cần biết $H(p)$.
+
+<CauHoi cau="cross-entropy/q5" />
+
+## Tính tay
+
+Lấy $p = [0.5, 0.3, 0.2]$ (thật) và $q = [0.7, 0.2, 0.1]$ (đoán).
+
+| $k$ | $p_k$ | $q_k$ | $-p_k\ln p_k$ | $-p_k \ln q_k$ | $p_k \ln(p_k/q_k)$ |
+|---|---|---|---|---|---|
+| 1 | 0.5 | 0.7 | 0.3466 | 0.1783 | −0.1682 |
+| 2 | 0.3 | 0.2 | 0.3612 | 0.4828 | 0.1216 |
+| 3 | 0.2 | 0.1 | 0.3219 | 0.4605 | 0.1386 |
+| **Tổng** | | | **1.0297** | **1.1217** | **0.0920** |
+
+Kiểm: $1.0297 + 0.0920 = 1.1217$. ✓
+
+Hai điều đáng để ý. Thứ nhất, cột KL có số **âm** ở dòng 1 — từng số hạng của KL có thể âm, chỉ có **tổng** mới đảm bảo không âm. Thứ hai, đảo chiều: $D_{KL}(q \Vert p) = 0.0851 \ne 0.0920$. KL **không đối xứng**, nên không được gọi là khoảng cách.
+
+### Trường hợp bạn gặp mỗi ngày: nhãn one-hot
+
+Trong huấn luyện có giám sát, $p$ là one-hot: $p_c = 1$ cho lớp đúng $c$, còn lại bằng 0. Thay vào:
+
+$$
+H(p) = 0, \qquad H(p, q) = -\log q_c, \qquad D_{KL}(p \Vert q) = -\log q_c
+$$
+
+Mọi số hạng có $p_k = 0$ biến mất. Cross-entropy **rút gọn thành $-\log$ xác suất mô hình gán cho lớp đúng**, và vì sàn bằng 0 nên nó trùng luôn với KL. Đây chính là lý do ta quen thấy loss phân loại tiến về 0 — và cũng là lý do dễ quên mất rằng nói chung nó không xuống 0 được.
+
+Ví dụ: $q_c = 0.7 \Rightarrow$ loss $= 0.3567$. $q_c = 0.4 \Rightarrow$ loss $= 0.9163$. $q_c = 0.001 \Rightarrow$ loss $= 6.9078$. Một mẫu sai một cách tự tin đóng góp bằng hai chục mẫu đúng cộng lại — hãy nhớ con số này khi thấy loss cao mà độ chính xác vẫn đẹp.
+
+<CauHoi cau="cross-entropy/q3" />
+
+## Tự thử: hạ cross-entropy tới đâu thì dừng?
+
+$p$ cố định. $q$ do bạn chỉnh qua hai logit.
+
+<EntropyKL
+  client:visible
+  duDoan={{
+    de: "p = [0.5, 0.3, 0.2] cố định. Nếu kéo q về trùng khít p, cross-entropy sẽ xuống tới giá trị nào?",
+    lua_chon: ["Về 0, vì đoán đúng hoàn toàn", "Dừng ở H(p) ≈ 1.0297, không xuống thấp hơn được", "Dừng ở KL ban đầu ≈ 0.0920"],
+    dap_an: 1,
+    giai_thich: "CE = H(p) + KL. Kéo q về p chỉ đưa KL về 0; phần H(p) là mức bất định sẵn có của dữ liệu, không mô hình nào hạ được. Loss phân loại tiến về 0 chỉ vì nhãn one-hot có H(p) = 0."
+  }}
+/>
+
+Bảng tự do — thử kéo một logit xuống thật thấp để thấy cross-entropy vọt lên nhanh thế nào:
+
+<EntropyKL client:visible />
+
+## Vì sao softmax + cross-entropy lại là cặp đôi
+
+Gọi $z$ là logit, $q = \mathrm{softmax}(z)$, $p$ là nhãn. Đạo hàm của softmax trông rất rườm rà, nhưng khi ghép với cross-entropy nó rút gọn thành:
+
+$$
+\frac{\partial H(p, q)}{\partial z_k} = q_k - p_k
+$$
+
+Gọn đến mức đáng ngờ. Ý nghĩa: **gradient tỉ lệ thẳng với mức sai**. Đoán 0.99 cho một lớp sai thì gradient là 0.99; đoán 0.01 thì gradient là 0.01.
+
+So với MSE trên đầu ra sigmoid, $L = (\sigma(z) - y)^2$:
+
+$$
+\frac{\partial L}{\partial z} = 2(\sigma(z) - y)\,\sigma(z)(1 - \sigma(z))
+$$
+
+Xuất hiện thêm thừa số $\sigma(z)(1-\sigma(z))$, vốn tiến về 0 khi $|z|$ lớn. Đặt $y = 1$ và mô hình sai hẳn:
+
+| $z$ | $\sigma(z)$ | Gradient với cross-entropy | Gradient với MSE |
+|---|---|---|---|
+| −10 | 0.000045 | **−0.99995** | −0.000091 |
+| −4 | 0.017986 | −0.98201 | −0.03469 |
+| 0 | 0.5 | −0.5 | −0.25 |
+
+Ở $z = -10$ mô hình sai gần như tuyệt đối, vậy mà MSE cho gradient nhỏ hơn cross-entropy **hơn 10 000 lần**. Nó gần như không học được từ chính những mẫu nó sai nặng nhất. Đó là hiện tượng **bão hoà gradient**, và cross-entropy sinh ra để triệt tiêu đúng thừa số gây ra nó.
+
+Nhìn từ [Hợp lý cực đại](/khai-niem/hop-ly-cuc-dai): cross-entropy là NLL của giả định Categorical, tức đúng phân phối mà softmax đang mô hình hoá. Ghép loss khớp với phân phối thì gradient đẹp; ghép lệch thì trả giá.
+
+<CauHoi cau="cross-entropy/q7" />
+
+## Code: kiểm đẳng thức và gradient
+
+```python
+import numpy as np
+
+p = np.array([0.5, 0.3, 0.2])                  # phan phoi THAT
+q = np.array([0.7, 0.2, 0.1])                  # phan phoi DU DOAN
+
+def xlogy(a, b):                               # quy uoc 0*ln(...) = 0
+    return np.where(a > 0, a * np.log(np.where(a > 0, b, 1.0)), 0.0)
+
+H  = -xlogy(p, p).sum()                        # entropy cua p
+CE = -xlogy(p, q).sum()                        # cross-entropy
+KL = (xlogy(p, p) - xlogy(p, q)).sum()         # KL(p || q)
+print("H, CE, KL   :", H.round(6), CE.round(6), KL.round(6))
+print("CE = H + KL?:", np.isclose(CE, H + KL))
+
+oh = np.array([1., 0, 0])                      # nhan one-hot: H(p) = 0
+print("one-hot CE  :", round(-xlogy(oh, q).sum(), 6), "= -ln q1 =", round(-np.log(q[0]), 6))
+
+z = np.array([2.0, 1.0, 0.1])                  # logit cua mo hinh
+s = np.exp(z - z.max()); s /= s.sum()          # softmax on dinh so
+print("softmax     :", s.round(6))
+print("grad theo z :", (s - oh).round(6))      # dung bang q - p
+```
+
+Kết quả:
+
+```
+H, CE, KL   : 1.029653 1.121686 0.092033
+CE = H + KL?: True
+one-hot CE  : 0.356675 = -ln q1 = 0.356675
+softmax     : [0.659001 0.242433 0.098566]
+grad theo z : [-0.340999  0.242433  0.098566]
+```
+
+Ba con số đầu khớp đúng bảng tính tay. Dòng cuối cho thấy gradient đúng bằng `softmax − nhãn`: lớp đúng bị đẩy lên (gradient âm), hai lớp sai bị kéo xuống, và tổng ba số bằng 0 vì softmax luôn giữ tổng bằng 1.
+
+Bài tập [Entropy, KL và cross-entropy](/bai-tap/entropy-kl-cross-entropy) cho bạn tự cài cả bốn hàm, kèm test kiểm đẳng thức trên hàng chục cặp phân phối ngẫu nhiên.
+
+## Nâng cao
+
+**Perplexity — cách đọc cross-entropy cho người.** Trong NLP, người ta báo cáo $\mathrm{PPL} = \exp(H(p, q))$. Nó trả lời "mô hình lưỡng lự như thể đang chọn đều tay giữa bao nhiêu khả năng". Cross-entropy 1.0986 nat cho perplexity 3.0 — như phải chọn giữa 3 token. Mô hình đoán hú hoạ trên từ điển 50 000 token có cross-entropy $\ln 50000 \approx 10.82$, perplexity 50 000. Vì $\exp$ là hàm tăng, tối thiểu cross-entropy và tối thiểu perplexity là một, perplexity chỉ dễ đọc hơn.
+
+**Ổn định số: dùng log-softmax.** Đừng bao giờ viết `np.log(softmax(z))`. Logit lớn làm `exp` tràn số, logit nhỏ làm softmax trả về đúng 0 rồi `log(0)` cho `-inf`. Gộp hai bước lại:
+
+$$
+\log \mathrm{softmax}(z)_k = z_k - \max_j z_j - \log \sum_j e^{\,z_j - \max_j z_j}
+$$
+
+Trừ max không đổi kết quả (tử và mẫu cùng chia một hằng số) nhưng đưa số mũ lớn nhất về 0. Mọi framework đều có sẵn `log_softmax` / `cross_entropy` nhận **logit** chứ không nhận xác suất — dùng đúng hàm đó thay vì tự ghép.
+
+**Label smoothing.** Thay nhãn one-hot bằng $p_c = 1 - \varepsilon + \varepsilon/K$ và $p_k = \varepsilon/K$ cho các lớp khác. Với $\varepsilon = 0.1$, $K = 3$ thì $p = [0.9333, 0.0333, 0.0333]$, và $H(p) = 0.2911$ — sàn của loss không còn là 0 nữa. Tác dụng: mô hình không còn bị thúc đẩy đẩy logit ra vô cùng để chạm 0, nên hiệu chỉnh xác suất (calibration) tốt hơn. Triệu chứng nhận ra label smoothing đang bật: loss huấn luyện đứng ở một mức dương rõ rệt dù độ chính xác gần 100%.
+
+**KL không đối xứng, và hậu quả thật.** $D_{KL}(p \Vert q)$ phạt rất nặng khi $q$ gán xác suất nhỏ cho chỗ $p$ có khối lượng — nó ép $q$ phải **phủ** hết $p$ (mode-covering). $D_{KL}(q \Vert p)$ thì ngược lại, cho phép $q$ co lại quanh một đỉnh (mode-seeking). Huấn luyện có giám sát dùng chiều thứ nhất; suy diễn biến phân (VAE) dùng chiều thứ hai, và đó là một phần lý do ảnh sinh ra hay bị mờ.
+
+**Mất cân bằng lớp.** Cross-entropy lấy trung bình trên mẫu, nên lớp chiếm 99% dữ liệu chi phối gần hết loss. Cách chữa thông thường là gắn trọng số theo lớp, hoặc dùng focal loss $-(1-q_c)^\gamma \log q_c$ để hạ bớt đóng góp của những mẫu dễ.
+
+## Sai lầm hay gặp, và triệu chứng nhận biết
+
+| Sai lầm | Triệu chứng bạn sẽ thấy |
+|---|---|
+| Đảo vai trò $p$ và $q$, viết $-\sum q\log p$ | Loss vẫn giảm nhưng hội tụ về chỗ khác; với nhãn one-hot thì ra `-inf` hoặc `nan` vì $\log 0$ |
+| `np.log(softmax(z))` | `nan` hoặc `-inf` ngay batch đầu, thường khi logit vượt khoảng ±50. Sửa bằng `log_softmax`, không phải bằng epsilon |
+| Đưa xác suất vào hàm loss vốn nhận logit | Loss giảm rất chậm và chặn trên ở một mức lạ; kiểm bằng cách in min/max đầu vào của loss — nếu nằm trong [0, 1] thì bạn đã softmax hai lần |
+| Quên quy ước $0\log 0 = 0$ | `nan` xuất hiện đúng ở những mẫu có nhãn one-hot hoặc ở lớp có xác suất 0 |
+| Cộng nhầm trục trong batch | Loss lệch đúng một hệ số bằng $K$ hoặc bằng $n$; kiểm bằng `loss.shape` và thử trên `n` khác `K` |
+| Dùng MSE với softmax/sigmoid | Học chậm bất thường, mẫu sai tự tin không được sửa, gradient gần 0 dù loss cao |
+| Tưởng loss phải về 0 | Hoảng khi thấy loss đứng ở 0.3 mãi, trong khi đó có thể đúng là $H(p)$ do label smoothing hoặc nhãn nhiễu |
+| Lẫn đơn vị bit và nat | Con số lệch đúng hệ số $\ln 2 \approx 0.693$ so với bài báo bạn đang so sánh |
+
+<CauHoi cau="cross-entropy/q12" />
+
+## Tra nhanh
+
+| Cần gì | Công thức | Shape / lưu ý |
+|---|---|---|
+| Entropy | $H(p) = -\sum_k p_k\log p_k$ | `p: (K,)` → một số; chỉ phụ thuộc $p$ |
+| Cross-entropy | $H(p,q) = -\sum_k p_k\log q_k$ | Trọng số $p$, logarit của $q$ — không đảo |
+| KL | $D_{KL}(p\Vert q) = \sum_k p_k\log\frac{p_k}{q_k}$ | $\ge 0$, không đối xứng, có thể $= \infty$ |
+| Đẳng thức trung tâm | $H(p,q) = H(p) + D_{KL}(p\Vert q)$ | $H(p)$ là sàn không hạ được |
+| Nhãn one-hot | loss $= -\log q_c$ | $H(p) = 0$ nên CE $=$ KL |
+| Loss của batch | `-(P * logQ).sum(axis=1).mean()` | Cộng theo **lớp** trước, trung bình theo **batch** sau |
+| Gradient theo logit | $\partial L/\partial z = q - p$ | Chỉ đúng khi ghép softmax với cross-entropy |
+| Ổn định số | `log_softmax(z) = z - max - log(sum(exp(z-max)))` | Nhận **logit**, không nhận xác suất |
+| Perplexity | $\exp(H(p,q))$ | Cùng $\arg\min$ với cross-entropy |
+| Đơn vị | nat ($\ln$) hay bit ($\log_2$) | 1 nat $= 1/\ln 2 \approx 1.4427$ bit |
+| Lỗi hay gặp nhất | `nan` do $\log 0$ | Gộp softmax + log, và cài quy ước $0\log 0 = 0$ |
+
+## Tóm tắt
+
+- Bất ngờ $= -\log p$; **entropy** là bất ngờ trung bình và là **sàn** không thuật toán nào hạ được.
+- **Cross-entropy** $= -\sum p\log q$ — trọng số lấy từ thật, logarit lấy của đoán.
+- **$H(p,q) = H(p) + D_{KL}(p\Vert q)$**: tối thiểu cross-entropy chính là tối thiểu KL giữa phân phối thật và phân phối dự đoán.
+- Với nhãn one-hot mọi thứ rút gọn thành $-\log q_c$, và sàn bằng 0.
+- Ghép **softmax + cross-entropy** cho gradient $q - p$, tránh bão hoà mà MSE mắc phải.
+- Tiếp theo: [Softmax và phân loại nhiều lớp](/khai-niem/softmax); phần lý thuyết nền nằm ở [Hợp lý cực đại](/khai-niem/hop-ly-cuc-dai).

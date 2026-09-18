@@ -1,0 +1,261 @@
+---
+ten_vi: Dropout
+ten_en: Dropout
+tang: 3
+thu_tu: 33
+tien_quyet: ["overfitting", "mlp"]
+trang_thai: nhap
+dinh_nghia: >-
+  Dropout là kỹ thuật điều chuẩn cho mạng neuron: ở MỖI lượt huấn luyện, mỗi neuron bị tắt
+  (đặt về 0) một cách ngẫu nhiên và độc lập với xác suất 1 − p. Lúc đánh giá thì không tắt gì
+  cả. Với bản inverted dropout — bản mà mọi thư viện đang dùng — các giá trị còn sống được
+  chia cho p ngay lúc huấn luyện, nhờ vậy kỳ vọng đầu ra giống hệt lúc đánh giá.
+truc_giac: >-
+  Một đội bóng mà buổi tập nào cũng có vài người vắng ngẫu nhiên. Không ai dám xây lối chơi
+  phụ thuộc vào đúng một ngôi sao, vì hôm nay có thể chính người đó vắng. Kết quả là mọi cầu thủ
+  đều phải tự lo được, và đội mạnh hơn khi ra sân đủ quân. Dropout làm đúng thế với neuron:
+  nó cấm mạng dựa dẫm vào một vài neuron, buộc thông tin phải được mã hoá dư thừa ở nhiều chỗ.
+hieu_nham:
+  - "Dropout chỉ bật LÚC HUẤN LUYỆN. Quên gọi model.eval() (hoặc truyền training=False) là lúc đánh giá vẫn tắt neuron ngẫu nhiên: cùng một đầu vào cho hai kết quả khác nhau, val loss cao và nhảy loạn."
+  - "Chữ p mỗi nơi một nghĩa. Bài báo gốc và bài này dùng p = xác suất GIỮ, còn torch.nn.Dropout(p) và Keras Dropout(rate) dùng p = xác suất TẮT. Dropout(0.8) trong PyTorch là tắt 80%, gần như phá mạng."
+  - "Phải chia cho p lúc huấn luyện (inverted dropout). Nếu không, đầu ra lúc train nhỏ hơn lúc eval khoảng p lần, mọi lớp phía sau nhận đầu vào lệch thang và mô hình sẽ dự đoán sai hệ thống khi chuyển sang eval."
+  - "Dropout KHÔNG phải luôn tốt. Nó là điều chuẩn, nên nếu mô hình đang chưa khớp thì thêm dropout chỉ làm cả train loss lẫn val loss cùng tệ đi."
+  - "Mặt nạ phải sinh độc lập cho TỪNG phần tử của batch, không phải một mặt nạ dùng chung cho cả batch. Dùng chung mặt nạ làm các mẫu trong batch tương quan với nhau và giảm hẳn hiệu quả."
+y_chinh:
+  - "Mỗi lượt train, mỗi neuron bị tắt độc lập với xác suất 1 − p; lúc eval không tắt gì"
+  - "Coi như huấn luyện 2ⁿ mạng con dùng chung trọng số, rồi lúc eval dùng một mạng đầy đủ để xấp xỉ trung bình của cả tập hợp đó"
+  - "Inverted dropout: nhân mặt nạ rồi CHIA cho p ngay lúc train, để E[đầu ra] không đổi, nhờ vậy lúc eval khỏi sửa gì"
+  - "Lỗi kinh điển là quên model.eval(); triệu chứng là cùng một đầu vào cho hai kết quả khác nhau"
+  - "Tỉ lệ thường dùng: giữ 0.5 cho lớp ẩn dày đặc, 0.8–0.9 cho lớp đầu vào, 0.9 (tức P_drop = 0.1) trong Transformer"
+  - "Dropout buộc mạng mã hoá dư thừa, chống đồng thích nghi (co-adaptation) giữa các neuron"
+tai_lieu:
+  - url: https://jmlr.org/papers/v15/srivastava14a.html
+    tieu_de: "Dropout: A Simple Way to Prevent Neural Networks from Overfitting"
+    tac_gia: "Srivastava, Hinton, Krizhevsky, Sutskever, Salakhutdinov (JMLR 2014)"
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Bài báo gốc, PDF mở. Mục 1–2 cho ý tập hợp mạng con, Mục 7.5 bàn phép xấp xỉ trung bình lúc test, Phụ lục A.2 cho các tỉ lệ thực dụng. Lưu ý p ở đây là xác suất GIỮ.
+  - url: https://www.youtube.com/watch?v=D8PJAL-MZv8
+    tieu_de: Dropout Regularization (C2W1L06)
+    tac_gia: DeepLearningAI (Andrew Ng)
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Chín phút, viết thẳng công thức inverted dropout lên bảng và giải thích vì sao phải chia cho keep_prob. Nên xem đầu tiên.
+  - url: https://cs231n.github.io/neural-networks-2/
+    tieu_de: "CS231n: Neural Networks Part 2 — Setting up the Data and the Loss"
+    tac_gia: Andrej Karpathy / Stanford CS231n
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Mục "Regularization / Dropout" có đoạn code NumPy so sánh dropout thường với inverted dropout, đúng thứ bài này cài lại.
+  - url: https://pytorch.org/docs/stable/generated/torch.nn.Dropout.html
+    tieu_de: torch.nn.Dropout
+    tac_gia: PyTorch
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Tài liệu chính thức. Đọc để thấy rõ PyTorch định nghĩa p là xác suất TẮT và tự nhân 1/(1−p) lúc train — ngược quy ước với bài báo gốc.
+---
+
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Mạng nhớ luôn cả tập train
+
+Bạn huấn luyện một MLP hai lớp ẩn 512 neuron trên 3.000 ảnh. Sau 40 epoch: train accuracy 99.8%, val accuracy 71%. Đây là dáng B kinh điển ở bài [Quá khớp](/khai-niem/overfitting) — mạng có thừa sức chứa để học thuộc 3.000 ảnh.
+
+Bạn đã thử [weight decay](/khai-niem/regularization), đỡ được vài phần trăm. Còn một công cụ khác, rẻ hơn và mạnh hơn trong mạng sâu: **dropout**.
+
+Nó kỳ quặc ở chỗ không động gì tới hàm mất mát. Nó phá chính mạng, ngay giữa lúc huấn luyện.
+
+## Ý tưởng: tắt neuron ngẫu nhiên
+
+Ở mỗi lượt xuôi lúc huấn luyện, với mỗi neuron trong lớp có dropout, ta tung một đồng xu:
+
+- Xác suất $p$: giữ neuron (gọi là **keep probability**)
+- Xác suất $1 - p$: đặt kích hoạt của nó về **0**
+
+Mỗi neuron một đồng xu riêng, mỗi mẫu trong batch một bộ đồng xu riêng, mỗi lượt lại tung lại. Lượt ngược (backprop) chạy qua đúng cái mạng đã bị đục lỗ đó: neuron bị tắt không nhận gradient nào cả.
+
+Lúc **đánh giá** thì không tung đồng xu nữa. Dùng nguyên mạng đầy đủ.
+
+### Vì sao việc phá mạng lại giúp ích
+
+**Chống đồng thích nghi.** Khi huấn luyện bình thường, một neuron có thể học kiểu "tôi chỉ phát tín hiệu đúng khi neuron số 37 cũng đang bật". Hai neuron bắt tay nhau như vậy gọi là **co-adaptation** — rất hiệu quả trên tập train, rất mong manh với dữ liệu mới. Với dropout, neuron 37 có thể vắng mặt bất cứ lúc nào, nên không neuron nào dám xây đặc trưng dựa vào một đồng đội cụ thể. Mỗi neuron buộc phải tự có ích.
+
+**Huấn luyện một tập hợp mạng con.** Một lớp $n$ neuron có $2^n$ cách bật/tắt, tức $2^n$ **mạng con** khác nhau. Với $n = 100$ đó là khoảng $1.27 \times 10^{30}$ mạng. Mỗi mini-batch bạn lấy mẫu một mạng con và cập nhật nó một bước — nhưng tất cả các mạng con **dùng chung trọng số**, nên mỗi bước cập nhật giúp cho vô số mạng con khác.
+
+Trung bình dự đoán của nhiều mô hình (ensemble) gần như luôn tốt hơn từng mô hình lẻ: đó là lý do rừng ngẫu nhiên tốt hơn một cây. Nhưng chạy $2^{100}$ mạng lúc dự đoán thì không tưởng. Chỗ khéo của dropout là: dùng **một** mạng đầy đủ với trọng số đã co thang đúng cách thì ra một xấp xỉ rất tốt cho trung bình đó. Srivastava và cộng sự chứng minh điều này **chính xác** cho mô hình tuyến tính một lớp softmax (nó cho ra đúng trung bình nhân của các mạng con), còn với mạng sâu nhiều lớp thì chỉ là xấp xỉ — nhưng là xấp xỉ hoạt động rất tốt trong thực nghiệm.
+
+<CauHoi cau="dropout/q2" />
+
+## Inverted dropout: vì sao phải chia cho $p$
+
+Đây là chi tiết dễ làm sai nhất, và cũng là chi tiết đáng hiểu nhất.
+
+Gọi $h_i$ là kích hoạt gốc của neuron $i$, và $m_i \sim \text{Bernoulli}(p)$ là mặt nạ. Nếu ta chỉ nhân mặt nạ:
+
+$$
+\tilde{h}_i = m_i \, h_i
+\qquad\Longrightarrow\qquad
+\mathbb{E}[\tilde{h}_i] = p \cdot h_i + (1-p)\cdot 0 = p\,h_i
+$$
+
+Đầu ra trung bình lúc huấn luyện chỉ còn **$p$ lần** so với lúc đánh giá (lúc đó không tắt gì, đầu ra là $h_i$). Lớp phía sau được huấn luyện để làm việc với đầu vào thang $p\,h$, rồi lúc chạy thật lại nhận thang $h$. Toàn bộ mạng lệch thang, và lệch luỹ tiến qua từng lớp.
+
+Có hai cách sửa:
+
+- **Bản gốc (2014)**: giữ nguyên lúc train, rồi lúc test **nhân trọng số với $p$**. Đúng về toán, nhưng phải sửa mô hình mỗi lần chuyển chế độ.
+- **Inverted dropout** (bản ai cũng dùng): chia cho $p$ ngay **lúc train**:
+
+$$
+\boxed{\;\tilde{h}_i = \frac{m_i}{p}\,h_i\;}
+\qquad\Longrightarrow\qquad
+\mathbb{E}[\tilde{h}_i] = p \cdot \frac{h_i}{p} + (1-p)\cdot 0 = h_i
+$$
+
+Kỳ vọng **không đổi**, nên lúc đánh giá chỉ cần tắt dropout đi là xong, không phải chỉnh trọng số. Lợi thêm: đổi $p$ giữa chừng cũng không phải sửa gì ở đường suy luận.
+
+Giá phải trả: chia cho $p$ làm **phương sai** của đầu ra tăng lên. Với $h_i$ cố định, $\operatorname{Var}[\tilde{h}_i] = h_i^2\,\frac{1-p}{p}$ — với $p = 0.5$ thì phương sai bằng $h_i^2$, tức là nhiễu ngang bằng tín hiệu. Đó chính là "nhiễu có ích" mà dropout cố tình bơm vào, nhưng cũng là lý do dropout quá mạnh làm huấn luyện chậm và loãng.
+
+## Tính tay
+
+Lớp có 4 neuron, kích hoạt $h = (2,\ 4,\ 6,\ 8)$, chọn $p = 0.5$. Lượt này tung được mặt nạ $m = (1, 0, 1, 0)$.
+
+| Cách làm | Đầu ra | Tổng |
+|---|---|---|
+| Không dropout (lúc eval) | (2, 4, 6, 8) | 20 |
+| Chỉ nhân mặt nạ (SAI) | (2, 0, 6, 0) | **8** |
+| Inverted, chia cho $p = 0.5$ | (4, 0, 12, 0) | **16** |
+
+Nhìn tổng thì cả hai đều chưa bằng 20 — nhưng đó là **một** lượt cụ thể. Điều quan trọng là **kỳ vọng qua nhiều lượt**. Xét riêng neuron thứ hai ($h_2 = 4$), liệt kê hai khả năng:
+
+| Mặt nạ $m_2$ | Xác suất | Chỉ nhân mặt nạ | Inverted |
+|---|---|---|---|
+| 1 (giữ) | 0.5 | 4 | $4/0.5 = 8$ |
+| 0 (tắt) | 0.5 | 0 | 0 |
+| **Kỳ vọng** | | $0.5(4) + 0.5(0) = \mathbf{2}$ | $0.5(8) + 0.5(0) = \mathbf{4}$ |
+
+Chỉ nhân mặt nạ cho kỳ vọng 2, tức đúng một nửa giá trị thật 4. Inverted cho kỳ vọng **4**, bằng đúng giá trị lúc eval. Đây chính là điều ta cần, và nó đúng với mọi $p$: $p \cdot \frac{h}{p} = h$.
+
+<CauHoi cau="dropout/q5" />
+
+## Code: cài inverted dropout bằng NumPy
+
+```python
+import numpy as np
+
+def dropout_xuoi(h, p, rng, huan_luyen):
+    """p = xac suat GIU. Tra ve kich hoat sau dropout."""
+    if not huan_luyen:
+        return h                                  # luc eval: khong tat gi
+    mat_na = rng.random(h.shape) < p              # Bernoulli(p), tung phan tu
+    return h * mat_na / p                         # chia cho p -> giu nguyen ky vong
+
+h = np.array([[2.0, 4.0, 6.0, 8.0]])
+print("eval    :", dropout_xuoi(h, 0.5, np.random.default_rng(8), False)[0])
+print("train   :", dropout_xuoi(h, 0.5, np.random.default_rng(8), True)[0])  # mat na (1,0,1,0)
+
+# Kiem chung ky vong tren 200.000 luot
+lo = np.repeat(h, 200000, axis=0)
+for p in (0.5, 0.8, 0.9):
+    tb = dropout_xuoi(lo, p, np.random.default_rng(0), True).mean(axis=0)
+    print(f"p={p}: ky vong = {np.round(tb, 3)}  | ti le bi tat = {(dropout_xuoi(lo, p, np.random.default_rng(1), True) == 0).mean():.3f}")
+```
+
+```
+eval    : [2. 4. 6. 8.]
+train   : [ 4.  0. 12.  0.]
+p=0.5: ky vong = [1.998 4.    6.013 8.   ]  | ti le bi tat = 0.499
+p=0.8: ky vong = [2.    3.998 6.003 7.999]  | ti le bi tat = 0.200
+p=0.9: ky vong = [2.    3.999 5.997 8.001]  | ti le bi tat = 0.100
+```
+
+Dòng `train` khớp đúng bảng tính tay: $(4, 0, 12, 0)$. Và kỳ vọng ở cả ba giá trị $p$ đều quay về $(2, 4, 6, 8)$ — chính là đầu ra lúc eval.
+
+## Nâng cao
+
+### Chọn tỉ lệ nào
+
+Con số thực dụng (nhắc lại: $p$ ở đây là xác suất **giữ**):
+
+| Vị trí | $p$ (giữ) | Tương đương "rate" của PyTorch/Keras |
+|---|---|---|
+| Lớp ẩn dày đặc (MLP, CNN cuối) | 0.5 | 0.5 |
+| Lớp đầu vào | 0.8 – 0.9 | 0.1 – 0.2 |
+| Transformer (P_drop bài gốc) | 0.9 | 0.1 |
+| Mô hình đang chưa khớp | 1.0 (tắt hẳn) | 0.0 |
+
+Srivastava và cộng sự khuyên $p = 0.5$ cho lớp ẩn vì đó là chỗ số lượng mạng con lớn nhất, và giữ $p$ cao ở lớp đầu vào vì xoá thẳng dữ liệu gốc thì mất thông tin không lấy lại được.
+
+Một mẹo trong bài báo gốc: khi thêm dropout với $p$, nên **tăng số neuron** của lớp đó lên khoảng $1/p$ lần, vì trung bình chỉ có $p \cdot n$ neuron hoạt động mỗi lượt. Thêm dropout mà giữ nguyên kích thước lớp đôi khi biến quá khớp thành chưa khớp.
+
+### Dropout ở đâu trong Transformer
+
+Bài [Attention Is All You Need](https://arxiv.org/abs/1706.03762) (Vaswani và cộng sự, 2017), mục 5.4, đặt dropout ở hai chỗ, với $P_{\text{drop}} = 0.1$ cho mô hình base:
+
+1. **Residual dropout**: đầu ra của **mỗi** lớp con (self-attention và feed-forward) đi qua dropout **trước khi** được cộng vào nhánh residual và chuẩn hoá — tức là `x + Dropout(SubLayer(x))` rồi mới LayerNorm.
+2. **Embedding dropout**: dropout lên tổng của embedding và positional encoding, ở cả encoder lẫn decoder.
+
+Ngoài ra, các cài đặt phổ biến (bao gồm bản gốc của tác giả và hầu hết thư viện ngày nay) còn đặt dropout lên **trọng số attention sau softmax** — tức là ngẫu nhiên bỏ qua một số liên kết token–token trong lúc huấn luyện. Vì thế cấu hình của các mô hình trong thư viện Hugging Face thường có hai núm tách rời: `hidden_dropout_prob` cho residual/FFN và `attention_probs_dropout_prob` cho trọng số attention. (`nn.TransformerEncoderLayer` của PyTorch thì gộp làm một tham số `dropout` và truyền luôn sang `MultiheadAttention`.)
+
+Một quan sát đáng nhớ: các mô hình ngôn ngữ lớn huấn luyện trước trên kho dữ liệu khổng lồ thường đặt dropout **bằng 0** trong giai đoạn pretrain. Lý do trực giác: khi mỗi mẫu chỉ được nhìn một lần và dữ liệu nhiều hơn tham số rất nhiều, quá khớp không còn là ràng buộc chính, còn dropout thì làm chậm việc học. Dropout quay lại ở giai đoạn tinh chỉnh (fine-tuning) trên dữ liệu nhỏ. Đây là quan sát thực nghiệm phổ biến, không phải quy tắc bất biến.
+
+### Họ hàng của dropout
+
+- **DropConnect**: tắt từng **trọng số** thay vì từng neuron.
+- **Dropout không gian** (`nn.Dropout2d`): tắt cả một kênh feature map, hợp với CNN vì các pixel cạnh nhau tương quan mạnh, tắt lẻ từng pixel gần như không làm gì.
+- **DropPath / Stochastic depth**: bỏ hẳn cả một khối residual, hay dùng trong ViT và ResNet rất sâu.
+- **Nhìn theo kiểu điều chuẩn**: với mô hình tuyến tính, dropout trên đầu vào tương đương một dạng L2 đã co thang theo từng đặc trưng. Với mạng sâu thì không còn tương đương chặt chẽ nữa.
+
+## Sai lầm hay gặp và triệu chứng nhận biết
+
+**1. Quên `model.eval()`.** Lỗi kinh điển số một. *Triệu chứng:* cùng một ảnh, gọi `model(x)` hai lần cho hai kết quả **khác nhau**; val loss cao hơn train loss một cách bất thường (dáng D) và nhảy loạn giữa các epoch; điểm trên tập test thấp hơn hẳn điểm lúc validate. *Sửa:* `model.eval()` trước mọi vòng đánh giá, và bọc bằng `torch.no_grad()`. Cách kiểm nhanh: chạy `model(x)` hai lần rồi so sánh, nếu khác nhau là dropout (hoặc BatchNorm) vẫn đang bật.
+
+**2. Quên `model.train()` trở lại sau khi validate.** *Triệu chứng:* epoch 1 học bình thường, từ epoch 2 trở đi train loss tụt rất nhanh và val loss bắt đầu bò lên — vì dropout đã tắt vĩnh viễn, mô hình không còn được điều chuẩn. *Sửa:* đặt `model.train()` ở đầu mỗi vòng huấn luyện, đừng đặt một lần ngoài vòng lặp.
+
+**3. Quên chia cho $p$.** *Triệu chứng:* train loss trông ổn nhưng vừa chuyển sang eval là mọi dự đoán lệch hẳn theo một hướng; với mạng $L$ lớp, đầu ra lúc eval lớn hơn lúc train khoảng $(1/p)^L$ lần. *Sửa:* dùng inverted dropout, và viết một test kiểm kỳ vọng như bài code bên dưới.
+
+**4. Lẫn quy ước $p$.** *Triệu chứng:* bạn đọc bài báo thấy "p = 0.5 cho lớp ẩn", viết `nn.Dropout(0.5)` thì may mà trùng; nhưng đọc "giữ 0.8 ở lớp đầu vào" rồi viết `nn.Dropout(0.8)` là **tắt 80%** và mạng gần như không học được gì. *Triệu chứng kèm theo:* train loss giảm cực chậm hoặc đứng yên. *Sửa:* PyTorch và Keras nhận **xác suất tắt**. Giữ $p$ ⇔ `nn.Dropout(1 - p)`.
+
+**5. Thêm dropout khi đang chưa khớp.** *Triệu chứng:* train accuracy chỉ 65%, bạn thêm dropout 0.5, và train accuracy tụt còn 55% trong khi val cũng tụt. *Sửa:* dropout là điều chuẩn, chỉ dùng khi khoảng cách train–val đang nới rộng. Chưa khớp thì phải tăng sức chứa.
+
+**6. Đặt dropout ngay trước lớp đầu ra.** *Triệu chứng:* xác suất dự đoán nhảy loạn, loss có gai nhọn ngẫu nhiên. *Sửa:* tắt neuron ở lớp cuối là làm hỏng thẳng logit; đặt dropout ở các lớp ẩn, không đặt sau lớp phân loại cuối.
+
+**7. Dùng chung một mặt nạ cho cả batch.** *Triệu chứng:* dropout gần như không có tác dụng gì, khoảng cách train–val không đổi. *Sửa:* `rng.random(h.shape)` chứ không phải `rng.random(h.shape[1])` rồi phát tán.
+
+## Tra nhanh
+
+| | Lúc train | Lúc eval |
+|---|---|---|
+| Mặt nạ | $m \sim \text{Bernoulli}(p)$, độc lập từng phần tử, tung lại mỗi lượt | không có |
+| Công thức | $\tilde{h} = \dfrac{m}{p} \odot h$ | $\tilde{h} = h$ |
+| Kỳ vọng đầu ra | $h$ | $h$ |
+| PyTorch | `model.train()` | `model.eval()` |
+
+**Quy ước $p$:** bài báo gốc + bài này = xác suất **giữ**. PyTorch `nn.Dropout(p)` + Keras `Dropout(rate)` = xác suất **tắt**. Chuyển đổi: `nn.Dropout(1 - p_giu)`.
+
+**Ba dòng code là đủ:**
+
+```python
+mat_na = rng.random(h.shape) < p      # p = xac suat giu
+h = h * mat_na / p                    # inverted: chia ngay luc train
+# luc eval: khong lam gi ca
+```
+
+**Cách kiểm nhanh có quên `eval()` không:** chạy `model(x)` hai lần, so sánh. Khác nhau là còn bật.
+
+**Cách kiểm nhanh có quên chia $p$ không:** lấy trung bình đầu ra lúc train trên vài nghìn lượt, phải bằng đầu ra lúc eval.
+
+**Thứ tự chọn công cụ chống quá khớp trong mạng sâu:** early stopping → weight decay (AdamW) → dropout → augmentation → thêm dữ liệu.
+
+## Tự kiểm
+
+<CauHoi cau="dropout/q7" />
+
+<CauHoi cau="dropout/q9" />
+
+<CauHoi cau="dropout/q11" />
+
+Quay lại: [Quá khớp](/khai-niem/overfitting) · [Điều chuẩn L1/L2](/khai-niem/regularization).

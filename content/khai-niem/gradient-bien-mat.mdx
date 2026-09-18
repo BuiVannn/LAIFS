@@ -1,0 +1,443 @@
+---
+ten_vi: "Gradient biến mất và bùng nổ"
+ten_en: "Vanishing and Exploding Gradients"
+tang: 3
+thu_tu: 35
+tien_quyet: ["lan-truyen-nguoc", "ham-kich-hoat", "khoi-tao-trong-so"]
+trang_thai: nhap
+dinh_nghia: >-
+  Trong mạng sâu, gradient đi ngược qua mỗi lớp bị NHÂN với một hệ số. Nếu các hệ số đó
+  thường nhỏ hơn 1, tích của chúng teo về 0 theo cấp số nhân và các lớp gần đầu vào gần như
+  không nhận được tín hiệu học (gradient biến mất). Nếu chúng thường lớn hơn 1, tích nổ lên
+  và một bước cập nhật hất trọng số đi rất xa, loss thành inf hoặc nan (gradient bùng nổ).
+truc_giac: >-
+  Giống truyền tin miệng qua một hàng dài người. Mỗi người nghe được 25 phần trăm thông tin
+  người trước nói. Qua mười người, thông tin còn lại chưa tới một phần triệu: người cuối hàng
+  nghe thấy im lặng. Đổi lại, nếu mỗi người phóng đại lên rưỡi thì qua năm mươi người, một lời
+  thì thầm thành tiếng hét vỡ loa. Cả hai đều là cùng một phép tính: nhân một con số với chính
+  nó rất nhiều lần.
+hieu_nham:
+  - "Gradient biến mất KHÔNG phải do learning rate quá nhỏ. Giảm hay tăng learning rate không chữa được, vì vấn đề nằm ở TỈ LỆ giữa gradient các lớp, không phải ở độ lớn chung."
+  - "Không chỉ hàm kích hoạt gây ra: hệ số nhân ở mỗi lớp là f′(z)·w, nên trọng số khởi tạo quá nhỏ cũng làm gradient tắt dù dùng ReLU."
+  - "ReLU giảm nhẹ chứ không xoá bỏ vấn đề: đạo hàm bằng 1 ở phía dương, nhưng bằng 0 ở phía âm (neuron chết) và trọng số vẫn có thể quá nhỏ hoặc quá lớn."
+  - "Gradient clipping chỉ chữa bùng nổ, hoàn toàn vô dụng với biến mất: cắt một vector đã bé tí thì nó vẫn bé tí."
+  - "Loss đứng im KHÔNG phải lúc nào cũng do gradient biến mất. Phải kiểm bằng cách in chuẩn gradient của từng lớp; nếu lớp cuối bình thường mà lớp đầu nhỏ hơn hàng triệu lần thì mới đúng là nó."
+y_chinh:
+  - "Backprop nhân gradient với f′(z)·w ở mỗi lớp, nên qua L lớp gradient tỉ lệ với TÍCH của L số — mọi thứ là hàm mũ theo độ sâu"
+  - "Hệ số trung bình nhỏ hơn 1 thì tắt dần theo cấp số nhân (sigmoid: 0.25¹⁰ ≈ 9.5×10⁻⁷); lớn hơn 1 thì nổ (1.5⁵⁰ ≈ 6×10⁸)"
+  - "Sigmoid/tanh bão hoà làm f′ tiến về 0 khi |z| lớn, siết hệ số nhân xuống nữa"
+  - "Cách chữa biến mất: ReLU, khởi tạo đúng (Xavier/He), chuẩn hoá (BatchNorm/LayerNorm), kết nối tắt (residual), LSTM/GRU cho chuỗi dài"
+  - "Cách chữa bùng nổ: gradient clipping theo chuẩn — giữ hướng, chỉ cắt độ dài"
+  - "Chẩn đoán bằng chuẩn gradient từng lớp: biến mất thì lớp đầu nhỏ hơn lớp cuối hàng triệu lần, bùng nổ thì loss nhảy vọt rồi thành nan"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=qhXZsFVxGKo
+    tieu_de: Vanishing/Exploding Gradients (C2W1L10)
+    tac_gia: DeepLearningAI (Andrew Ng)
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Dẫn đúng lập luận "tích của L ma trận" bằng ví dụ 1.5^L và 0.5^L trong 6 phút. Nên xem đầu tiên; xem tiếp C2W1L11 cho phần khởi tạo.
+  - url: https://cs231n.github.io/neural-networks-2/
+    tieu_de: "CS231n: Neural Networks Part 2 — Setting up the Data and the Loss"
+    tac_gia: Andrej Karpathy, Stanford CS231n
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Mục "Weight Initialization" giải thích vì sao phương sai trọng số quyết định tín hiệu tắt hay nổ, kèm công thức Xavier và He. Đọc trước khi làm bài code đo chuẩn gradient.
+  - url: https://www.bioinf.jku.at/publications/older/2304.pdf
+    tieu_de: The Vanishing Gradient Problem During Learning Recurrent Neural Nets and Problem Solutions
+    tac_gia: Sepp Hochreiter
+    loai: bai_viet
+    muc_do: toan_nang
+    ngon_ngu: en
+    ghi_chu: Nguồn gốc của vấn đề (luận văn 1991, bản đăng 1998). Phân tích chính thức vì sao lỗi tắt theo cấp số nhân qua thời gian và dẫn tới LSTM.
+  - url: https://arxiv.org/abs/1211.5063
+    tieu_de: On the difficulty of training Recurrent Neural Networks
+    tac_gia: Razvan Pascanu, Tomas Mikolov, Yoshua Bengio
+    loai: bai_viet
+    muc_do: toan_nang
+    ngon_ngu: en
+    ghi_chu: ICML 2013. Nguồn của gradient clipping theo chuẩn, kèm hình "vách đá" trên mặt loss giải thích vì sao gradient bùng nổ.
+---
+
+import ChuanGradientTheoLop from '../../src/viz/ChuanGradientTheoLop.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Tình huống thật
+
+Bạn xây một MLP 10 lớp ẩn dùng sigmoid, huấn luyện trên dữ liệu ảnh. Sau 2000 bước:
+
+- Loss giảm từ 2.30 xuống 2.28 rồi đứng im.
+- Bạn in `W1` ra so với lúc khởi tạo: **giống hệt tới chữ số thứ 6**.
+- Bạn in `W10` (lớp sát đầu ra): nó đã đổi rất nhiều.
+
+Mạng không hỏng. Nó đang học — nhưng chỉ có **hai lớp cuối** học. Tám lớp đầu, nơi lẽ ra phải hình thành các đặc trưng cơ bản, đứng yên như lúc mới khởi tạo ngẫu nhiên.
+
+Một người khác thì gặp cảnh ngược lại với một RNN trên chuỗi dài:
+
+```
+buoc 400  loss 1.82
+buoc 420  loss 1.79
+buoc 440  loss 6.31e+04
+buoc 460  loss nan
+```
+
+Hai hiện tượng, một nguyên nhân: backprop **nhân** gradient qua từng lớp, và nhân một số với chính nó nhiều lần thì kết quả chỉ có hai kết cục — về 0 hoặc ra vô cực.
+
+## Trực giác: mọi thứ là hàm mũ theo độ sâu
+
+Nhớ lại [lan truyền ngược](/khai-niem/lan-truyen-nguoc): tại mỗi nút, gradient từ phía sau được **nhân** với đạo hàm cục bộ rồi chuyển tiếp. Với một chuỗi lớp nối tiếp, "chuyển tiếp" xảy ra $L$ lần liên tiếp, nên gradient ở lớp đầu là một **tích của $L$ số hạng**.
+
+Tích của nhiều số có tính chất tàn nhẫn: nó không cộng dồn từ từ, nó **mũ hoá**.
+
+| Hệ số trung bình mỗi lớp | Sau 10 lớp | Sau 50 lớp |
+|---|---|---|
+| 0.25 | $9.5 \times 10^{-7}$ | $8 \times 10^{-31}$ |
+| 0.9 | 0.35 | 0.005 |
+| 1.0 | 1 | 1 |
+| 1.1 | 2.59 | 117 |
+| 1.5 | 57.7 | $6.4 \times 10^{8}$ |
+
+Chỉ có đúng một giá trị an toàn là 1, và không ai chỉnh được nó chính xác bằng 1. Nên bài toán thật không phải "làm sao giữ hệ số bằng 1" mà là **"làm sao giữ nó đủ gần 1 để $L$ lớp vẫn chịu được"**.
+
+## Dẫn công thức
+
+Xét một chuỗi $L$ lớp, mỗi lớp một neuron cho gọn (kết luận không đổi với ma trận):
+
+$$
+z_l = w_l \, a_{l-1} + b_l, \qquad a_l = f(z_l), \qquad l = 1, \dots, L
+$$
+
+Áp quy tắc chuỗi từ loss về tới lớp đầu:
+
+$$
+\frac{\partial L}{\partial a_0}
+= \frac{\partial L}{\partial a_L} \cdot \frac{\partial a_L}{\partial a_{L-1}} \cdots \frac{\partial a_1}{\partial a_0}
+$$
+
+Mỗi thừa số ở giữa là một lớp, và nó bằng đúng hai thứ nhân nhau:
+
+$$
+\frac{\partial a_l}{\partial a_{l-1}} = \underbrace{f'(z_l)}_{\text{ham kich hoat}} \cdot \underbrace{w_l}_{\text{trong so}}
+$$
+
+Vậy:
+
+$$
+\boxed{\;\frac{\partial L}{\partial a_0} = \frac{\partial L}{\partial a_L} \prod_{l=1}^{L} f'(z_l)\, w_l \;}
+$$
+
+Gradient của trọng số lớp $l$ là $\partial L/\partial w_l = \delta_l \, a_{l-1}$, mà $\delta_l$ chứa tích của **tất cả** các thừa số từ lớp $l+1$ tới $L$. Lớp càng gần đầu vào, tích càng dài, càng dễ tắt hoặc nổ.
+
+Đặt $r$ là giá trị điển hình của $|f'(z_l)\, w_l|$. Khi đó độ lớn gradient ở lớp đầu tỉ lệ với $r^{L}$:
+
+- $r < 1$: $r^L \to 0$ theo cấp số nhân → **gradient biến mất** (vanishing gradient)
+- $r > 1$: $r^L \to \infty$ theo cấp số nhân → **gradient bùng nổ** (exploding gradient)
+
+Lấy logarit cho thấy rõ bản chất: $\log |\partial L/\partial a_0| \approx L \log r + \text{const}$. Độ sâu $L$ nhân thẳng vào log của gradient. Đây là lý do "mạng sâu hơn thì tốt hơn" không phải chuyện đương nhiên trước năm 2015.
+
+### Vì sao sigmoid và tanh khiến $r < 1$ gần như chắc chắn
+
+Từ bài [hàm kích hoạt](/khai-niem/ham-kich-hoat):
+
+$$
+\sigma'(z) = \sigma(z)\big(1 - \sigma(z)\big) \le 0.25, \qquad \tanh'(z) = 1 - \tanh^2(z) \le 1
+$$
+
+Với sigmoid, thừa số $f'(z_l)$ **không bao giờ vượt 0.25**, và đó là ở điểm tốt nhất $z = 0$. Ra xa 0 một chút là nó rơi rất nhanh:
+
+| $z$ | 0 | 2 | 4 | 6 |
+|---|---|---|---|---|
+| $\sigma'(z)$ | 0.25 | 0.1050 | 0.0177 | 0.0025 |
+
+Hiện tượng $f'$ tụt về 0 khi $|z|$ lớn gọi là **bão hoà** (saturation). Nó làm mọi thứ tệ hơn theo hai vòng: trọng số lớn đẩy $z$ ra xa 0, làm $f'$ nhỏ, nên lớp đó khó cập nhật để thoát ra.
+
+Tanh đỡ hơn: $\tanh'(0) = 1$, tức là quanh gốc nó không siết gì cả. Nhưng nó cũng bão hoà, và ở chế độ bão hoà thì $\tanh'$ cũng về 0.
+
+ReLU thì $f'(z) = 1$ với mọi $z > 0$ — đúng giá trị an toàn. Đổi lại $f'(z) = 0$ với $z < 0$, nên "tắt" ở đây không phải teo dần mà là **tắt hẳn** đối với các neuron luôn nhận $z < 0$ (neuron chết). Bù lại, trong một lớp rộng thường vẫn có phần lớn neuron ở phía dương và gradient chảy qua được.
+
+<CauHoi cau="gradient-bien-mat/q3" />
+
+## Ví dụ tính tay: chuỗi 10 lớp
+
+Lấy trường hợp **tốt nhất có thể** của sigmoid: mọi $z_l = 0$ nên $f'(z_l) = 0.25$ đúng đỉnh, và mọi $w_l = 1$. Hệ số mỗi lớp là $r = 0.25 \times 1 = 0.25$. Giả sử gradient ở đầu ra là $\partial L/\partial a_{10} = 1$.
+
+| Lùi qua lớp thứ | Tích luỹ $0.25^k$ | Viết ra |
+|---|---|---|
+| 1 | $0.25^1$ | 0.25 |
+| 2 | $0.25^2$ | 0.0625 |
+| 3 | $0.25^3$ | 0.015625 |
+| 4 | $0.25^4$ | 0.00390625 |
+| 5 | $0.25^5$ | 0.0009765625 |
+| 6 | $0.25^6$ | 0.000244140625 |
+| 7 | $0.25^7$ | 0.00006103515625 |
+| 8 | $0.25^8$ | 0.0000152587890625 |
+| 9 | $0.25^9$ | 0.000003814697265625 |
+| 10 | $0.25^{10}$ | **0.00000095367431640625** |
+
+Ba điều cần rút ra:
+
+**1. Mỗi 5 lớp mất khoảng 3 chữ số.** $0.25^5 \approx 10^{-3}$. Chính xác: cần $\log 1000 / \log 4 \approx 4.98$ lớp để gradient bé đi 1000 lần.
+
+**2. Con số cuối là trường hợp LÝ TƯỞNG.** Nó giả định mọi neuron ngồi đúng đỉnh đạo hàm của sigmoid và mọi trọng số đúng bằng 1. Mạng thật khởi tạo $w \sim \mathcal{N}(0, 0.1^2)$ chẳng hạn thì $|w|$ điển hình cỡ 0.1, hệ số thành $0.25 \times 0.1 = 0.025$ và $0.025^{10} \approx 10^{-16}$ — dưới cả độ chính xác của số thực 32 bit.
+
+**3. Với learning rate $\eta = 0.01$**, bước cập nhật của lớp 1 là $0.01 \times 9.5 \times 10^{-7} \approx 10^{-8}$. Chạy một triệu bước thì $W_1$ mới nhúc nhích được 0.01. Đây chính là hiện tượng "lớp đầu giống hệt lúc khởi tạo" ở đầu bài.
+
+### Chiều ngược lại: bùng nổ
+
+Giữ sigmoid nhưng đặt $w_l = 6$. Hệ số mỗi lớp thành $r = 0.25 \times 6 = 1.5$:
+
+$$
+1.5^{10} \approx 57.7, \qquad 1.5^{20} \approx 3.3 \times 10^{3}, \qquad 1.5^{50} \approx 6.4 \times 10^{8}
+$$
+
+Gradient cỡ $10^{8}$, nhân với $\eta = 0.01$, cho bước nhảy cỡ $10^{6}$. Trọng số văng ra một vùng mà mọi thứ tràn số, và đúng bước sau bạn thấy `nan`.
+
+Bùng nổ phổ biến nhất ở **RNN trên chuỗi dài**, vì ở đó cùng **một** ma trận $W_h$ được nhân lại ở mỗi bước thời gian. Chuỗi 200 token là tích của 200 bản sao của cùng một ma trận: nếu trị riêng lớn nhất của nó là 1.02 thì $1.02^{200} \approx 52$; nếu là 1.1 thì $1.1^{200} \approx 1.9 \times 10^{8}$.
+
+<CauHoi cau="gradient-bien-mat/q5" />
+
+## Code NumPy
+
+Hai phần: phần trên tính lại đúng bảng tính tay, phần dưới đo trên một mạng 10 lớp thật.
+
+```python
+import numpy as np
+
+def chuoi(dao_ham, w, L):
+    """Tích luỹ hệ số nhân của gradient sau từng lớp lùi."""
+    return np.cumprod(np.full(L, dao_ham * w))
+
+print(chuoi(0.25, 1.0, 10)[-1])   # sigmoid ở đỉnh, w = 1  -> 9.5367431640625e-07
+print(chuoi(0.25, 6.0, 10)[-1])   # w = 6 nên hệ số 1.5    -> 57.6650390625
+
+# Cùng kết luận trên mạng thật: 10 lớp sigmoid, 16 neuron, batch 8
+rng = np.random.default_rng(0)
+A = rng.normal(size=(8, 16))
+Ws = [rng.normal(size=(16, 16)) * np.sqrt(1 / 16) for _ in range(10)]
+As, Zs = [], []
+for W in Ws:
+    As.append(A)
+    Zs.append(A @ W)
+    A = 1 / (1 + np.exp(-Zs[-1]))
+dA = np.ones_like(A) / A.size
+for l in range(9, -1, -1):
+    a = 1 / (1 + np.exp(-Zs[l]))
+    dZ = dA * a * (1 - a)
+    print(f"lop {l + 1:2d}  |dL/dW| = {np.linalg.norm(As[l].T @ dZ):.3e}")
+    dA = dZ @ Ws[l].T
+```
+
+Kết quả phần dưới:
+
+```
+lop 10  |dL/dW| = 1.131e-01     lop  5  |dL/dW| = 8.424e-05
+lop  9  |dL/dW| = 2.492e-02     lop  4  |dL/dW| = 1.970e-05
+lop  8  |dL/dW| = 6.285e-03     lop  3  |dL/dW| = 6.343e-06
+lop  7  |dL/dW| = 1.464e-03     lop  2  |dL/dW| = 1.237e-06
+lop  6  |dL/dW| = 4.900e-04     lop  1  |dL/dW| = 1.253e-07
+```
+
+Từ lớp 10 xuống lớp 1: $1.131 \times 10^{-1}$ còn $1.253 \times 10^{-7}$, tức là bé đi khoảng 900 000 lần qua 9 bước — trung bình mỗi lớp chia khoảng 4.6 lần, đúng cỡ dự đoán $1/0.25 = 4$ của phần tính tay. Lý thuyết và số đo khớp nhau.
+
+## Tự thử: đoán trước, rồi đo
+
+Mạng dưới đây có 20 lớp dày, mỗi lớp 16 neuron, batch 8 mẫu. Trục dọc là **log** của chuẩn gradient $\lVert \partial L/\partial W_l \rVert$ ở từng lớp — một khoảng trên lưới là 10 lần.
+
+<ChuanGradientTheoLop
+  client:visible
+  kichHoat="sigmoid"
+  khoiTao="xavier"
+  soLop={20}
+  duDoan={{
+    de: "20 lớp sigmoid, khởi tạo Xavier (một khởi tạo được coi là ĐÚNG cách). Gradient ở lớp 1 so với lớp 20 sẽ thế nào?",
+    lua_chon: ["Xấp xỉ bằng nhau", "Nhỏ hơn khoảng 100 lần", "Nhỏ hơn khoảng 10¹² lần"],
+    dap_an: 2,
+    giai_thich: "Khoảng 6.8e−14 so với 0.12, tức là chênh hơn 10¹² lần. Khởi tạo đúng KHÔNG cứu được sigmoid ở độ sâu này, vì trần 0.25 của σ′ vẫn nằm đó ở mọi lớp. Đây là lý do mạng sâu bỏ sigmoid ở lớp ẩn."
+  }}
+/>
+
+<ChuanGradientTheoLop
+  client:visible
+  kichHoat="relu"
+  khoiTao="he"
+  soLop={20}
+  duDoan={{
+    de: "Vẫn 20 lớp, nhưng đổi sang ReLU và khởi tạo He (σ = √(2/d)). Đường đồ thị sẽ trông ra sao?",
+    lua_chon: ["Vẫn dốc xuống về phía lớp 1, chỉ đỡ hơn chút", "Gần như nằm ngang, mọi lớp cùng cỡ độ lớn", "Dốc lên rất mạnh về phía lớp 1"],
+    dap_an: 1,
+    giai_thich: "Lớp 1 khoảng 0.59, lớp 20 khoảng 0.32: chênh chưa tới 2 lần qua 20 lớp. Hai thứ cùng lúc: ReLU cho f′ = 1 ở phía dương, và He chọn phương sai trọng số vừa đúng để phương sai tín hiệu không đổi qua từng lớp. Thử đổi riêng khởi tạo sang 'Nhỏ cố định' để thấy chỉ cần sai một trong hai là hỏng."
+  }}
+/>
+
+<ChuanGradientTheoLop
+  client:visible
+  kichHoat="relu"
+  khoiTao="lon"
+  soLop={20}
+  duDoan={{
+    de: "Vẫn ReLU 20 lớp, nhưng khởi tạo quá lớn (σ = 4/√d thay vì √(2/d), tức gấp khoảng 2.8 lần). Chuẩn gradient sẽ cỡ bao nhiêu?",
+    lua_chon: ["Cỡ 1, vì ReLU không bão hoà", "Cỡ 10⁸", "Cỡ 10⁻⁸"],
+    dap_an: 1,
+    giai_thich: "Khoảng 2.2e8 ở mọi lớp. ReLU không có trần như sigmoid, nên không có gì chặn việc phóng đại: mỗi lớp nhân độ lớn tín hiệu lên khoảng 2.8 lần, và 2.8 luỹ thừa 20 lớp là cỡ 10⁹. Để ý TỈ LỆ giữa các lớp vẫn ổn (ReLU thuần nhất bậc 1 nên nhân mọi W với cùng một hằng số không làm đổi tỉ lệ) — đây là kiểu hỏng mà gradient clipping chữa được."
+  }}
+/>
+
+Bảng tự do. Đáng thử nhất: ReLU + "Nhỏ cố định" (mọi lớp cùng cỡ $10^{-30}$ — tín hiệu **lượt xuôi** chết chứ không phải lượt ngược), và tanh + "Quá lớn" (gradient lớn ở lớp đầu, nhỏ ở lớp cuối — ngược hẳn với sigmoid).
+
+<ChuanGradientTheoLop client:visible />
+
+## Sáu cách chữa
+
+Xếp theo thứ tự nên thử.
+
+### 1. Đổi hàm kích hoạt: ReLU thay sigmoid/tanh
+
+Xoá luôn trần 0.25. `ReLU'(z) = 1` với mọi $z > 0$, không phụ thuộc $z$ lớn cỡ nào. Chữa **biến mất**, không chữa bùng nổ. Biến thể Leaky ReLU (`max(0.01z, z)`) và GELU tránh thêm vụ neuron chết. Đây là thay đổi rẻ nhất và nên làm đầu tiên.
+
+### 2. Khởi tạo đúng
+
+Nếu trọng số khởi tạo quá nhỏ thì tín hiệu tắt ngay ở **lượt xuôi**; quá lớn thì nổ. Ý tưởng: chọn phương sai của $w$ sao cho **phương sai đầu ra của một lớp bằng phương sai đầu vào**. Với lớp có $d_{in}$ đầu vào:
+
+| Tên | Phương sai | Dùng với |
+|---|---|---|
+| Xavier / Glorot | $\mathrm{Var}(w) = \dfrac{2}{d_{in} + d_{out}}$ | tanh, sigmoid |
+| He | $\mathrm{Var}(w) = \dfrac{2}{d_{in}}$ | ReLU (hệ số 2 bù cho một nửa giá trị bị cắt về 0) |
+
+Khởi tạo tất cả bằng 0 thì mọi neuron trong một lớp luôn giống hệt nhau và không bao giờ tách ra được — đó là lý do phải ngẫu nhiên. Bài riêng về khởi tạo trọng số sẽ nói kỹ hơn.
+
+### 3. Chuẩn hoá: BatchNorm / LayerNorm
+
+[Batch norm](/khai-niem/batch-norm) kéo đầu vào của mỗi lớp về trung bình 0 phương sai 1, nên $z$ không trôi ra vùng bão hoà và độ lớn tín hiệu không tích luỹ qua các lớp. Nó cũng làm mặt loss mượt hơn, nên chịu được learning rate lớn. LayerNorm làm việc tương tự nhưng theo từng mẫu, dùng trong Transformer.
+
+### 4. Kết nối tắt (residual)
+
+Thay $a_l = f(z_l)$ bằng:
+
+$$
+a_l = a_{l-1} + f(z_l)
+$$
+
+Đạo hàm đổi hẳn bản chất:
+
+$$
+\frac{\partial a_l}{\partial a_{l-1}} = 1 + \frac{\partial f(z_l)}{\partial a_{l-1}}
+$$
+
+Số hạng **1** là đường cao tốc: gradient có một lối đi thẳng từ loss về lớp đầu mà không bị nhân với bất cứ thứ gì. Tích $\prod (1 + \varepsilon_l)$ ứng xử hiền hơn $\prod \varepsilon_l$ rất nhiều — nó cộng dồn thay vì mũ hoá. Đây là ý tưởng đưa ResNet lên 152 lớp năm 2015 trong khi trước đó 20 lớp đã khó. Mọi khối Transformer đều có kết nối tắt vì lý do này.
+
+### 5. Gradient clipping (chỉ chữa bùng nổ)
+
+Trước khi cập nhật, nếu chuẩn của toàn bộ gradient vượt ngưỡng $c$ thì **co lại đúng bằng $c$, giữ nguyên hướng**:
+
+$$
+g \leftarrow g \cdot \frac{c}{\lVert g \rVert} \quad \text{khi } \lVert g \rVert > c
+$$
+
+Giữ hướng là điểm mấu chốt: hướng đi vẫn đúng, chỉ độ dài bước bị chặn. Cắt từng phần tử một (`clip(g, -c, c)`) thì rẻ hơn nhưng làm **lệch hướng** gradient, nên bản theo chuẩn được ưa dùng hơn. Ngưỡng thường dùng: 1.0 hoặc 5.0.
+
+Chú ý: chuẩn được tính trên **toàn bộ** tham số gộp lại thành một vector, không phải từng ma trận riêng.
+
+### 6. LSTM / GRU cho chuỗi dài
+
+RNN thường nhân lại cùng một ma trận ở mỗi bước thời gian, nên đây là nơi vấn đề nặng nhất — chính bối cảnh Hochreiter phát hiện ra nó. LSTM thêm một **ô nhớ** được cập nhật bằng phép cộng có cổng chứ không phải phép nhân ma trận, tạo ra đường gradient gần như không suy giảm qua hàng trăm bước thời gian. GRU là bản gọn hơn. Ý tưởng cốt lõi giống hệt kết nối tắt: **thay một phép nhân bằng một phép cộng**.
+
+<CauHoi cau="gradient-bien-mat/q8" />
+
+## Triệu chứng và chẩn đoán
+
+Cách chẩn đoán đáng tin nhất là in **chuẩn gradient của từng lớp** sau vài chục bước:
+
+```python
+for ten, p in mo_hinh.named_parameters():
+    if p.grad is not None:
+        print(f"{ten:24s} {p.grad.norm().item():.3e}")
+```
+
+Đọc kết quả:
+
+| Bạn thấy | Kết luận |
+|---|---|
+| Lớp cuối $10^{-1}$, lớp đầu $10^{-13}$ | Gradient biến mất |
+| Mọi lớp đều $10^{-30}$ | Tín hiệu lượt xuôi đã chết — khởi tạo quá nhỏ, không phải vấn đề của lượt ngược |
+| Mọi lớp $10^{6}$ trở lên, hoặc nhảy loạn giữa các bước | Gradient bùng nổ |
+| Mọi lớp $10^{-3}$ tới $10^{0}$, cùng cỡ | Lành mạnh |
+
+Bảng triệu chứng đầy đủ:
+
+| Triệu chứng khi huấn luyện | Nghi ngờ | Kiểm chứng |
+|---|---|---|
+| Loss giảm vài bước rồi đứng im ở mức của mô hình đoán mò | Biến mất | So `W1` với bản lưu lúc khởi tạo: gần như không đổi |
+| Lớp cuối học tốt, lớp đầu không đổi | Biến mất | In chuẩn gradient từng lớp, thấy dốc mũ |
+| Thêm lớp vào làm mô hình TỆ đi, cả trên tập train | Biến mất | Mô hình sâu hơn phải ít nhất bằng mô hình nông hơn nếu học được; không bằng nghĩa là không tối ưu hoá nổi |
+| Loss nhảy vọt từ 1.8 lên 6e+04 rồi `nan` | Bùng nổ | In chuẩn gradient ngay trước bước nổ |
+| `nan` xuất hiện luôn sau vài bước đầu | Bùng nổ hoặc lỗi số | Thử clipping; nếu vẫn `nan` thì kiểm tra log(0), chia 0, softmax không trừ max |
+| Loss ổn với chuỗi ngắn, nổ với chuỗi dài | Bùng nổ trong RNN | Cắt ngắn BPTT, bật clipping |
+| Đầu ra sigmoid toàn 0.999 hoặc 0.001 từ sớm | Bão hoà | In histogram của $z$: nếu $|z| > 6$ phổ biến thì trọng số khởi tạo quá lớn |
+
+Một cách kiểm tra rẻ và hiệu quả: **huấn luyện thử trên 8 mẫu**. Mạng lành mạnh phải overfit 8 mẫu về loss gần 0 trong vài trăm bước. Không làm nổi việc đó thì vấn đề nằm ở tối ưu hoá (rất có thể là gradient), không phải ở dữ liệu.
+
+## Sai lầm hay gặp
+
+| Sai lầm | Triệu chứng nhận biết |
+|---|---|
+| Giảm learning rate để chữa gradient biến mất | Loss giảm chậm hơn nữa mà tỉ lệ gradient giữa các lớp không đổi chút nào |
+| Tăng learning rate để bù cho gradient nhỏ | Lớp cuối (vốn có gradient bình thường) phân kỳ trước khi lớp đầu kịp nhúc nhích; loss nhảy loạn rồi `nan` |
+| Bật gradient clipping để chữa biến mất | Không có gì thay đổi — chuẩn gradient vốn đã dưới ngưỡng nên clipping không bao giờ kích hoạt |
+| Dùng sigmoid ở mọi lớp ẩn của mạng sâu | Càng thêm lớp càng tệ; chuẩn gradient giảm đều đặn khoảng 4 lần mỗi lớp |
+| Khởi tạo mọi trọng số bằng 0 (hoặc cùng một hằng số) | Loss đứng im hoàn toàn từ bước đầu; mọi neuron trong một lớp có gradient y hệt nhau |
+| Clipping theo từng phần tử thay vì theo chuẩn | Vẫn chạy được nhưng hội tụ chậm và thất thường, vì hướng gradient bị bóp méo mỗi lần cắt |
+| Kết luận "gradient biến mất" mà chưa đo | Sửa nhiều thứ không ăn thua; nguyên nhân thật có thể là learning rate, nhãn sai, hay quên `zero_grad()` |
+| Đặt ngưỡng clipping quá thấp (0.01) | Loss giảm rất chậm và đều một cách bất thường: gần như mọi bước đều bị cắt, bước đi thành cỡ cố định |
+
+<CauHoi cau="gradient-bien-mat/q11" />
+
+## Tra nhanh
+
+**Công thức gốc.** Qua $L$ lớp nối tiếp:
+
+$$
+\frac{\partial L}{\partial a_0} = \frac{\partial L}{\partial a_L} \prod_{l=1}^{L} f'(z_l)\, w_l
+\;\;\sim\;\; r^{L} \quad \text{voi } r = \big|f'(z)\,w\big|
+$$
+
+$r < 1$ → biến mất. $r > 1$ → bùng nổ. $\log(\text{gradient}) \approx L \log r$.
+
+**Số nhớ**
+
+| | |
+|---|---|
+| Trần đạo hàm sigmoid | $\sigma'(z) \le 0.25$ tại $z = 0$ |
+| Trần đạo hàm tanh | $\tanh'(z) \le 1$ tại $z = 0$ |
+| ReLU | $f'(z) = 1$ nếu $z > 0$, bằng 0 nếu $z < 0$ |
+| $0.25^{10}$ | $9.54 \times 10^{-7}$ |
+| $0.25^5$ | $\approx 10^{-3}$ (5 lớp sigmoid mất 3 chữ số) |
+| $1.5^{50}$ | $6.4 \times 10^{8}$ |
+
+**Chọn cách chữa**
+
+| Vấn đề | Cách chữa |
+|---|---|
+| Biến mất, mạng dày | ReLU + khởi tạo He |
+| Biến mất, mạng rất sâu (trên 20 lớp) | Thêm kết nối tắt (residual) |
+| Biến mất, phân phối kích hoạt trôi | BatchNorm / LayerNorm |
+| Biến mất trong RNN chuỗi dài | LSTM / GRU |
+| Bùng nổ, bất kỳ đâu | Gradient clipping theo chuẩn, ngưỡng 1.0 hoặc 5.0 |
+| Bùng nổ ngay bước đầu | Khởi tạo nhỏ lại, kiểm tra tỉ lệ dữ liệu đầu vào |
+
+**Gradient clipping theo chuẩn**, gộp mọi tham số thành một vector $g$:
+
+$$
+\lVert g \rVert = \sqrt{\textstyle\sum_i g_i^2}, \qquad
+g \leftarrow \begin{cases} g & \lVert g \rVert \le c \\[2pt] \dfrac{c}{\lVert g\rVert}\, g & \lVert g \rVert > c \end{cases}
+$$
+
+Ví dụ: $g = (3, 4)$ có $\lVert g \rVert = 5$; với $c = 1$ thì hệ số co là $1/5 = 0.2$ và $g$ mới là $(0.6, 0.8)$, chuẩn đúng bằng 1, hướng không đổi.
+
+**Ba lệnh chẩn đoán**
+
+1. In chuẩn gradient từng lớp — biến mất thì thấy dốc mũ, bùng nổ thì thấy số rất lớn.
+2. So trọng số lớp đầu với bản lưu lúc khởi tạo — không đổi nghĩa là nó không hề học.
+3. Thử overfit 8 mẫu — không xuống được loss gần 0 nghĩa là lỗi tối ưu hoá, không phải lỗi dữ liệu.
+
+**Đọc tiếp:** [Batch normalization](/khai-niem/batch-norm); khởi tạo trọng số, optimizer và LSTM/GRU — sắp có.

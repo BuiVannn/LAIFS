@@ -1,0 +1,129 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: "Vì sao gradient ở các lớp gần đầu vào của một mạng sâu lại có thể nhỏ hơn gradient ở lớp cuối hàng triệu lần?"
+    lua_chon:
+      - Vì lớp đầu có ít tham số hơn
+      - "Vì backprop NHÂN gradient với một hệ số ở mỗi lớp, nên qua L lớp gradient tỉ lệ với tích của L số; tích các số nhỏ hơn 1 teo về 0 theo cấp số nhân"
+      - Vì learning rate được đặt quá nhỏ
+      - Vì dữ liệu đầu vào chưa được chuẩn hoá
+    dap_an: 1
+    giai_thich: "Quy tắc chuỗi biến độ sâu thành số mũ: ∂L/∂a₀ = ∂L/∂a_L · Π f′(z_l)·w_l. Nếu hệ số điển hình là r thì độ lớn gradient ở lớp đầu tỉ lệ với r^L. Learning rate chỉ nhân TẤT CẢ gradient với cùng một số, không đổi được tỉ lệ giữa các lớp, nên chỉnh nó không chữa được."
+
+  - id: q2
+    loai: so
+    do_kho: 1
+    de: "Đạo hàm của sigmoid σ′(z) = σ(z)(1 − σ(z)) đạt giá trị LỚN NHẤT bằng bao nhiêu?"
+    dap_an: 0.25
+    sai_so: 0.001
+    giai_thich: "Đặt h = σ(z) thì h(1 − h) lớn nhất khi h = 0.5, tức z = 0, cho 0.5 × 0.5 = 0.25. Nghĩa là mỗi lớp sigmoid siết gradient xuống ít nhất 4 lần, ngay cả ở trường hợp tốt nhất. Ra xa z = 0 thì còn tệ hơn nhiều: σ′(6) ≈ 0.0025."
+
+  - id: q3
+    loai: mot
+    do_kho: 2
+    de: "Khi gradient đi ngược qua MỘT lớp z = w·a + b rồi a′ = f(z), nó được nhân với thừa số nào?"
+    lua_chon:
+      - Chỉ với đạo hàm của hàm kích hoạt f′(z)
+      - Chỉ với trọng số w
+      - "Với cả hai: f′(z)·w"
+      - Với learning rate η
+    dap_an: 2
+    giai_thich: "∂a′/∂a = f′(z)·∂z/∂a = f′(z)·w. Đây là lý do đổi sang ReLU chưa đủ: nếu trọng số khởi tạo quá nhỏ thì tích f′(z)·w vẫn nhỏ hơn 1 nhiều và gradient vẫn tắt. Phải chỉnh cả hai thừa số."
+
+  - id: q4
+    loai: so
+    do_kho: 2
+    de: "Một chuỗi 10 lớp sigmoid ở trường hợp lý tưởng nhất: mọi z = 0 nên f′ = 0.25, mọi trọng số w = 1. Gradient ở lớp đầu bằng gradient ở lớp cuối nhân với 0.25¹⁰. Viết 0.25¹⁰ dưới dạng a × 10⁻ⁿ với 1 ≤ a < 10. Hỏi n bằng bao nhiêu?"
+    dap_an: 7
+    sai_so: 0.001
+    giai_thich: "0.25¹⁰ = 1/4¹⁰ = 1/1048576 ≈ 9.5367 × 10⁻⁷, nên n = 7. Nhớ mốc: khoảng 5 lớp sigmoid làm gradient bé đi 1000 lần (log1000/log4 ≈ 4.98). Và đây là trường hợp TỐT NHẤT — khởi tạo w thật thường nhỏ hơn 1, làm tình hình tệ hơn nữa."
+
+  - id: q5
+    loai: so
+    do_kho: 2
+    de: "Đổi trọng số thành w = 6 nhưng vẫn sigmoid ở đỉnh (f′ = 0.25), nên hệ số mỗi lớp là 0.25 × 6 = 1.5. Qua 10 lớp gradient được nhân với 1.5¹⁰. Giá trị đó bằng bao nhiêu? (làm tròn 1 chữ số thập phân)"
+    dap_an: 57.7
+    sai_so: 0.1
+    giai_thich: "1.5¹⁰ ≈ 57.665. Chỉ cần hệ số nhỉnh hơn 1 một chút là gradient nổ theo chiều ngược lại: qua 50 lớp, 1.5⁵⁰ ≈ 6.4 × 10⁸. Cùng một phép tính, hai kết cục, tuỳ hệ số nằm bên nào của số 1."
+
+  - id: q6
+    loai: mot
+    do_kho: 2
+    de: "So với sigmoid, ReLU giúp gì cho vấn đề gradient biến mất?"
+    lua_chon:
+      - "Xoá bỏ hoàn toàn vấn đề: mạng dùng ReLU không bao giờ bị gradient biến mất"
+      - "Giữ f′ = 1 ở phía dương (không có trần 0.25, không bão hoà), nhưng f′ = 0 ở phía âm và thừa số w vẫn có thể quá nhỏ hoặc quá lớn"
+      - Làm gradient luôn lớn hơn 1 nên không bao giờ tắt
+      - Chặn gradient không vượt quá một ngưỡng
+    dap_an: 1
+    giai_thich: "ReLU sửa được MỘT trong hai thừa số. Với z < 0 thì đạo hàm bằng 0, nên neuron luôn nhận z âm sẽ chết hẳn. Và nếu khởi tạo trọng số quá nhỏ, mạng ReLU vẫn có thể có chuẩn gradient cỡ 10⁻³⁰ ở mọi lớp. Cần ReLU CỘNG khởi tạo He mới đủ."
+
+  - id: q7
+    loai: nhieu
+    do_kho: 2
+    de: Cách nào dưới đây thực sự chữa được gradient BIẾN MẤT? (chọn tất cả ý đúng)
+    lua_chon:
+      - Đổi sigmoid ở lớp ẩn sang ReLU
+      - Thêm kết nối tắt (residual) giữa các lớp
+      - Gradient clipping theo chuẩn
+      - Dùng khởi tạo He/Xavier thay cho hằng số nhỏ cố định
+    dap_an: [0, 1, 3]
+    giai_thich: "Gradient clipping chỉ CẮT BỚT gradient quá lớn, nên hoàn toàn vô dụng với gradient quá nhỏ: ngưỡng không bao giờ bị chạm. Ba cách còn lại đều tác động vào tích Π f′(z_l)·w_l — ReLU nâng f′, khởi tạo đúng chỉnh w, kết nối tắt thêm số hạng 1 vào mỗi thừa số để gradient có đường đi thẳng không bị nhân."
+
+  - id: q8
+    loai: so
+    do_kho: 2
+    de: "Gộp mọi tham số lại, gradient là vector g = (6, 8). Bạn dùng gradient clipping theo chuẩn với ngưỡng c = 5. Thành phần ĐẦU TIÊN của gradient sau khi cắt bằng bao nhiêu?"
+    dap_an: 3
+    sai_so: 0.001
+    giai_thich: "‖g‖ = √(36 + 64) = 10 > 5, nên nhân cả vector với c/‖g‖ = 5/10 = 0.5, được (3, 4). Chuẩn mới đúng bằng 5 và HƯỚNG không đổi — đó là điểm quan trọng: cắt theo từng phần tử (clip mỗi số về [−5, 5]) sẽ cho (5, 5), một hướng khác hẳn."
+
+  - id: q9
+    loai: mot
+    do_kho: 3
+    de: "Mạng 10 lớp sigmoid: loss giảm từ 2.30 xuống 2.28 rồi đứng im. In trọng số ra thì W1 giống hệt lúc khởi tạo tới chữ số thứ 6, còn W10 đã đổi rất nhiều. Chẩn đoán?"
+    lua_chon:
+      - Learning rate quá lớn
+      - Gradient biến mất — tín hiệu học tắt trước khi về tới các lớp đầu
+      - Dữ liệu bị gán nhãn sai
+      - Gradient bùng nổ
+    dap_an: 1
+    giai_thich: "Chỉ dấu quyết định là SỰ KHÁC BIỆT giữa lớp đầu và lớp cuối. Learning rate quá lớn hay nhãn sai ảnh hưởng tới mọi lớp như nhau; bùng nổ thì loss đã nhảy vọt hoặc thành nan. Kiểm chứng bằng cách in chuẩn gradient từng lớp: sẽ thấy nó giảm khoảng 4 lần mỗi lớp."
+
+  - id: q10
+    loai: mot
+    do_kho: 2
+    de: "Huấn luyện một RNN trên chuỗi dài. Loss đang là 1.79 thì bước sau nhảy lên 6.31e+04, rồi bước sau nữa thành nan. Việc đầu tiên nên làm?"
+    lua_chon:
+      - Tăng learning rate để thoát khỏi vùng xấu
+      - Bật gradient clipping theo chuẩn với ngưỡng 1.0 hoặc 5.0
+      - Đổi hàm kích hoạt sang sigmoid
+      - Tăng kích thước batch
+    dap_an: 1
+    giai_thich: "Đây là dấu hiệu kinh điển của gradient bùng nổ: RNN nhân lại CÙNG một ma trận ở mỗi bước thời gian, nên chuỗi dài là tích của rất nhiều bản sao. Clipping giữ nguyên hướng và chỉ chặn độ dài bước, đúng thứ cần ở đây. Đổi sang sigmoid sẽ đẩy sang thái cực ngược lại (biến mất)."
+
+  - id: q11
+    loai: mot
+    do_kho: 2
+    de: "Bạn nghi mạng bị gradient biến mất nên bật gradient clipping với ngưỡng 1.0. Điều gì sẽ xảy ra?"
+    lua_chon:
+      - Loss bắt đầu giảm vì gradient được chuẩn hoá về 1
+      - Không có gì thay đổi, vì chuẩn gradient vốn đã nhỏ hơn ngưỡng nên clipping không bao giờ kích hoạt
+      - Gradient sẽ bùng nổ
+      - Mô hình sẽ hội tụ nhanh gấp đôi
+    dap_an: 1
+    giai_thich: "Clipping chỉ làm GIẢM gradient khi nó quá lớn, không bao giờ làm tăng. Đây là sai lầm hay gặp khi chưa đo trước. Luôn in chuẩn gradient từng lớp để biết mình đang gặp vấn đề nào rồi mới chọn cách chữa."
+
+  - id: q12
+    loai: nhieu
+    do_kho: 3
+    de: "Về kết nối tắt (residual) và LSTM, những phát biểu nào ĐÚNG? (chọn tất cả ý đúng)"
+    lua_chon:
+      - "Với a_l = a_{l−1} + f(z_l), đạo hàm ∂a_l/∂a_{l−1} = 1 + (đạo hàm của f), nên gradient có một đường đi thẳng không bị nhân"
+      - "LSTM cập nhật ô nhớ chủ yếu bằng phép cộng có cổng thay vì nhân lại ma trận, nên gradient giữ được qua hàng trăm bước thời gian"
+      - Kết nối tắt và LSTM đều dựa trên cùng một ý tưởng gốc là thay một phép nhân bằng một phép cộng
+      - Kết nối tắt chỉ có tác dụng với mạng tích chập cho ảnh
+    dap_an: [0, 1, 2]
+    giai_thich: "Tích Π(1 + ε_l) ứng xử hiền hơn hẳn Π ε_l: nó cộng dồn thay vì mũ hoá. Ý tưởng này đưa ResNet lên 152 lớp năm 2015. Mọi khối Transformer — thuần văn bản — đều có kết nối tắt, nên ý cuối sai."

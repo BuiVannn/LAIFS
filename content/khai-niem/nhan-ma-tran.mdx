@@ -1,0 +1,377 @@
+---
+ten_vi: "Nhân ma trận, tích vô hướng"
+ten_en: Matrix Multiplication and Dot Product
+tang: 1
+thu_tu: 2
+tien_quyet: ["vector-ma-tran"]
+trang_thai: nhap
+dinh_nghia: >-
+  Tích vô hướng của hai vector là tổng các tích từng cặp phần tử tương ứng. Nhân ma trận
+  C = AB là làm phép đó cho mọi cặp (hàng của A, cột của B): C[i, j] = Σₖ A[i, k]·B[k, j].
+  Chiều trong phải khớp — (m, n) @ (n, p) cho (m, p).
+truc_giac: >-
+  Tích vô hướng đo "hai vector đồng thuận đến đâu": nhân từng cặp rồi cộng lại, cùng dấu thì
+  góp dương, trái dấu thì góp âm. Nhân ma trận chỉ là làm phép đo đó hàng loạt — thay vì một
+  vector gặp một vector, cả một chồng vector gặp cả một chồng vector, trong một lần gọi.
+hieu_nham:
+  - "`A * B` trong NumPy là nhân TỪNG PHẦN TỬ, không phải nhân ma trận. Nhân ma trận là `A @ B`. Hai mảng cùng shape thì `*` chạy êm và cho kết quả sai hoàn toàn."
+  - "Nhân ma trận KHÔNG giao hoán: AB và BA thường khác nhau, thậm chí BA có thể không tồn tại. Nhưng nó có tính kết hợp: (AB)C = A(BC)."
+  - "Chiều phải khớp là chiều TRONG: (m, n) @ (n, p). Số cột của A phải bằng số hàng của B, còn m và p thì tuỳ ý."
+  - "Deep learning viết `X @ W.T + b` chứ không phải `W @ X`, vì X xếp mỗi mẫu là một HÀNG — cách xếp đó mới cho phép chạy cả batch một lần."
+  - "AB = 0 không có nghĩa A = 0 hoặc B = 0. Ma trận khác 0 vẫn có thể nhân nhau ra 0 (khi định thức bằng 0, không gian bị bẹp)."
+y_chinh:
+  - "Tích vô hướng u·v = Σ uᵢvᵢ, cho ra MỘT SỐ; nó bằng ‖u‖‖v‖cos θ nên đo mức đồng thuận về hướng"
+  - "C[i, j] = (hàng i của A) · (cột j của B); (m, n) @ (n, p) → (m, p), chiều trong n triệt tiêu"
+  - "Ba góc nhìn cùng đúng: tích vô hướng từng cặp hàng–cột, tổ hợp tuyến tính các cột của A, và phép biến đổi không gian"
+  - "Không giao hoán (AB ≠ BA) nhưng có kết hợp; (AB)ᵀ = BᵀAᵀ"
+  - "Lớp neuron trên cả batch là `X @ W.T + b` với X (n, d_vào), W (d_ra, d_vào), b (d_ra,)"
+  - "`*` là nhân từng phần tử, `@` là nhân ma trận — nhầm hai cái này là lỗi im lặng phổ biến nhất"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=kYB8IZa5AuE
+    tieu_de: "Linear transformations and matrices | Chapter 3, Essence of linear algebra"
+    tac_gia: 3Blue1Brown
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Giải thích vì sao các CỘT của ma trận chính là ảnh của các vector đơn vị. Đây là góc nhìn làm mọi thứ còn lại trở nên hiển nhiên — xem trước khi đọc phần "ba góc nhìn".
+  - url: https://www.youtube.com/watch?v=XkY2DOUCWMU
+    tieu_de: "Matrix multiplication as composition | Chapter 4, Essence of linear algebra"
+    tac_gia: 3Blue1Brown
+    loai: video
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Vì sao AB nghĩa là "làm B trước rồi A", và vì sao nhân ma trận không giao hoán nhưng lại kết hợp. Xem ngay sau chương 3.
+  - url: https://www.youtube.com/watch?v=LyGKycYT2v0
+    tieu_de: "Dot products and duality | Chapter 9, Essence of linear algebra"
+    tac_gia: 3Blue1Brown
+    loai: video
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Vì sao tích vô hướng vừa là "tổng các tích" vừa là "phép chiếu". Nền để hiểu attention và cosine similarity sau này.
+  - url: http://matrixmultiplication.xyz/
+    tieu_de: Matrix Multiplication
+    tac_gia: Fredrik Hellman
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Trang tương tác, gõ hai ma trận vào rồi xem animation trượt hàng qua cột. Dùng khi vẫn còn lúng túng thứ tự chỉ số.
+  - url: https://numpy.org/doc/stable/reference/generated/numpy.matmul.html
+    tieu_de: "numpy.matmul (toán tử @)"
+    tac_gia: NumPy developers
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Tài liệu gốc, đặc biệt là mục quy tắc khi mảng nhiều hơn 2 chiều (batch matmul) — chỗ dễ sai nhất khi làm transformer.
+---
+
+import MaTranBienDoi from '../../src/viz/MaTranBienDoi.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Tình huống: một lớp neuron, 256 câu cùng lúc
+
+Một lớp fully-connected nhận vector đặc trưng 768 chiều và cho ra 3072 chiều. Với **một** mẫu, mỗi neuron ra làm đúng một việc: nhân từng đặc trưng với trọng số của nó rồi cộng lại.
+
+Viết bằng vòng lặp Python thì đó là 3072 × 768 ≈ 2.4 triệu phép nhân cho một mẫu. Batch 256 mẫu là 600 triệu. Và đó mới là **một lớp** trong **một** lượt xuôi.
+
+Giờ viết nó thành một phép nhân ma trận `X @ W.T`. Cùng số phép nhân, nhưng chúng được giao cho BLAS (thư viện đại số tuyến tính đã tối ưu tới mức đếm từng chu kỳ cache) hoặc cho GPU với hàng nghìn nhân tính song song. Nhanh hơn vòng lặp Python cỡ **hàng nghìn lần**.
+
+Đó là toàn bộ lý do nhân ma trận là phép toán trung tâm của deep learning: không phải vì nó đẹp, mà vì nó là cách duy nhất để phần cứng làm hết sức. Phần lớn thời gian huấn luyện một mô hình ngôn ngữ là thời gian nhân ma trận.
+
+## Trực giác: tích vô hướng là phép đo đồng thuận
+
+Trước khi tới ma trận, hãy nắm viên gạch: **tích vô hướng** (dot product) của hai vector cùng độ dài.
+
+$$
+\mathbf{u} \cdot \mathbf{v} = \sum_{i=1}^{n} u_i v_i
+$$
+
+Ví dụ $\mathbf{u} = (1, 2, 3)$, $\mathbf{v} = (4, 0, -1)$: $1{\cdot}4 + 2{\cdot}0 + 3{\cdot}(-1) = 1$.
+
+Con số đó nói gì? Từng cặp $u_i v_i$ góp một phiếu: cùng dấu thì phiếu dương, trái dấu thì phiếu âm, một bên bằng 0 thì không có ý kiến. Tổng các phiếu cho biết hai vector **cùng hướng đến đâu**. Công thức tương đương làm rõ điều này:
+
+$$
+\mathbf{u} \cdot \mathbf{v} = \|\mathbf{u}\|\,\|\mathbf{v}\|\cos\theta
+$$
+
+- $\theta = 0^\circ$ (cùng hướng) → $\cos\theta = 1$ → tích vô hướng lớn nhất
+- $\theta = 90^\circ$ (vuông góc) → $\cos\theta = 0$ → tích vô hướng **bằng 0**
+- $\theta = 180^\circ$ (ngược hướng) → âm
+
+Ghi nhớ cái này, vì nó là đáy của rất nhiều thứ phía sau: một neuron tính $\mathbf{w} \cdot \mathbf{x}$ tức là đang hỏi "mẫu này giống mẫu hình mà tôi được huấn luyện để tìm đến mức nào"; attention tính $\mathbf{q} \cdot \mathbf{k}$ tức là "truy vấn này khớp với khoá kia đến mức nào".
+
+## Dẫn công thức: vì sao chỉ số lại xếp như vậy
+
+Ta có **nhiều** vector $\mathbf{u}$ (các hàng của $A$) và **nhiều** vector $\mathbf{v}$ (các cột của $B$), và muốn tích vô hướng của **mọi cặp**. Xếp kết quả vào một bảng: hàng $i$ ứng với vector $\mathbf{u}$ thứ $i$, cột $j$ ứng với vector $\mathbf{v}$ thứ $j$. Bảng đó chính là $C = AB$:
+
+$$
+C_{ij} = \sum_{k} A_{ik} B_{kj}
+$$
+
+Đọc chỉ số: $i$ chạy trên **hàng** của $A$ và giữ nguyên ở kết quả; $j$ chạy trên **cột** của $B$ và giữ nguyên ở kết quả; $k$ là chỉ số bị **tổng hết**, nó phải xuất hiện ở cả hai và rồi biến mất. Vì $k$ vừa là cột của $A$ vừa là hàng của $B$, hai chiều đó **bắt buộc bằng nhau**:
+
+$$
+(m,\; \underbrace{n) \quad (n}_{n \,=\, n}\; , p) \;\longrightarrow\; (m, p)
+$$
+
+Đây là cách kiểm tra shape trong đầu nhanh nhất: viết hai shape cạnh nhau, hai số **ở giữa** phải bằng nhau và chúng triệt tiêu; hai số **ngoài cùng** là shape kết quả.
+
+<CauHoi cau="nhan-ma-tran/q3" />
+
+## Ba góc nhìn, cùng một phép toán
+
+Ba cách đọc dưới đây cho cùng con số. Người thạo chuyển qua lại giữa chúng tuỳ tình huống.
+
+### 1. Tích vô hướng từng cặp hàng–cột
+
+Góc nhìn "tính tay": muốn biết $C_{ij}$ thì lấy hàng $i$ của $A$ úp lên cột $j$ của $B$, nhân từng cặp, cộng lại. Hữu ích khi cần **một** ô cụ thể, hoặc khi debug.
+
+### 2. Tổ hợp tuyến tính các cột của A
+
+Nhìn theo từng cột của kết quả:
+
+$$
+(AB)_{:,j} = B_{1j}\,A_{:,1} + B_{2j}\,A_{:,2} + \cdots + B_{nj}\,A_{:,n}
+$$
+
+Cột $j$ của kết quả là một **công thức pha trộn** các cột của $A$, và cột $j$ của $B$ chính là bảng tỉ lệ pha. Góc nhìn này giải thích vì sao kết quả luôn nằm trong không gian sinh bởi các cột của $A$ — dù $B$ có là gì đi nữa. Nó cũng là lý do "hạng" (rank) của tích không bao giờ lớn hơn hạng của từng thừa số, và là nền của LoRA: thay ma trận lớn bằng tích của hai ma trận rất hẹp.
+
+### 3. Phép biến đổi không gian
+
+Với ma trận vuông $2 \times 2$, hãy hỏi: nó làm gì với hai vector đơn vị $\mathbf{e}_1 = (1, 0)$ và $\mathbf{e}_2 = (0, 1)$?
+
+$$
+M \mathbf{e}_1 = \begin{pmatrix} a & b \\ c & d \end{pmatrix}\begin{pmatrix} 1 \\ 0 \end{pmatrix} = \begin{pmatrix} a \\ c \end{pmatrix}, \qquad
+M \mathbf{e}_2 = \begin{pmatrix} b \\ d \end{pmatrix}
+$$
+
+Tức là: **các cột của $M$ chính là nơi hai vector đơn vị đi đến**. Và vì mọi vector đều là tổ hợp của $\mathbf{e}_1, \mathbf{e}_2$, biết hai chỗ đó là biết $M$ làm gì với **toàn bộ** mặt phẳng. Hình vuông đơn vị biến thành hình bình hành hai cạnh là hai cột của $M$; diện tích hình bình hành đó gọi là **định thức** $\det M = ad - bc$.
+
+Thử ngay dưới đây.
+
+<MaTranBienDoi
+  client:visible
+  a={2}
+  b={1}
+  c={0}
+  d={1}
+  duDoan={{
+    de: "M = [[2, 1], [0, 1]]. Hình vuông đơn vị (diện tích 1) sẽ biến thành hình có diện tích bao nhiêu?",
+    lua_chon: ["1 — chỉ nghiêng đi, không đổi diện tích", "2", "3", "4"],
+    dap_an: 1,
+    giai_thich: "Định thức = 2×1 − 1×0 = 2. e₁ = (1,0) bị kéo thành (2,0) — đáy dài gấp đôi; e₂ = (0,1) thành (1,1) — nghiêng đi nhưng chiều cao vẫn là 1. Diện tích = đáy × cao = 2 × 1 = 2. Nghiêng không đổi diện tích, kéo giãn thì có."
+  }}
+/>
+
+<MaTranBienDoi
+  client:visible
+  a={1}
+  b={2}
+  c={0.5}
+  d={1}
+  duDoan={{
+    de: "M = [[1, 2], [0.5, 1]]. Hai cột là (1, 0.5) và (2, 1). Chuyện gì xảy ra với hình vuông?",
+    lua_chon: ["Thành hình bình hành diện tích 2", "Bẹp thành một đoạn thẳng, diện tích 0", "Bị lật ngược lại"],
+    dap_an: 1,
+    giai_thich: "Định thức = 1×1 − 2×0.5 = 0. Cột thứ hai (2, 1) đúng bằng 2 lần cột thứ nhất (1, 0.5): hai cột nằm trên cùng một đường thẳng, nên cả mặt phẳng bị ép xuống đường thẳng đó. Thông tin mất hẳn và không có ma trận nghịch đảo. Trong thực chiến, ma trận gần suy biến như vậy làm nghiệm hồi quy bùng nổ và mất ổn định số."
+  }}
+/>
+
+Bảng tự do, chỉnh bốn số tuỳ ý (thử cả số âm để thấy mặt phẳng bị lật):
+
+<MaTranBienDoi client:visible />
+
+<CauHoi cau="nhan-ma-tran/q6" />
+
+## Tính tay từng bước
+
+$$
+A = \begin{pmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \end{pmatrix}_{(2,\,3)}, \qquad
+B = \begin{pmatrix} 1 & 0 \\ 0 & 1 \\ 1 & 1 \end{pmatrix}_{(3,\,2)}
+$$
+
+Kiểm shape trước: $(2, \mathbf{3}) \cdot (\mathbf{3}, 2) \to (2, 2)$. Hợp lệ, kết quả 2×2, tức 4 ô phải tính.
+
+| Ô | Hàng của A | Cột của B | Tính | Kết quả |
+|---|---|---|---|---|
+| $C_{00}$ | (1, 2, 3) | (1, 0, 1) | $1{\cdot}1 + 2{\cdot}0 + 3{\cdot}1$ | 4 |
+| $C_{01}$ | (1, 2, 3) | (0, 1, 1) | $1{\cdot}0 + 2{\cdot}1 + 3{\cdot}1$ | 5 |
+| $C_{10}$ | (4, 5, 6) | (1, 0, 1) | $4{\cdot}1 + 5{\cdot}0 + 6{\cdot}1$ | 10 |
+| $C_{11}$ | (4, 5, 6) | (0, 1, 1) | $4{\cdot}0 + 5{\cdot}1 + 6{\cdot}1$ | 11 |
+
+$$
+AB = \begin{pmatrix} 4 & 5 \\ 10 & 11 \end{pmatrix}
+$$
+
+**Kiểm lại bằng góc nhìn tổ hợp cột.** Các cột của $A$ là $(1, 4)$, $(2, 5)$, $(3, 6)$. Cột đầu của $B$ là $(1, 0, 1)$, nên cột đầu của kết quả là
+
+$$
+1\cdot\begin{pmatrix}1\\4\end{pmatrix} + 0\cdot\begin{pmatrix}2\\5\end{pmatrix} + 1\cdot\begin{pmatrix}3\\6\end{pmatrix} = \begin{pmatrix}4\\10\end{pmatrix} \;\checkmark
+$$
+
+Khớp. Hai góc nhìn, một kết quả.
+
+## Vì sao deep learning viết `X @ W.T + b`
+
+Đây là dòng gây bối rối nhất khi mới đọc code mạng neuron. Nó không phải quy ước tuỳ tiện.
+
+Sách giáo khoa viết cho **một** mẫu, mẫu là vector cột: $\mathbf{z} = W\mathbf{x} + \mathbf{b}$, với $W$ shape $(d_{\text{out}}, d_{\text{in}})$ và $\mathbf{x}$ shape $(d_{\text{in}}, 1)$.
+
+Nhưng dữ liệu thật là cả **batch**, và quy ước bất di bất dịch của ML là mỗi mẫu một **hàng**: $X$ shape $(n, d_{\text{in}})$. Lý do thực dụng: đọc file CSV, cắt mini-batch, xáo dữ liệu — tất cả đều theo hàng, và bộ nhớ xếp theo hàng nên lấy một batch là lấy một khối liền mạch.
+
+Giờ ghép hai thứ lại. Ta muốn hàng $i$ của kết quả là $W\mathbf{x}_i$. Chuyển vị hai vế của $Z^\top = WX^\top$ cho:
+
+$$
+Z = (W X^\top)^\top = X W^\top
+$$
+
+(dùng quy tắc $(AB)^\top = B^\top A^\top$ — để ý thứ tự **đảo lại**). Kiểm shape: $(n, d_{\text{in}}) \cdot (d_{\text{in}}, d_{\text{out}}) \to (n, d_{\text{out}})$. Đúng: $n$ mẫu, mỗi mẫu $d_{\text{out}}$ số.
+
+Còn $\mathbf{b}$ shape $(d_{\text{out}},)$ được broadcasting cộng vào **từng hàng** — đúng ý nghĩa "mỗi neuron ra có một bias, dùng chung cho mọi mẫu". Không cần lặp, không cần copy.
+
+Vậy tại sao vẫn lưu $W$ là $(d_{\text{out}}, d_{\text{in}})$ rồi mới `.T`, thay vì lưu thẳng dạng đã chuyển vị? Vì cách lưu đó khớp với công thức toán trong sách và bài báo, và vì `.T` trong NumPy/PyTorch **không tốn gì cả** — nó chỉ đổi cách đọc bộ nhớ, không sao chép dữ liệu. Đây đúng là điều `torch.nn.Linear` làm: tài liệu của nó ghi công thức $y = xA^\top + b$.
+
+<CauHoi cau="nhan-ma-tran/q8" />
+
+## Code
+
+```python
+import numpy as np
+
+A = np.array([[1, 2, 3],
+              [4, 5, 6]])          # (2, 3)
+B = np.array([[1, 0],
+              [0, 1],
+              [1, 1]])             # (3, 2)
+
+C = A @ B
+print("A @ B =", C.tolist(), "| shape", C.shape)
+
+# Góc nhìn 1 — tổ hợp cột: cột j của C là trộn các cột của A theo cột j của B
+cot0 = 1 * A[:, 0] + 0 * A[:, 1] + 1 * A[:, 2]
+print("tổ hợp cột    ->", cot0, "= cột 0 của C")
+
+# Góc nhìn 2 — tích vô hướng: C[i, j] = hàng i của A chấm cột j của B
+print("tích vô hướng ->", A[1] @ B[:, 1], "= C[1, 1]")
+
+# Lớp tuyến tính của deep learning: X @ W.T + b
+X = np.array([[1., 2., 3.], [4., 5., 6.]])       # (2 mẫu, 3 đặc trưng)
+W = np.array([[1., 0., -1.], [0.5, 0.5, 0.5]])   # (2 neuron ra, 3 đặc trưng vào)
+b = np.array([1., -1.])                          # 1 bias cho mỗi neuron ra
+print("X @ W.T + b   =", (X @ W.T + b).tolist())
+print("không giao hoán:", (A @ B).shape, "vs", (B @ A).shape)
+```
+
+Kết quả:
+
+```
+A @ B = [[4, 5], [10, 11]] | shape (2, 2)
+tổ hợp cột    -> [ 4 10] = cột 0 của C
+tích vô hướng -> 11 = C[1, 1]
+X @ W.T + b   = [[-1.0, 2.0], [-1.0, 6.5]]
+không giao hoán: (2, 2) vs (3, 3)
+```
+
+Dòng cuối là bằng chứng ngắn nhất cho tính không giao hoán: $AB$ ra 2×2 còn $BA$ ra 3×3. Không chỉ giá trị khác, đến **shape** cũng khác.
+
+## Nâng cao
+
+### `@`, `*`, `np.dot`, `np.matmul`, `np.einsum`
+
+| Viết | Làm gì | Ghi chú |
+|---|---|---|
+| `A * B` | Nhân **từng phần tử** (có broadcasting) | Không phải nhân ma trận. Lỗi im lặng phổ biến nhất |
+| `A @ B` | Nhân ma trận, hoặc batch matmul nếu ndim > 2 | Cách nên dùng |
+| `np.matmul(A, B)` | Y hệt `@` | |
+| `np.dot(A, B)` | Giống `@` với mảng 2 chiều, **khác** khi ndim > 2 | Tránh dùng với tensor 3 chiều trở lên |
+| `u @ v` (hai vector 1 chiều) | Tích vô hướng, trả về một **số** | Không trả mảng |
+| `np.einsum('ij,jk->ik', A, B) ` | Viết rõ chỉ số nào tổng | Đáng học khi tensor nhiều trục |
+
+### Batch matmul
+
+Với mảng nhiều hơn 2 chiều, `@` coi **hai trục cuối** là ma trận và broadcasting mọi trục trước đó:
+
+```
+(batch, heads, seq, d) @ (batch, heads, d, seq) -> (batch, heads, seq, seq)
+```
+
+Đây đúng là phép $QK^\top$ trong attention: hai trục đầu là "làm việc này song song cho từng câu, từng đầu attention", hai trục cuối mới là ma trận thật. Nhớ nguyên tắc **hai trục cuối là ma trận, phần còn lại là batch** thì tự đọc được code transformer.
+
+### Chi phí và vì sao phần cứng thích nó
+
+Nhân $(m, n)$ với $(n, p)$ tốn $m \cdot n \cdot p$ phép nhân-cộng. Với ma trận vuông $n \times n$ đó là $O(n^3)$: nhân đôi kích thước thì tốn gấp **tám** lần.
+
+Nhưng đổi lại, số phép tính tăng như $n^3$ trong khi lượng dữ liệu phải đọc chỉ tăng như $n^2$. Tỉ lệ tính-trên-đọc cao nghĩa là dữ liệu vào cache một lần được dùng lại nhiều lần, và đó chính xác là thứ GPU cần để chạy hết công suất. Cộng hai vector thì mỗi số đọc một lần dùng một lần — nghẽn ở băng thông bộ nhớ, phần cứng chạy không tới 5% khả năng. Đây là lý do trong deep learning, gộp được mọi thứ thành nhân ma trận lớn luôn tốt hơn là nhiều phép nhỏ.
+
+### Các đẳng thức phải thuộc
+
+$$
+(AB)^\top = B^\top A^\top, \qquad (AB)C = A(BC), \qquad AI = IA = A
+$$
+
+Tính **kết hợp** không chỉ đẹp mà còn tiết kiệm thật: tính $A_{(1000,1000)} B_{(1000,1)} C_{(1,1000)}$ theo thứ tự $(AB)C$ tốn $10^6 + 10^6$ phép, còn $A(BC)$ tốn $10^6 + 10^9$. Cùng kết quả, chênh nhau 500 lần. Đây cũng chính là mẹo đứng sau LoRA và sau việc dùng `jacobian-vector product` thay vì dựng cả ma trận Jacobi.
+
+### Liên hệ DL/NLP
+
+- **Attention**: $\text{softmax}(QK^\top/\sqrt{d})V$ — hai phép nhân ma trận kẹp một softmax. $QK^\top$ đo mức khớp giữa mọi truy vấn và mọi khoá; nhân với $V$ là trộn các giá trị theo trọng số đó (đúng góc nhìn "tổ hợp tuyến tính").
+- **Embedding lookup** là nhân ma trận với vector one-hot, chỉ được cài đặt bằng cách tra chỉ số cho nhanh.
+- **LoRA**: thay vì cập nhật $W$ shape $(4096, 4096)$ (17 triệu tham số), học $BA$ với $B$ shape $(4096, 8)$ và $A$ shape $(8, 4096)$ (65 nghìn tham số). Góc nhìn tổ hợp cột giải thích vì sao được: $BA$ có hạng tối đa 8, và hoá ra thế là đủ để tinh chỉnh.
+- **Lan truyền ngược** qua lớp tuyến tính cũng là nhân ma trận: $\partial L/\partial W = \Delta^\top X$, $\partial L/\partial X = \Delta W$. Để ý `.T` xuất hiện đúng chỗ cần để shape khớp lại — đó luôn là cách kiểm nhanh công thức backprop.
+
+## Sai lầm hay gặp
+
+**1. Dùng `*` thay vì `@`.**
+*Triệu chứng*: không có lỗi nào cả (nếu hai shape broadcasting được), nhưng loss không giảm, hoặc kết quả có shape lớn bất thường như `(64, 64)` thay vì `(64,)`.
+*Cách sửa*: `assert (A @ B).shape == mong_doi` ngay sau dòng nghi ngờ. Quy tắc đọc code: `*` là "từng phần tử", `@` là "nhân ma trận". Không có ngoại lệ.
+
+**2. Quên `.T` trong lớp tuyến tính.**
+*Triệu chứng*: `ValueError: matmul: Input operand 1 has a mismatch ...` hoặc `shapes (32,768) and (3072,768) not aligned: 768 (dim 1) != 3072 (dim 0)`.
+*Cách sửa*: đọc thông báo — nó nói rõ hai số ở giữa không khớp. Với `X (n, d_vào)` và `W (d_ra, d_vào)`, cách duy nhất khớp là `X @ W.T`.
+
+**3. Nhân sai thứ tự.**
+*Triệu chứng*: shape ra "đúng kiểu" nhưng số thì vô nghĩa; hoặc mô hình học được một chút rồi đứng im. Nguy hiểm nhất khi các chiều tình cờ bằng nhau (ví dụ $d_{\text{in}} = d_{\text{out}}$), khi đó `W @ X` và `X @ W` đều chạy.
+*Cách sửa*: thử với các chiều **khác nhau** (8 → 5, không phải 8 → 8) trong test. Sai thứ tự sẽ lộ ra thành lỗi shape thay vì im lặng.
+
+**4. Dùng `np.dot` cho tensor 3 chiều.**
+*Triệu chứng*: shape ra nhiều chiều lạ như `(2, 3, 2, 5)` thay vì `(2, 3, 5)`, và bộ nhớ phình to.
+*Cách sửa*: luôn dùng `@` / `np.matmul` khi có trục batch. `np.dot` với ndim > 2 làm tích ngoài theo quy tắc cũ, không phải batch matmul.
+
+**5. Tưởng `AB = 0` thì một trong hai bằng 0.**
+*Triệu chứng*: gradient hoặc activation đột ngột bằng 0 hàng loạt mà trọng số vẫn khác 0; hoặc `np.linalg.solve` báo `Singular matrix`.
+*Cách sửa*: kiểm tra `np.linalg.matrix_rank(A)` và `np.linalg.cond(A)`. Ma trận có cột phụ thuộc tuyến tính làm bẹp không gian (định thức 0) và nuốt mất thông tin — thấy rõ trong phần trực quan bên trên.
+
+## Tra nhanh
+
+**Quy tắc shape** — viết hai shape cạnh nhau: hai số **giữa** phải bằng nhau và triệt tiêu, hai số **ngoài** là kết quả.
+
+| Phép | Shape | Ra |
+|---|---|---|
+| `A @ B` | `(m, n) @ (n, p)` | `(m, p)` |
+| `u @ v` | `(n,) @ (n,)` | số vô hướng |
+| `A @ v` | `(m, n) @ (n,)` | `(m,)` |
+| `X @ W.T + b` | `(n, d_vào) @ (d_ra, d_vào).T + (d_ra,)` | `(n, d_ra)` |
+| batch matmul | `(b, h, s, d) @ (b, h, d, s)` | `(b, h, s, s)` |
+
+| Việc | Cách viết |
+|---|---|
+| Nhân ma trận | `A @ B` |
+| Nhân **từng phần tử** | `A * B` |
+| Tích vô hướng hai vector | `u @ v` hoặc `np.dot(u, v)` |
+| Mọi cặp tích vô hướng giữa hai tập vector | `U @ V.T` → `(n_u, n_v)` |
+| Lớp neuron cả batch | `X @ W.T + b` |
+| Chỉ số rõ ràng | `np.einsum('ij,jk->ik', A, B)` |
+| Kiểm ma trận có bẹp không | `np.linalg.matrix_rank(A)`, `np.linalg.det(A)` |
+
+| Đẳng thức | |
+|---|---|
+| $(AB)^\top = B^\top A^\top$ | thứ tự **đảo** |
+| $(AB)C = A(BC)$ | kết hợp — chọn thứ tự rẻ hơn |
+| $AB \ne BA$ | **không** giao hoán |
+| $\det M = ad - bc$ (2×2) | hệ số nở diện tích; bằng 0 là bẹp, không nghịch đảo được |
+
+| Thông báo lỗi | Nghĩa |
+|---|---|
+| `shapes (a,b) and (c,d) not aligned: b (dim 1) != c (dim 0)` | Hai số giữa không khớp — thường là thiếu `.T` |
+| Kết quả đúng shape nhưng sai số | Có thể bạn viết `*` thay vì `@` |
+| Shape ra 4 chiều ngoài dự kiến | Đang dùng `np.dot` với tensor 3 chiều, đổi sang `@` |
+
+Tiếp theo: [Kỳ vọng, phương sai](/khai-niem/ky-vong-phuong-sai) — vì sao tích vô hướng của hai vector dài $d$ lại có độ lớn tăng theo $\sqrt{d}$, và điều đó buộc ta khởi tạo trọng số như thế nào.

@@ -1,0 +1,125 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: "Trong biểu thức L(θ) = P(dữ liệu | θ), thứ nào cố định và thứ nào thay đổi?"
+    lua_chon:
+      - Tham số θ cố định, dữ liệu thay đổi
+      - Dữ liệu cố định, tham số θ thay đổi
+      - Cả hai cùng thay đổi
+      - Cả hai cùng cố định
+    dap_an: 1
+    giai_thich: "Đây là điểm phân biệt likelihood với probability. Dữ liệu đã quan sát rồi nên nó là hằng số; ta trượt θ để xem θ nào làm dữ liệu đó khả dĩ nhất. Cùng một biểu thức, đọc theo hai hướng khác nhau."
+
+  - id: q2
+    loai: so
+    do_kho: 1
+    de: "Tung một đồng xu 10 lần được 7 mặt ngửa. Ước lượng hợp lý cực đại của p (xác suất ngửa) bằng bao nhiêu?"
+    dap_an: 0.7
+    sai_so: 0.001
+    giai_thich: "Đạo hàm log-likelihood k·ln p + (n−k)·ln(1−p) theo p rồi cho bằng 0 ra p̂ = k/n = 7/10. Nghiệm đóng của MLE Bernoulli luôn là tỉ lệ mẫu."
+
+  - id: q3
+    loai: so
+    do_kho: 2
+    de: "Vẫn 7 ngửa / 10 lần tung. Log-likelihood tại p = 0.5, tức ln(0.5⁷ × 0.5³), bằng bao nhiêu? (làm tròn 4 chữ số)"
+    dap_an: -6.9315
+    sai_so: 0.001
+    giai_thich: "10 × ln 0.5 = −6.9315. So với đỉnh tại p = 0.7 (ln L = −6.1086) thì thấp hơn, đúng như kỳ vọng — p = 0.7 làm dữ liệu khả dĩ hơn."
+
+  - id: q4
+    loai: mot
+    do_kho: 1
+    de: Vì sao tối đa hoá log-likelihood cho ra cùng đáp án với tối đa hoá likelihood?
+    lua_chon:
+      - Vì logarit của một tích bằng tích các logarit
+      - Vì logarit là hàm tăng đơn điệu ngặt, nên không làm đổi vị trí điểm cực đại
+      - Vì log-likelihood luôn âm
+      - Vì cả hai đều bằng nhau về giá trị
+    dap_an: 1
+    giai_thich: "Đơn điệu tăng nghĩa là a > b thì log a > log b, nên thứ tự các θ được giữ nguyên và argmax không đổi. Giá trị thì khác hẳn nhau — chỉ vị trí đỉnh là giống."
+
+  - id: q5
+    loai: nhieu
+    do_kho: 2
+    de: "Giả định y = f(x) + ε với ε ~ N(0, σ²). Nhận định nào đúng? (chọn tất cả ý đúng)"
+    lua_chon:
+      - Tối thiểu hoá NLL theo tham số của f cho ra cùng nghiệm với tối thiểu hoá MSE
+      - "Số hạng ½·ln(2πσ²) không phụ thuộc tham số của f, nên biến mất khi lấy đạo hàm"
+      - MSE chỉ là lựa chọn tuỳ tiện, không liên quan gì tới giả định phân phối
+      - "Nếu nhiễu thực tế có đuôi dày (nhiều ngoại lai) thì giả định Gauss sai, và MSE trở thành lựa chọn tồi"
+    dap_an: [0, 1, 3]
+    giai_thich: "NLL Gauss = hằng số + MSE/(2σ²). Hằng số và hệ số dương không đổi vị trí cực tiểu, nên hai bài toán đồng nhất. Ý thứ ba sai chính là thông điệp của bài: MSE có nguồn gốc rõ ràng, và khi giả định nguồn gốc đó sai thì MSE cũng sai theo."
+
+  - id: q6
+    loai: so
+    do_kho: 2
+    de: "Dữ liệu y = [2, 4, 4, 4, 5, 5, 7, 9]. Ước lượng hợp lý cực đại của phương sai σ² bằng bao nhiêu?"
+    dap_an: 4
+    sai_so: 0.001
+    giai_thich: "Trung bình là 5, tổng bình phương độ lệch là 32, chia cho n = 8 được 4. Nếu bạn ra 4.5714 thì đã chia cho n − 1 — đó là ước lượng không chệch, không phải MLE."
+
+  - id: q7
+    loai: mot
+    do_kho: 3
+    de: "MLE của phương sai chia cho n, còn công thức phương sai mẫu quen thuộc chia cho n − 1. Vì sao?"
+    lua_chon:
+      - Vì MLE tính sai
+      - "Vì MLE bị chệch: nó đo độ lệch quanh trung bình MẪU (vốn đã được chọn để gần dữ liệu nhất) nên đánh giá thấp phương sai thật; chia n − 1 là phép hiệu chỉnh"
+      - Vì n − 1 cho kết quả lớn hơn nên an toàn hơn
+      - Vì hai công thức áp dụng cho hai phân phối khác nhau
+    dap_an: 1
+    giai_thich: "MLE không hứa là không chệch, nó chỉ hứa làm dữ liệu khả dĩ nhất. Với n lớn hai công thức gần như trùng nhau; với n nhỏ thì khác biệt đáng kể."
+
+  - id: q8
+    loai: so
+    do_kho: 2
+    de: "Ba mẫu nhị phân y = [1, 0, 1], mô hình đoán p = [0.9, 0.2, 0.4]. Negative log-likelihood TRUNG BÌNH bằng bao nhiêu? (làm tròn 4 chữ số)"
+    dap_an: 0.4149
+    sai_so: 0.001
+    giai_thich: "Ba số hạng là −ln 0.9 = 0.1054, −ln 0.8 = 0.2231, −ln 0.4 = 0.9163; trung bình ≈ 0.4149. Đây đúng là công thức binary cross-entropy — cùng một con số, hai cái tên."
+
+  - id: q9
+    loai: mot
+    do_kho: 2
+    de: "Giả định nào về dữ liệu dẫn tới hàm mất mát cross-entropy?"
+    lua_chon:
+      - Nhãn là số thực với nhiễu Gauss
+      - Nhãn được sinh từ phân phối Bernoulli (2 lớp) hoặc Categorical (K lớp) với tham số do mô hình xuất ra
+      - Nhãn phân phối đều
+      - Không cần giả định nào
+    dap_an: 1
+    giai_thich: "NLL của Bernoulli cho ra binary cross-entropy, NLL của Categorical cho ra cross-entropy nhiều lớp. Đổi giả định phân phối là đổi hàm mất mát."
+
+  - id: q10
+    loai: nhieu
+    do_kho: 3
+    de: Tình huống nào khiến MLE cho kết quả tệ hoặc vô nghĩa? (chọn tất cả ý đúng)
+    lua_chon:
+      - Dữ liệu hai lớp tách được hoàn hảo bằng một đường thẳng, dùng hồi quy logistic
+      - Dữ liệu rất ít so với số tham số
+      - Phân phối giả định sai hẳn so với dữ liệu thật
+      - Dữ liệu nhiều và mô hình đơn giản
+    dap_an: [0, 1, 2]
+    giai_thich: "Tách được hoàn hảo thì likelihood tăng mãi khi đẩy trọng số ra vô cùng, MLE không có nghiệm hữu hạn (triệu chứng: norm trọng số phình to, loss bò về 0). Ít dữ liệu thì MLE khớp cả nhiễu. Giả định sai thì nghiệm đúng theo mô hình nhưng sai theo thực tế."
+
+  - id: q11
+    loai: so
+    do_kho: 3
+    de: "Với y = [2, 4, 4, 4, 5, 5, 7, 9] và σ = 2, NLL trung bình theo giả định Gauss tại μ = 3 trừ đi NLL tại μ = 6 bằng bao nhiêu?"
+    dap_an: 0.375
+    sai_so: 0.001
+    giai_thich: "Hằng số ½·ln(2πσ²) triệt tiêu khi trừ. Còn lại (MSE(3) − MSE(6))/(2σ²) = (8 − 5)/8 = 0.375. Hiệu NLL luôn tỉ lệ với hiệu MSE — đó chính là lý do hai bài toán tối ưu là một."
+
+  - id: q12
+    loai: mot
+    do_kho: 3
+    de: "Thêm số hạng phạt λ‖w‖² vào loss (weight decay) tương ứng với điều gì dưới lăng kính xác suất?"
+    lua_chon:
+      - Không tương ứng với gì cả, chỉ là mẹo kỹ thuật
+      - "Thêm một phân phối tiên nghiệm Gauss trung bình 0 cho w, biến MLE thành MAP"
+      - Đổi phân phối của nhãn từ Gauss sang Bernoulli
+      - Tăng learning rate
+    dap_an: 1
+    giai_thich: "NLL của tiên nghiệm N(0, τ²) cho w chính là ‖w‖²/(2τ²) cộng hằng số. Cực đại hoá hậu nghiệm (MAP) = cực đại hoá likelihood + log tiên nghiệm, và ra đúng loss có regularization."

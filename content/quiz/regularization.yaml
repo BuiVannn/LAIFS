@@ -1,0 +1,129 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: Điều chuẩn (regularization) can thiệp vào chỗ nào của quá trình huấn luyện?
+    lua_chon:
+      - Cộng thêm vào hàm mất mát một khoản phạt theo độ lớn của trọng số
+      - Giảm learning rate dần theo số epoch
+      - Bỏ bớt các mẫu huấn luyện khó
+      - Chia lại tập train và validation
+    dap_an: 0
+    giai_thich: "L1 và L2 đều là thêm λ·R(w) vào hàm mất mát, khiến trọng số lớn phải 'trả giá'. Phương án 2 là lịch learning rate, không phải điều chuẩn theo nghĩa này."
+
+  - id: q2
+    loai: so
+    do_kho: 1
+    de: "Hồi quy ridge một chiều với Σxᵢyᵢ = 28 và Σxᵢ² = 14, nghiệm là w = 28/(14 + λ). Với λ = 14, w bằng bao nhiêu?"
+    dap_an: 1
+    sai_so: 0.001
+    giai_thich: "w = 28/(14 + 14) = 28/28 = 1.0. Để ý: λ bằng đúng Σxᵢ² thì trọng số co còn một nửa so với λ = 0 (khi đó w = 2). Nên 'λ lớn hay nhỏ' luôn là so với thang của dữ liệu."
+
+  - id: q3
+    loai: mot
+    do_kho: 2
+    de: Hình phạt nào có thể đưa trọng số về ĐÚNG 0?
+    lua_chon:
+      - Chỉ L2
+      - Chỉ L1
+      - Cả hai
+      - Không cái nào, cả hai chỉ co về gần 0
+    dap_an: 1
+    giai_thich: "Chỉ L1. Lý do: đạo hàm phần phạt L2 là 2λw, tự tắt khi w → 0, nên trọng số bò mãi mà không chạm 0. Đạo hàm phần phạt L1 là λ·sign(w), giữ nguyên lực kéo bằng λ dù w nhỏ cỡ nào, nên nếu phần MSE kéo ra với lực yếu hơn λ thì trọng số nằm lì ở 0."
+
+  - id: q4
+    loai: mot
+    do_kho: 2
+    de: Theo cách dẫn từ ước lượng MAP, đặt tiên nghiệm Gauss lên trọng số thì ra hình phạt nào?
+    lua_chon:
+      - L1, vì Gauss có đuôi mỏng
+      - L2, vì −log của mật độ Gauss tỉ lệ với tổng bình phương trọng số
+      - Không ra hình phạt nào, tiên nghiệm chỉ ảnh hưởng tới bias
+      - Ra cả L1 lẫn L2 tuỳ phương sai
+    dap_an: 1
+    giai_thich: "−log p(w) với w ~ N(0, τ²) bằng ‖w‖²/(2τ²) cộng hằng số, đúng dạng L2. Nhân với 2σ² ta được λ = σ²/τ². Tiên nghiệm Laplace (đỉnh nhọn tại 0) mới cho ra L1 với λ = 2σ²/b."
+
+  - id: q5
+    loai: so
+    do_kho: 2
+    de: "Bài toán một chiều: tối thiểu (w − 0.8)² + λ|w| với λ = 1. Nghiệm w bằng bao nhiêu?"
+    dap_an: 0.3
+    sai_so: 0.001
+    giai_thich: "Ngưỡng mềm: w = sign(a)·max(|a| − λ/2, 0) = max(0.8 − 0.5, 0) = 0.3. Nếu a chỉ là 0.4 thì max(0.4 − 0.5, 0) = 0, tức bị xoá hẳn."
+
+  - id: q6
+    loai: so
+    do_kho: 2
+    de: "Vẫn a = 0.8 và λ = 1, nhưng lần này phạt L2: tối thiểu (w − 0.8)² + λw². Nghiệm w bằng bao nhiêu?"
+    dap_an: 0.4
+    sai_so: 0.001
+    giai_thich: "Cho đạo hàm bằng 0: 2(w − 0.8) + 2w = 0, nên w = 0.8/(1 + λ) = 0.8/2 = 0.4. So với L1 cho 0.3: L2 là phép CO TỈ LỆ nên kết quả luôn khác 0, còn L1 là phép TRỪ MỘT LƯỢNG rồi chặn ở 0."
+
+  - id: q7
+    loai: nhieu
+    do_kho: 2
+    de: Trước khi áp L1/L2, những bước nào là bắt buộc hoặc rất nên làm? (chọn tất cả ý đúng)
+    lua_chon:
+      - Chuẩn hoá đặc trưng (trừ trung bình, chia độ lệch chuẩn)
+      - Loại hệ số tự do (bias) ra khỏi phần bị phạt
+      - Chọn λ bằng tập validation chứ không phải train loss
+      - Đặt λ bằng đúng số đặc trưng để cân bằng
+    dap_an: [0, 1, 2]
+    giai_thich: "Ba ý đầu là quy trình chuẩn. Ý thứ tư là bịa: λ không có công thức theo số đặc trưng, phải dò bằng lưới thang log trên val."
+
+  - id: q8
+    loai: mot
+    do_kho: 2
+    de: "Bạn tăng λ từ 0.01 lên 100. Kết quả: train loss tăng từ 0.03 lên 0.71, val loss tăng từ 0.09 lên 0.74. Chuyện gì đã xảy ra?"
+    lua_chon:
+      - Điều chuẩn đang hoạt động tốt, cứ tăng tiếp
+      - λ quá lớn đã đẩy mô hình sang CHƯA khớp
+      - Dữ liệu bị rò rỉ
+      - Learning rate quá nhỏ
+    dap_an: 1
+    giai_thich: "Cả HAI đường cùng đi lên và khoảng cách thu hẹp còn 0.03 — dấu hiệu kinh điển của chưa khớp. λ = 100 đã ép gần hết trọng số về 0, mô hình gần như dự đoán một hằng số. Phải lùi λ về vùng đáy của đường chữ U."
+
+  - id: q9
+    loai: mot
+    do_kho: 3
+    de: "Theo xấp xỉ λ ≈ 1/(η·τ) nối early stopping với L2 (η là learning rate, τ là số bước), huấn luyện LÂU HƠN tương đương với điều gì?"
+    lua_chon:
+      - λ lớn hơn, tức điều chuẩn mạnh hơn
+      - λ nhỏ hơn, tức điều chuẩn nhẹ hơn
+      - λ không đổi, chỉ hội tụ kỹ hơn
+      - λ âm
+    dap_an: 1
+    giai_thich: "τ ở mẫu số, nên τ tăng thì λ giảm. Trực giác: xuất phát từ w = 0, mỗi bước kéo trọng số đi xa gốc thêm một chút; dừng sớm là chặn không cho đi xa, đúng thứ L2 làm. Chạy càng lâu thì càng ít bị chặn. Xấp xỉ này đúng chặt cho hàm bậc hai, với mạng sâu chỉ là trực giác."
+
+  - id: q10
+    loai: mot
+    do_kho: 3
+    de: "Vì sao cộng λw vào gradient rồi để Adam xử lý lại KHÔNG cho ra hiệu quả weight decay như mong đợi?"
+    lua_chon:
+      - Vì Adam không dùng gradient
+      - Vì khoản phạt bị chia cho mẫu số thích ứng √v̂ riêng của từng tham số, nên mỗi tham số bị co một mức khác nhau
+      - Vì Adam bỏ qua mọi số hạng cộng thêm vào gradient
+      - Vì λ phải là số âm với Adam
+    dap_an: 1
+    giai_thich: "Adam chia toàn bộ gradient (kể cả phần λw vừa cộng vào) cho √v̂ⱼ + ε. Tham số có gradient lịch sử lớn thì bị co ÍT đi, trái hẳn ý 'phạt đều theo độ lớn'. AdamW sửa bằng cách tách rời: Adam làm việc với gradient gốc, rồi trừ riêng η·λ·w khỏi trọng số."
+
+  - id: q11
+    loai: so
+    do_kho: 2
+    de: "Vẫn ridge một chiều w = 28/(14 + λ). Cần λ bằng bao nhiêu để trọng số co còn ĐÚNG một phần tư giá trị lúc không phạt?"
+    dap_an: 42
+    sai_so: 0.01
+    giai_thich: "Không phạt (λ = 0) cho w = 2. Một phần tư là 0.5. Giải 28/(14 + λ) = 0.5 → 14 + λ = 56 → λ = 42. Tổng quát: muốn giữ lại tỉ lệ k thì λ = Σxᵢ²·(1/k − 1)."
+
+  - id: q12
+    loai: mot
+    do_kho: 2
+    de: Nhìn theo hình học, vì sao nghiệm lasso hay rơi vào chỗ có hệ số bằng 0?
+    lua_chon:
+      - Vì vùng ràng buộc ‖w‖₁ ≤ t là hình thoi, có các góc nhọn nằm đúng trên trục toạ độ
+      - Vì vùng ràng buộc của L1 nhỏ hơn của L2 tại cùng một t
+      - Vì đường đồng mức của hàm mất mát là hình thoi
+      - Vì lasso bắt buộc phải có ít nhất một hệ số bằng 0
+    dap_an: 0
+    giai_thich: "Nghiệm là chỗ ellipse đồng mức chạm vùng ràng buộc lần đầu. Hình thoi có góc nhô ra, và các góc nằm trên trục (tức một toạ độ bằng 0), nên rất dễ bị chạm trước. Hình tròn của L2 trơn khắp nơi nên điểm chạm gần như không bao giờ rơi trúng trục. Lưu ý phương án 4 sai: với λ đủ nhỏ, lasso cho nghiệm không có hệ số nào bằng 0."

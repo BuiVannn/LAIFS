@@ -1,0 +1,329 @@
+---
+ten_vi: "Hợp lý cực đại (MLE)"
+ten_en: Maximum Likelihood Estimation
+tang: 2
+thu_tu: 24
+tien_quyet: ["xac-suat-co-ban", "ham-mat-mat"]
+trang_thai: nhap
+dinh_nghia: >-
+  Nguyên lý chọn tham số: trong mọi bộ tham số có thể, chọn bộ làm cho dữ liệu đã quan sát trở nên
+  khả dĩ nhất. Viết thành công thức là cực đại hoá hàm hợp lý, và trong thực hành là cực tiểu hoá
+  negative log-likelihood — thứ mà ta vẫn quen gọi là "hàm mất mát".
+truc_giac: >-
+  Bạn nhặt được một dấu chân trên cát. Bạn không hỏi "dấu chân này có xác suất bao nhiêu", bạn hỏi
+  "con vật nào để lại dấu chân như thế thì hợp lý nhất". Dữ liệu là dấu chân, đã xảy ra rồi, cố định.
+  Tham số là con vật, và bạn thử từng ứng viên xem ai giải thích được dấu chân đó tự nhiên nhất.
+hieu_nham:
+  - "Likelihood không phải xác suất của tham số. L(θ) = P(dữ liệu | θ) đọc theo chiều θ thay đổi, dữ liệu cố định; nó không cộng lại bằng 1 theo θ và hoàn toàn có thể lớn hơn 1 khi dữ liệu liên tục."
+  - "MSE không phải một lựa chọn tuỳ tiện. Nó là negative log-likelihood của giả định nhiễu Gauss. Đổi giả định nhiễu là đổi hàm mất mát, không phải đổi gu thẩm mỹ."
+  - "MLE không hứa hẹn ước lượng không chệch. MLE của phương sai chia cho n chứ không phải n − 1, và nó đánh giá thấp phương sai thật một cách hệ thống."
+  - "Nhiều dữ liệu không tự động cứu MLE nếu phân phối giả định sai. MLE tìm tham số tốt nhất TRONG họ mô hình bạn đã chọn; chọn sai họ thì nó hội tụ ngon lành về một câu trả lời sai."
+  - "MLE có thể không có nghiệm hữu hạn. Với hồi quy logistic trên dữ liệu tách được hoàn hảo, likelihood tăng mãi khi trọng số đi ra vô cùng."
+y_chinh:
+  - "Likelihood là P(dữ liệu | θ) nhìn như hàm của θ, với dữ liệu cố định"
+  - "Mẫu i.i.d. cho likelihood dạng tích; lấy log biến thành tổng và không đổi vị trí cực đại"
+  - "Cực đại log-likelihood = cực tiểu negative log-likelihood, và NLL chính là hàm mất mát"
+  - "Giả định nhiễu Gauss cho ra MSE; giả định Bernoulli/Categorical cho ra cross-entropy"
+  - "Nghiệm đóng hay gặp: p̂ = tỉ lệ mẫu, μ̂ = trung bình mẫu, σ̂² = phương sai chia n"
+  - "MLE có thể chệch, có thể phân kỳ, và luôn phụ thuộc vào họ phân phối bạn giả định"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=XepXtl9YKwc
+    tieu_de: Maximum Likelihood, clearly explained!!!
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Trượt tham số của phân phối chuẩn dọc trục dữ liệu để thấy likelihood lên xuống. Đúng bằng hình ảnh của mục "trực giác" trong bài này, nên xem đầu tiên.
+  - url: https://www.youtube.com/watch?v=pYxNSUDSFH4
+    tieu_de: In Statistics, Probability is not Likelihood.
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Video 5 phút chỉ để gỡ đúng một hiểu nhầm — cũng là hiểu nhầm số một của bài. Xem nếu bạn còn lẫn hai khái niệm.
+  - url: https://cs229.stanford.edu/main_notes.pdf
+    tieu_de: "CS229 Lecture Notes — mục 1.4: Probabilistic interpretation of least squares"
+    tac_gia: Andrew Ng, Tengyu Ma (Stanford)
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    moc: "Chương 1, mục Probabilistic interpretation"
+    ghi_chu: Bản dẫn công thức chuẩn mực cho "giả định Gauss sinh ra MSE", chỉ khoảng hai trang. Đọc sau khi đã theo được phần dẫn trong bài này.
+  - url: https://gregorygundersen.com/blog/2019/11/28/asymptotic-normality-mle/
+    tieu_de: Asymptotic Normality of Maximum Likelihood Estimators
+    tac_gia: Gregory Gundersen
+    loai: bai_viet
+    muc_do: toan_nang
+    ngon_ngu: en
+    ghi_chu: Vì sao MLE "càng nhiều dữ liệu càng chuẩn" — phần lý thuyết đứng sau lời hứa đó. Chỉ đọc khi bạn muốn biết nền móng, không cần cho phần thực hành.
+---
+
+import DuongHopLy from '../../src/viz/DuongHopLy.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Ai đã chọn MSE?
+
+Ở bài [Hàm mất mát](/khai-niem/ham-mat-mat), ta dùng MSE với lý do nghe rất hợp lý: sai số âm dương triệt tiêu nhau nên phải bình phương. Nhưng trị tuyệt đối cũng chặn được điều đó. Luỹ thừa 4 cũng vậy. Vậy vì sao cả ngành lại mặc định dùng bình phương?
+
+Và ở bài phân loại, vì sao đột nhiên đổi sang cross-entropy, chứ không dùng tiếp MSE trên xác suất?
+
+Câu trả lời không nằm ở thẩm mỹ. Cả hai hàm mất mát đó **rơi ra từ cùng một nguyên lý**, chỉ khác nhau ở giả định về cách dữ liệu được sinh ra. Nguyên lý đó là hợp lý cực đại, và bài này là nơi hai công thức quen thuộc kia lộ nguồn gốc.
+
+## Trực giác: đảo ngược câu hỏi
+
+Xác suất trả lời câu hỏi xuôi: *biết đồng xu có $p = 0.7$, xác suất được 7 ngửa trong 10 lần là bao nhiêu?*
+
+Nhưng khi huấn luyện mô hình, ta ở tình thế ngược: **dữ liệu đã có rồi, tham số mới là ẩn số**. Câu hỏi thành: *quan sát được 7 ngửa trong 10 lần, $p$ nào là hợp lý nhất?*
+
+Cùng một biểu thức $P(\text{du lieu} \mid \theta)$, đọc theo hai hướng:
+
+| | Cố định | Thay đổi | Cộng lại bằng 1? |
+|---|---|---|---|
+| **Xác suất** $P(x \mid \theta)$ | tham số $\theta$ | dữ liệu $x$ | Có, theo $x$ |
+| **Hợp lý** $L(\theta) = P(x \mid \theta)$ | dữ liệu $x$ | tham số $\theta$ | **Không**, theo $\theta$ |
+
+Dòng cuối là chỗ hầu hết người học vấp. $L(\theta)$ không phải một phân phối trên $\theta$: nó không cộng lại bằng 1, và với dữ liệu liên tục nó còn có thể lớn hơn 1 (vì là mật độ, xem lại [Xác suất, phân phối](/khai-niem/xac-suat-co-ban)). Nó chỉ là một **thang điểm** để xếp hạng các $\theta$ với nhau.
+
+<CauHoi cau="hop-ly-cuc-dai/q1" />
+
+## Dẫn công thức: từ tích tới hàm mất mát
+
+Giả sử $n$ mẫu độc lập và cùng phân phối (i.i.d.). Theo quy tắc nhân:
+
+$$
+L(\theta) = P(x_1, \dots, x_n \mid \theta) = \prod_{i=1}^{n} P(x_i \mid \theta)
+$$
+
+Tích này không dùng được trực tiếp: với $n$ lớn nó tụt về 0 trong `float64`, và đạo hàm của một tích $n$ thừa số thì khủng khiếp. Lấy logarit, được **log-likelihood**:
+
+$$
+\ell(\theta) = \log L(\theta) = \sum_{i=1}^{n} \log P(x_i \mid \theta)
+$$
+
+Vì $\log$ tăng đơn điệu ngặt, $\arg\max_\theta L = \arg\max_\theta \ell$ — đổi sang log **không đổi đáp án**, chỉ đổi giá trị.
+
+Cuối cùng, mọi thư viện tối ưu đều đi *xuống* chứ không đi lên, nên lật dấu và chia cho $n$ để có một đại lượng trung bình trên mỗi mẫu:
+
+$$
+\boxed{\ \mathcal{L}(\theta) = -\frac{1}{n}\sum_{i=1}^{n} \log P(x_i \mid \theta)\ }
+$$
+
+Đó là **negative log-likelihood** (NLL). Bốn dòng vừa rồi là toàn bộ cây cầu: bên này là một phát biểu xác suất, bên kia là một **hàm mất mát** sẵn sàng đưa cho [Gradient Descent](/khai-niem/gradient-descent).
+
+## Tính tay: đồng xu 7 ngửa / 10 lần
+
+Với Bernoulli, $P(y \mid p) = p^y(1-p)^{1-y}$, nên cả dãy 10 lần tung với 7 ngửa có
+
+$$
+L(p) = p^{7}(1-p)^{3}, \qquad \ell(p) = 7\ln p + 3\ln(1-p)
+$$
+
+Thử vài giá trị:
+
+| $p$ | $L(p)$ | $\ell(p) = \ln L(p)$ |
+|---|---|---|
+| 0.3 | 0.0000750 | −9.4978 |
+| 0.5 | 0.0009766 | −6.9315 |
+| 0.6 | 0.0017916 | −6.3247 |
+| **0.7** | **0.0022236** | **−6.1086** |
+| 0.8 | 0.0016777 | −6.3903 |
+| 0.9 | 0.0004783 | −7.6453 |
+
+Đỉnh ở $p = 0.7$. Không phải trùng hợp — lấy đạo hàm và cho bằng 0:
+
+$$
+\frac{d\ell}{dp} = \frac{7}{p} - \frac{3}{1-p} = 0
+\;\Longrightarrow\; 7(1-p) = 3p
+\;\Longrightarrow\; \hat{p} = \frac{7}{10}
+$$
+
+Tổng quát: $\hat{p} = k/n$, đúng tỉ lệ mẫu. Đây là lần đầu bạn thấy MLE cho ra một công thức mà trực giác đã đoán trước — nhưng giờ nó có lý do.
+
+Để ý thêm: cột $L(p)$ toàn số cỡ $10^{-3}$ với chỉ 10 lần tung. Với 1000 lần thì tích nằm ở cỡ $10^{-300}$, tức là sát ngưỡng tràn số dưới. Cột $\ell(p)$ thì luôn là những số đọc được. Đó là lý do thực dụng để không bao giờ động vào $L$ trực tiếp.
+
+<CauHoi cau="hop-ly-cuc-dai/q3" />
+
+## Tự thử: quét tham số, xem đường hợp lý
+
+Dữ liệu **không đổi** trong suốt thí nghiệm. Thứ trượt là tham số $p$.
+
+<DuongHopLy
+  client:visible
+  n={10}
+  k={7}
+  duDoan={{
+    de: "7 ngửa trong 10 lần tung. Khi quét p từ trái sang phải, đường L(p) đạt đỉnh ở đâu?",
+    lua_chon: ["p = 0.5, vì đồng xu thì phải công bằng", "p = 0.7, đúng bằng tỉ lệ quan sát được", "p càng lớn thì L càng lớn, đỉnh ở sát 1"],
+    dap_an: 1,
+    giai_thich: "Đỉnh ở p̂ = k/n = 0.7. Tăng p nữa thì thừa số p⁷ có lớn lên, nhưng (1−p)³ sụp nhanh hơn — chính sự giằng co giữa hai thừa số tạo ra đỉnh. Ở p = 1 thì L = 0 vì dữ liệu có 3 lần sấp."
+  }}
+/>
+
+Bảng tự do — thử `k = 0`, `k = n`, và thử tăng `n` để thấy đỉnh hẹp lại (nhiều dữ liệu hơn thì ước lượng chắc chắn hơn):
+
+<DuongHopLy client:visible />
+
+## Giả định Gauss sinh ra MSE
+
+Đây là mục quan trọng nhất của cả cụm bài. Giả định: nhãn là dự đoán cộng nhiễu ngẫu nhiên,
+
+$$
+y_i = f_\theta(x_i) + \varepsilon_i, \qquad \varepsilon_i \sim \mathcal{N}(0, \sigma^2) \text{ i.i.d.}
+$$
+
+Nói cách khác $y_i \sim \mathcal{N}(f_\theta(x_i), \sigma^2)$. Thay mật độ Gauss vào NLL:
+
+$$
+-\log P(y_i \mid x_i, \theta)
+= -\log\left[\frac{1}{\sqrt{2\pi\sigma^2}}\exp\left(-\frac{(y_i - f_\theta(x_i))^2}{2\sigma^2}\right)\right]
+= \underbrace{\tfrac{1}{2}\log(2\pi\sigma^2)}_{\text{khong chua } \theta} + \frac{(y_i - f_\theta(x_i))^2}{2\sigma^2}
+$$
+
+Cộng trên $n$ mẫu và chia $n$:
+
+$$
+\mathcal{L}(\theta) = \tfrac{1}{2}\log(2\pi\sigma^2) \;+\; \frac{1}{2\sigma^2}\cdot \underbrace{\frac{1}{n}\sum_{i=1}^n (y_i - f_\theta(x_i))^2}_{\textstyle \text{MSE}}
+$$
+
+Nhìn kỹ vế phải. Số hạng đầu là **hằng số** đối với $\theta$. Số hạng sau là MSE nhân với **hằng số dương** $1/(2\sigma^2)$. Cộng hằng số và nhân số dương đều không làm dịch chỗ cực tiểu, nên
+
+$$
+\arg\min_\theta \mathcal{L}(\theta) = \arg\min_\theta \text{MSE}(\theta)
+$$
+
+**MSE không phải quy ước. Nó là NLL của giả định nhiễu Gauss.**
+
+Hệ quả rất thực tế, và nó giải thích một điều bài hàm mất mát mới chỉ nói được một nửa: MSE nhạy với ngoại lai *vì* phân phối Gauss có đuôi mỏng. Với Gauss, một điểm lệch 5 độ lệch chuẩn là gần như không thể xảy ra, nên để "giải thích" được điểm đó mô hình buộc phải kéo cả đường hồi quy về phía nó. Nếu nhiễu thật có đuôi dày, đổi giả định sang phân phối Laplace sẽ cho ra **MAE** thay vì MSE bằng đúng phép dẫn ở trên. Chọn loss chính là chọn giả định về nhiễu.
+
+<CauHoi cau="hop-ly-cuc-dai/q11" />
+
+## Giả định Bernoulli sinh ra cross-entropy
+
+Giờ đổi bài toán: nhãn $y_i \in \{0, 1\}$, mô hình xuất ra xác suất $\hat{p}_i = \sigma(z_i) \in (0,1)$. Giả định tự nhiên là $y_i \sim \text{Bernoulli}(\hat{p}_i)$, tức
+
+$$
+P(y_i \mid \hat{p}_i) = \hat{p}_i^{\,y_i}(1 - \hat{p}_i)^{1 - y_i}
+$$
+
+Lấy log rồi đổi dấu:
+
+$$
+\mathcal{L} = -\frac{1}{n}\sum_{i=1}^{n}\Big[\, y_i \log \hat{p}_i + (1 - y_i)\log(1 - \hat{p}_i) \,\Big]
+$$
+
+Vế phải chính là công thức **binary cross-entropy**, từng chữ một. Với $K$ lớp, thay Bernoulli bằng Categorical và làm y hệt, ta được cross-entropy nhiều lớp $-\frac{1}{n}\sum_i \log \hat{q}_{i, y_i}$.
+
+Vậy nên bức tranh gọn lại thành một bảng:
+
+| Giả định về nhãn | NLL trở thành | Lớp cuối của mạng |
+|---|---|---|
+| $\mathcal{N}(\hat{y}, \sigma^2)$ | MSE | tuyến tính |
+| Laplace$(\hat{y}, b)$ | MAE | tuyến tính |
+| Bernoulli$(\hat{p})$ | binary cross-entropy | sigmoid |
+| Categorical$(\hat{q})$ | cross-entropy | softmax |
+| Poisson$(\hat{\lambda})$ | Poisson loss | exp |
+
+Ba cột này luôn đi cùng nhau. Ghép sai — ví dụ softmax ở cuối nhưng MSE làm loss — là ghép một phân phối với NLL của phân phối khác, và bạn mất đi phần gradient đẹp mà bài [Cross-entropy](/khai-niem/cross-entropy) sẽ chỉ ra.
+
+## Code: NLL Gauss và MSE là cùng một bài toán
+
+```python
+import numpy as np
+
+y = np.array([2., 4, 4, 4, 5, 5, 7, 9])            # du lieu CO DINH
+sigma = 2.0
+
+def nll(mu):                                       # NLL trung binh, gia dinh Gauss
+    return np.mean(0.5 * np.log(2 * np.pi * sigma**2) + (y - mu)**2 / (2 * sigma**2))
+
+print("nghiem dong :", y.mean(), y.var())          # MLE: trung binh, phuong sai chia n
+luoi = np.linspace(3, 7, 401)
+gia_tri_nll = np.array([nll(m) for m in luoi])
+gia_tri_mse = np.array([np.mean((y - m)**2) for m in luoi])
+print("argmin NLL  :", luoi[gia_tri_nll.argmin()])
+print("argmin MSE  :", luoi[gia_tri_mse.argmin()])
+# Hieu NLL giua hai mu dung bang hieu MSE chia 2*sigma^2 — phan con lai la hang so
+print("hieu NLL    :", round(nll(3.0) - nll(6.0), 12))
+print("hieu MSE/2s2:", round((np.mean((y - 3.)**2) - np.mean((y - 6.)**2)) / (2 * sigma**2), 12))
+print("NLL tai mu=5:", round(nll(5.0), 6))
+```
+
+Kết quả:
+
+```
+nghiem dong : 5.0 4.0
+argmin NLL  : 5.0
+argmin MSE  : 5.0
+hieu NLL    : 0.375
+hieu MSE/2s2: 0.375
+NLL tai mu=5: 2.112086
+```
+
+Hai `argmin` trùng nhau, và hai hiệu số cũng trùng nhau đến chữ số thứ 12: hai hàm chỉ lệch nhau một hằng số cộng và một hệ số dương. Đó là bằng chứng số cho phép dẫn ở trên.
+
+Hãy làm tiếp bài [Từ phân phối ra hàm mất mát](/bai-tap/nll-tu-phan-phoi) — bạn sẽ tự cài bốn hàm này và để bộ test kiểm đẳng thức giúp.
+
+## Nâng cao
+
+**MLE bị chệch, và nó không hứa gì khác.** Với dữ liệu ở trên, MLE cho $\hat{\sigma}^2 = 32/8 = 4$, trong khi phương sai mẫu quen thuộc là $32/7 \approx 4.571$. MLE đo độ lệch quanh **trung bình mẫu**, mà trung bình mẫu vốn đã được chọn để gần dữ liệu nhất có thể, nên nó đánh giá thấp phương sai thật một cách hệ thống. Chia cho $n-1$ là phép hiệu chỉnh cho đúng kỳ vọng. MLE chỉ hứa "làm dữ liệu khả dĩ nhất", không hứa "không chệch".
+
+**MAP: thêm tiên nghiệm là thêm regularization.** Nếu ta có niềm tin trước rằng trọng số nên nhỏ, đặt tiên nghiệm $w \sim \mathcal{N}(0, \tau^2 I)$ và cực đại hoá hậu nghiệm thay vì likelihood:
+
+$$
+\arg\max_w \; \big[\log P(\text{du lieu} \mid w) + \log P(w)\big]
+= \arg\min_w \; \Big[\text{NLL}(w) + \frac{1}{2\tau^2}\lVert w \rVert^2\Big]
+$$
+
+Số hạng thứ hai chính là **weight decay** / L2 regularization. Đổi tiên nghiệm sang Laplace thì ra L1. Nói cách khác, regularization không phải mẹo kỹ thuật ghép thêm vào — nó là một phát biểu xác suất về tham số.
+
+**Khi nào MLE hỏng.**
+
+- *Tách được hoàn hảo*: hồi quy logistic trên dữ liệu mà một đường thẳng chia đúng hai lớp. Nhân trọng số lên 10 lần thì xác suất dự đoán càng sát 0/1, likelihood càng tăng, mãi không có đỉnh. Triệu chứng: loss bò xuống gần 0 nhưng norm trọng số phình to không ngừng. Cách chữa: thêm regularization, tức chuyển sang MAP.
+- *Dữ liệu ít so với số tham số*: MLE khớp cả nhiễu. Đây là một cách nhìn khác về overfitting.
+- *Likelihood không bị chặn*: trong mô hình hỗn hợp Gauss, đặt một thành phần trùng khít một điểm dữ liệu và cho $\sigma \to 0$ thì mật độ tiến ra vô cùng. Nghiệm "tốt nhất" đó vô nghĩa.
+- *Giả định sai họ phân phối*: MLE vẫn hội tụ đẹp — về tham số tốt nhất trong một họ sai. Nhiều dữ liệu không cứu được.
+
+**Cầu nối sang cross-entropy.** Nếu gọi $\hat{p}_{\text{du lieu}}$ là phân phối thực nghiệm của bộ huấn luyện, thì
+
+$$
+\arg\max_\theta \ell(\theta) = \arg\min_\theta D_{KL}\!\left(\hat{p}_{\text{du lieu}} \,\Vert\, p_\theta\right)
+$$
+
+Cực đại hợp lý chính là **kéo phân phối của mô hình về sát phân phối của dữ liệu** theo nghĩa KL. Vì sao lại đúng, và vì sao điều đó lại làm cross-entropy trở thành hàm mất mát tự nhiên, là nội dung bài [Cross-entropy](/khai-niem/cross-entropy).
+
+## Sai lầm hay gặp, và triệu chứng nhận biết
+
+| Sai lầm | Triệu chứng bạn sẽ thấy |
+|---|---|
+| Coi $L(\theta)$ là xác suất của $\theta$ | Băn khoăn vì likelihood lớn hơn 1, hoặc cố chuẩn hoá nó cho cộng bằng 1. Kiểm nhanh: với dữ liệu liên tục, $L$ là mật độ, không có lý do gì phải $\le 1$ |
+| Tối đa hoá thay vì tối thiểu hoá (quên dấu trừ) | Loss tăng đều đặn trong khi độ chính xác giảm; hoặc tham số chạy về đúng giá trị tệ nhất |
+| Nhân likelihood thay vì cộng log | Loss ra `0.0`, `nan` hoặc `-inf` ngay batch đầu, đặc biệt với chuỗi dài |
+| Ghép sai phân phối với loss (softmax + MSE) | Vẫn chạy, vẫn giảm, nhưng chậm hẳn và hay kẹt khi mô hình rất tự tin mà sai — dấu hiệu là gradient gần 0 dù loss còn cao |
+| Dùng MSE trên dữ liệu đầy ngoại lai | Dự đoán lệch một cách hệ thống về phía vài điểm cực trị; đổi sang MAE thì lệch biến mất |
+| Quên rằng $\sigma$ cũng là tham số | Báo cáo "NLL âm nên mô hình tốt" — NLL Gauss có thể âm tuỳ $\sigma$, chỉ so sánh được giữa các mô hình cùng thang |
+| Dùng MLE của $\sigma^2$ để làm thống kê suy diễn với $n$ nhỏ | Khoảng tin cậy hẹp giả tạo; với $n = 5$ thì $n$ so với $n-1$ lệch 25% |
+
+<CauHoi cau="hop-ly-cuc-dai/q12" />
+
+## Tra nhanh
+
+| Cần gì | Công thức | Ghi nhớ |
+|---|---|---|
+| Hàm hợp lý | $L(\theta) = \prod_i P(x_i \mid \theta)$ | Dữ liệu cố định, $\theta$ chạy |
+| Log-likelihood | $\ell(\theta) = \sum_i \log P(x_i \mid \theta)$ | Cùng $\arg\max$ với $L$ |
+| Hàm mất mát | $\mathcal{L} = -\frac{1}{n}\sum_i \log P(x_i \mid \theta)$ | NLL trung bình trên mỗi mẫu |
+| MLE Bernoulli | $\hat{p} = k/n$ | Tỉ lệ mẫu |
+| MLE Gauss | $\hat{\mu} = \bar{y}$, $\hat{\sigma}^2 = \frac{1}{n}\sum (y_i - \bar{y})^2$ | Chia $n$, **không** phải $n-1$ |
+| Gauss $\to$ MSE | $\mathcal{L} = \text{const} + \frac{\text{MSE}}{2\sigma^2}$ | Hằng số và hệ số dương không đổi $\arg\min$ |
+| Bernoulli $\to$ BCE | $-\frac{1}{n}\sum [y\log\hat p + (1-y)\log(1-\hat p)]$ | Đi kèm sigmoid |
+| Thêm tiên nghiệm (MAP) | $\text{NLL} + \frac{1}{2\tau^2}\lVert w\rVert^2$ | Chính là weight decay |
+| Shape khi cài bằng numpy | `y: (n,)`, `p: (n,)`, `q: (n, K)` | NLL trả về **một số** |
+| Lỗi hay gặp nhất | `log(0)` khi $\hat{p}$ bão hoà về 0 hoặc 1 | Dùng `log_softmax` / `logsigmoid` thay vì `log(softmax(...))` |
+
+## Tóm tắt
+
+- Likelihood là $P(\text{du lieu} \mid \theta)$ đọc theo $\theta$; nó là **thang điểm**, không phải phân phối trên $\theta$.
+- Mẫu i.i.d. cho tích; lấy log thành tổng, đổi dấu thành **hàm mất mát**. Đó là toàn bộ cây cầu.
+- **Giả định Gauss $\Rightarrow$ MSE.** **Giả định Bernoulli/Categorical $\Rightarrow$ cross-entropy.** Chọn loss là chọn giả định về nhiễu.
+- MLE có thể chệch, có thể không có nghiệm hữu hạn, và luôn bị giới hạn bởi họ phân phối bạn chọn.
+- Tiếp theo: [Cross-entropy](/khai-niem/cross-entropy) — vì sao tối thiểu nó chính là kéo phân phối mô hình về sát phân phối thật.

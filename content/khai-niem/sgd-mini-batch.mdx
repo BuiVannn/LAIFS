@@ -1,0 +1,308 @@
+---
+ten_vi: "SGD & mini-batch"
+ten_en: "Stochastic & Mini-batch Gradient Descent"
+tang: 2
+thu_tu: 14
+tien_quyet: ["gradient-descent"]
+trang_thai: nhap
+dinh_nghia: >-
+  Biến thể của gradient descent trong đó mỗi bước cập nhật chỉ dùng gradient tính trên một
+  nhóm nhỏ mẫu lấy ngẫu nhiên (mini-batch) thay vì toàn bộ tập huấn luyện. Gradient thu được
+  là ước lượng không thiên lệch của gradient thật, rẻ hơn rất nhiều nhưng có nhiễu.
+truc_giac: >-
+  Muốn biết dân cả nước nghĩ gì, bạn không hỏi 90 triệu người mà thăm dò 1000 người. Kết quả
+  lệch đôi chút nhưng đúng trung bình và rẻ hơn hàng chục nghìn lần. Huấn luyện cũng vậy:
+  đi 100 bước hơi lệch hướng tốt hơn nhiều so với đi đúng 1 bước hoàn hảo.
+hieu_nham:
+  - "Gradient mini-batch KHÔNG phải gradient sai. Nó là ước lượng không thiên lệch: trung bình trên nhiều mini-batch đúng bằng gradient toàn tập, chỉ có nhiễu quanh giá trị đó."
+  - "Batch càng lớn không có nghĩa là học càng nhanh. Nhiễu chỉ giảm theo 1/√B trong khi chi phí mỗi bước tăng theo B, và mỗi epoch lại có ít bước cập nhật hơn."
+  - "Epoch không phải là một bước cập nhật. Một epoch là một lượt đi hết dữ liệu, gồm ⌈N/B⌉ bước cập nhật."
+  - "Nhiễu của SGD không hoàn toàn có hại: chính nó giúp thoát điểm yên ngựa và vùng phẳng, nơi gradient toàn tập gần bằng 0 và full-batch đứng im."
+  - "Phải xáo dữ liệu LẠI ở mỗi epoch, không phải xáo một lần lúc nạp. Xáo một lần thì thứ tự mini-batch lặp y hệt qua mọi epoch."
+y_chinh:
+  - "Full-batch tính gradient trên cả N mẫu: chính xác nhưng mỗi bước tốn O(N), quá đắt khi N lớn"
+  - "Mini-batch lấy B mẫu ngẫu nhiên; gradient thu được không thiên lệch (kỳ vọng đúng bằng gradient thật), độ lệch chuẩn giảm theo 1/√B"
+  - "Epoch = một lượt hết dữ liệu = ⌈N/B⌉ iteration (bước cập nhật)"
+  - "Nhiễu của mini-batch giúp thoát điểm yên ngựa và cao nguyên phẳng, nơi full-batch bị kẹt vì gradient ≈ 0"
+  - "Batch size cân bằng ba sức ép: nhiễu (nhỏ thì nhiễu lớn), tốc độ mỗi bước (lớn thì tận dụng GPU tốt), bộ nhớ (activation tỉ lệ thuận với B)"
+  - "Tăng batch size thì thường phải tăng learning rate theo: quy tắc tuyến tính η ∝ B (kèm warmup) hoặc η ∝ √B"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=4qJaSmvhxi8
+    tieu_de: Mini Batch Gradient Descent (C2W2L01)
+    tac_gia: Andrew Ng (DeepLearningAI)
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: "11 phút, giải thích đúng trọng tâm bài này: vì sao chia mini-batch, epoch khác iteration thế nào. Nên xem đầu tiên."
+  - url: https://www.youtube.com/watch?v=vMh0zPT0tLI
+    tieu_de: "Stochastic Gradient Descent, Clearly Explained!!!"
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Tính tay trên ví dụ nhỏ, so sánh trực tiếp gradient toàn tập với gradient một mẫu. Hợp nếu thích nhìn số cụ thể.
+  - url: https://d2l.ai/chapter_optimization/minibatch-sgd.html
+    tieu_de: "Dive into Deep Learning — 12.5. Minibatch Stochastic Gradient Descent"
+    tac_gia: Zhang, Lipton, Li, Smola
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Có đồ thị đo thời gian thật theo batch size, cho thấy vì sao B = 1 chậm hơn B = 100 dù ít phép tính hơn. Đọc mục 12.5.1 và 12.5.4.
+  - url: https://arxiv.org/abs/1706.02677
+    tieu_de: "Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour"
+    tac_gia: Goyal, Dollár, Girshick và cộng sự (Facebook AI Research)
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: "Paper gốc của quy tắc tuyến tính (nhân batch size với k thì nhân learning rate với k) và của kỹ thuật warmup. Đọc mục 2.1 là đủ."
+---
+
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Một bước cập nhật tốn 40 phút
+
+Ở bài [Gradient Descent](/khai-niem/gradient-descent), mỗi bước là $w \leftarrow w - \eta \nabla L(w)$, trong đó $\nabla L$ được tính trên **toàn bộ** tập huấn luyện. Cách đó gọi là **full-batch gradient descent**, và nó hoạt động rất tốt trên ví dụ 20 điểm dữ liệu.
+
+Giờ thử với ImageNet: 1.200.000 ảnh. Muốn có **một** giá trị $\nabla L$ bạn phải chạy lan truyền xuôi và ngược qua cả 1.2 triệu ảnh — trên một GPU là hàng chục phút. Sau tất cả công sức đó, bạn được **đúng một** bước cập nhật, và $w$ nhích đi một chút.
+
+Huấn luyện thật cần hàng chục nghìn tới hàng triệu bước cập nhật. Với full-batch, đó là nhiều năm.
+
+Câu hỏi đặt ra không phải "làm sao tính gradient nhanh hơn" mà là: **có cần gradient chính xác không?**
+
+## Trực giác: thăm dò ý kiến
+
+Muốn biết cả nước nghĩ gì về một chính sách, không ai đi hỏi 90 triệu người. Người ta thăm dò 1000 người chọn ngẫu nhiên. Kết quả lệch vài phần trăm, nhưng **đúng trung bình** và rẻ hơn 90.000 lần.
+
+Gradient cũng vậy. Bạn không cần biết hướng dốc **chính xác** — bạn chỉ cần biết đại khái nên đi về phía nào, rồi đi, rồi hỏi lại. Với cùng một ngân sách tính toán, đi **4688 bước hơi lệch hướng** rõ ràng tốt hơn đi **1 bước hoàn hảo**.
+
+Ba mức độ:
+
+| Tên | Số mẫu mỗi bước | Đặc điểm |
+|---|---|---|
+| Full-batch GD | $N$ (cả tập) | Gradient chính xác, mỗi bước cực đắt, đường đi trơn |
+| **Mini-batch SGD** | $B$ (thường 32–512) | Gradient hơi nhiễu, mỗi bước rẻ, tận dụng được GPU |
+| SGD thuần (online) | 1 | Gradient rất nhiễu, không tận dụng được phần cứng song song |
+
+Trong thực tế gần như luôn dùng cột giữa. Người ta vẫn quen gọi tắt là "SGD", nhưng ý là mini-batch.
+
+<CauHoi cau="sgd-mini-batch/q2" />
+
+## Dẫn công thức: vì sao được phép làm thế
+
+Hàm mất mát trên cả tập là **trung bình** loss của từng mẫu:
+
+$$
+L(w) = \frac{1}{N} \sum_{i=1}^{N} \ell_i(w)
+\qquad\Rightarrow\qquad
+\nabla L(w) = \frac{1}{N} \sum_{i=1}^{N} \nabla \ell_i(w)
+$$
+
+Lấy ngẫu nhiên đều một mini-batch $\mathcal{B}$ gồm $B$ chỉ số và tính:
+
+$$
+\nabla L_{\mathcal{B}}(w) = \frac{1}{B} \sum_{i \in \mathcal{B}} \nabla \ell_i(w)
+$$
+
+**Bước 1 — kỳ vọng.** Mỗi chỉ số $i_k$ được rút ngẫu nhiên đều từ $\{1, \dots, N\}$, nên $\mathbb{E}[\nabla \ell_{i_k}] = \frac{1}{N}\sum_{i=1}^{N} \nabla \ell_i = \nabla L$. Do đó:
+
+$$
+\mathbb{E}\big[\nabla L_{\mathcal{B}}\big] = \frac{1}{B}\sum_{k=1}^{B} \mathbb{E}\big[\nabla \ell_{i_k}\big] = \frac{1}{B} \cdot B \cdot \nabla L = \nabla L
+$$
+
+Gradient mini-batch là **ước lượng không thiên lệch** (unbiased estimator) của gradient thật. Nó không "sai", chỉ "nhiễu".
+
+**Bước 2 — phương sai.** Gọi $\sigma^2$ là phương sai của $\nabla \ell_i$ quanh $\nabla L$ (xem bài Kỳ vọng, phương sai). Trung bình của $B$ biến độc lập cùng phân phối có phương sai giảm $B$ lần:
+
+$$
+\operatorname{Var}\big[\nabla L_{\mathcal{B}}\big] = \frac{\sigma^2}{B}
+\qquad\Rightarrow\qquad
+\text{do lech chuan} \;\propto\; \frac{\sigma}{\sqrt{B}}
+$$
+
+Đây là con số quan trọng nhất của cả bài. Đọc lại nó cho kỹ: **nhiễu giảm theo $\sqrt{B}$, còn chi phí tăng theo $B$.**
+
+| $B$ | Chi phí mỗi bước | Nhiễu còn lại |
+|---|---|---|
+| 4 | ×1 | ×1 |
+| 16 | ×4 | ×1/2 |
+| 64 | ×16 | ×1/4 |
+| 256 | ×64 | ×1/8 |
+
+Trả gấp 64 lần tiền để nhiễu chỉ còn 1/8. Đó là lý do không ai dùng batch khổng lồ chỉ để "gradient chính xác hơn".
+
+<CauHoi cau="sgd-mini-batch/q5" />
+
+## Tính tay: 4 điểm dữ liệu
+
+Dữ liệu $x = [1, 2, 3, 4]$, $y = [2, 4, 6, 8]$ (đúng luật $y = 2x$). Mô hình $\hat y = wx$, loss MSE trên một nhóm $\mathcal{B}$:
+
+$$
+L_{\mathcal{B}}(w) = \frac{1}{|\mathcal{B}|}\sum_{i \in \mathcal{B}} (w x_i - y_i)^2
+\qquad
+\nabla L_{\mathcal{B}}(w) = \frac{2}{|\mathcal{B}|}\sum_{i \in \mathcal{B}} (w x_i - y_i)\, x_i
+$$
+
+Đang ở $w = 0$. Chia thành hai mini-batch: $\mathcal{B}_1 = \{1, 2\}$ và $\mathcal{B}_2 = \{3, 4\}$.
+
+| Nhóm | Sai số $wx_i - y_i$ | $(wx_i - y_i)x_i$ | Gradient |
+|---|---|---|---|
+| Cả 4 mẫu | −2, −4, −6, −8 | −2, −8, −18, −32 | $2 \times (-15) = -30$ |
+| $\mathcal{B}_1$ | −2, −4 | −2, −8 | $2 \times (-5) = -10$ |
+| $\mathcal{B}_2$ | −6, −8 | −18, −32 | $2 \times (-25) = -50$ |
+
+Hai điều cùng lúc:
+
+- **Mỗi mini-batch lệch rất xa**: −10 và −50, trong khi sự thật là −30.
+- **Trung bình thì đúng**: $(-10 + -50)/2 = -30$, khớp chính xác gradient toàn tập. Đây chính là tính không thiên lệch vừa chứng minh ở trên.
+
+Giờ chạy **một epoch** với $\eta = 0.01$:
+
+| Cách | Bước | Gradient | $w$ sau bước |
+|---|---|---|---|
+| Full-batch | 1 (duy nhất) | −30 | $0 + 0.3 = 0.3$ |
+| Mini-batch | 1 ($\mathcal{B}_1$, tại $w = 0$) | −10 | $0 + 0.1 = 0.1$ |
+| Mini-batch | 2 ($\mathcal{B}_2$, tại $w = 0.1$) | −47.5 | $0.1 + 0.475 = 0.575$ |
+
+Cùng một lượt đi qua dữ liệu, cùng chi phí tính toán, nhưng mini-batch tới $w = 0.575$ còn full-batch mới tới $0.3$ (đích là $w = 2$). Lý do: bước thứ hai được tính ở **vị trí đã cập nhật** $w = 0.1$, chứ không phải ở vị trí cũ. Mini-batch dùng thông tin mới sớm hơn.
+
+<CauHoi cau="sgd-mini-batch/q7" />
+
+## Epoch, iteration, step
+
+Ba từ hay bị lẫn:
+
+- **Iteration** (hay **step**): **một** bước cập nhật $w$, dùng **một** mini-batch.
+- **Epoch**: một lượt đi qua **hết** dữ liệu, gồm $\lceil N/B \rceil$ iteration.
+- **Batch size** $B$: số mẫu trong một mini-batch.
+
+$$
+\text{so iteration moi epoch} = \left\lceil \frac{N}{B} \right\rceil
+$$
+
+| $N$ | $B$ | Iteration/epoch |
+|---|---|---|
+| 1.000 | 32 | 32 |
+| 50.000 | 128 | 391 |
+| 1.200.000 | 256 | 4.688 |
+
+Khi ai đó nói "train 10 epoch", với $N = 50.000$ và $B = 128$ thì đó là 3.910 lần cập nhật trọng số, không phải 10.
+
+## Xáo dữ liệu: bắt buộc, và xáo lại mỗi epoch
+
+Chứng minh không thiên lệch ở trên **giả định mini-batch được lấy ngẫu nhiên**. Nếu bạn cứ lấy dữ liệu theo thứ tự có sẵn trong file, giả định đó sụp đổ.
+
+Ví dụ thật: corpus song ngữ Việt–Anh thường được ghép từ nhiều nguồn rồi nối đuôi nhau — 200.000 câu tin tức, rồi 200.000 câu văn bản pháp luật, rồi 200.000 câu phụ đề phim. Không xáo thì mô hình học 1.500 bước toàn tin tức, rồi 1.500 bước toàn pháp luật. Mỗi giai đoạn nó chỉnh trọng số cho một miền và **quên** miền trước. Loss sẽ dao động theo chu kỳ đúng bằng một epoch — dấu hiệu rất đặc trưng.
+
+Trường hợp tệ nhất là dữ liệu phân loại sắp theo nhãn: mini-batch đầu toàn nhãn 0, mô hình học ngay mẹo "cứ đoán 0 là xong".
+
+Hai quy tắc:
+
+1. **Xáo** trước khi chia mini-batch.
+2. **Xáo lại ở mỗi epoch**, không phải xáo một lần lúc nạp dữ liệu. Xáo một lần thì mọi epoch đều gặp đúng những nhóm mẫu giống hệt nhau, theo đúng thứ tự.
+
+Trong PyTorch việc này là `DataLoader(..., shuffle=True)`; nó tự xáo lại mỗi epoch.
+
+## Code: một epoch mini-batch SGD
+
+Khớp đúng ví dụ tính tay ở trên khi tắt xáo (`seed=None` thì giữ nguyên thứ tự).
+
+```python
+import numpy as np
+
+def mot_epoch(x, y, w, lr, B, rng=None):
+    n = len(x)
+    thu_tu = np.arange(n) if rng is None else rng.permutation(n)
+    for dau in range(0, n, B):                 # ⌈n/B⌉ iteration
+        idx = thu_tu[dau:dau + B]
+        xb, yb = x[idx], y[idx]
+        grad = 2 * np.mean((w * xb - yb) * xb)  # gradient trên mini-batch
+        w = w - lr * grad
+    return w
+
+x = np.array([1.0, 2.0, 3.0, 4.0])
+y = np.array([2.0, 4.0, 6.0, 8.0])
+print(mot_epoch(x, y, 0.0, 0.01, 4))   # full-batch: 0.3
+print(mot_epoch(x, y, 0.0, 0.01, 2))   # 2 mini-batch: 0.575
+print(mot_epoch(x, y, 0.0, 0.01, 2, np.random.default_rng(0)))  # có xáo: khác đôi chút
+```
+
+In ra `0.3`, `0.575` và `0.56` — hai số đầu khớp đúng bảng tính tay. Số thứ ba khác đi vì thứ tự mẫu đã bị xáo nên hai mini-batch có thành phần khác: đó chính là **nhiễu** của SGD, nhìn thấy bằng mắt. Tập này bé nên chỉ có ba cách chia thành hai cặp, ứng với đúng ba kết quả: 0.5558, 0.56 hoặc 0.575. Đổi seed là đổi giữa ba giá trị đó.
+
+## Vì sao nhiễu lại có ích
+
+Nghe thì nhiễu chỉ là cái giá phải trả cho tốc độ. Thực ra nó còn là một **tính năng**.
+
+**Điểm yên ngựa (saddle point).** Ở điểm yên ngựa, gradient bằng 0 nhưng đó không phải đáy: hàm cong lên theo vài hướng và cong xuống theo vài hướng khác, như yên ngựa hay đèo núi. Full-batch GD tới đó thấy $\nabla L = 0$ và **đứng im vô hạn**.
+
+Trong không gian nhiều chiều, đây không phải trường hợp hiếm mà là trường hợp **phổ biến nhất**: để một điểm tới hạn là cực tiểu thật, cả $d$ hướng đều phải cong lên. Với $d$ cỡ hàng triệu, xác suất đó gần như bằng 0. Hầu hết chỗ có $\nabla L = 0$ đều là yên ngựa.
+
+Mini-batch thì khác: tại điểm yên ngựa, $\nabla L = 0$ nhưng $\nabla L_{\mathcal{B}} \ne 0$ (nó chỉ có **kỳ vọng** bằng 0). Cú hích ngẫu nhiên đó đẩy $w$ trượt khỏi yên ngựa, xuống theo hướng cong xuống. Cùng lý do đó giúp SGD vượt các **cao nguyên phẳng** nơi gradient bé tí.
+
+**Cực tiểu phẳng.** Nhiễu cũng khiến SGD khó "đậu" trong các khe hẹp và sâu, mà hay dừng ở vùng đáy rộng, phẳng. Các vùng phẳng thường tổng quát hoá tốt hơn trên dữ liệu mới: lệch $w$ đi một chút thì loss cũng không tăng mấy.
+
+## Chọn batch size: ba sức ép kéo ngược nhau
+
+| Sức ép | Muốn $B$ nhỏ | Muốn $B$ lớn |
+|---|---|---|
+| **Nhiễu** | | Nhiễu $\propto 1/\sqrt{B}$, batch lớn cho hướng đi ổn định hơn |
+| **Tốc độ** | | GPU tính song song; $B = 1$ và $B = 32$ tốn gần như cùng thời gian mỗi bước, nên $B$ nhỏ là lãng phí phần cứng |
+| **Bộ nhớ** | Activation phải lưu cho backprop tỉ lệ thuận với $B$; batch lớn là nguyên nhân số 1 của lỗi hết VRAM | |
+| **Số bước/epoch** | $\lceil N/B \rceil$ bước: batch nhỏ cho nhiều lần cập nhật hơn trên cùng lượng dữ liệu | |
+
+Kết quả của ba sức ép này: điểm ngọt thường nằm trong khoảng **32 đến 512**, và trên phần cứng hiện đại hay chọn luỹ thừa của 2. Quy trình thực dụng: **lấy batch lớn nhất mà bộ nhớ chịu được, rồi chỉnh learning rate theo.**
+
+## Batch size và learning rate đi cùng nhau
+
+Đây là chỗ hay bị bỏ sót. Đổi $B$ mà giữ nguyên $\eta$ gần như chắc chắn làm hỏng kết quả.
+
+**Quy tắc tuyến tính** (Goyal và cộng sự, 2017): nhân $B$ với $k$ thì nhân $\eta$ với $k$.
+
+Dẫn ra: chạy $k$ bước liên tiếp với batch $B$ và learning rate $\eta$, giả sử $w$ đổi ít nên gradient gần như không đổi:
+
+$$
+w_{k} \approx w_0 - \eta \sum_{j=1}^{k} \nabla L_{\mathcal{B}_j}(w_0)
+= w_0 - \eta k \cdot \frac{1}{k}\sum_{j=1}^{k} \nabla L_{\mathcal{B}_j}(w_0)
+$$
+
+Cái tổng chia $k$ ở cuối chính là gradient trên $k$ mini-batch gộp lại, tức là gradient trên một batch cỡ $kB$. Vậy $k$ bước nhỏ $\approx$ **một** bước với batch $kB$ và learning rate $k\eta$. Muốn hai cách cho kết quả như nhau thì $\eta$ phải tăng theo $k$.
+
+**Quy tắc căn bậc hai** ($\eta \propto \sqrt{B}$) xuất phát từ mục tiêu khác: giữ nguyên **độ nhiễu của bước cập nhật**. Nhiễu của $\eta \nabla L_{\mathcal{B}}$ có độ lệch chuẩn $\eta \sigma/\sqrt{B}$; muốn nó không đổi thì $\eta \propto \sqrt{B}$.
+
+Dùng cái nào? Quy tắc tuyến tính là mặc định trong huấn luyện ảnh và ngôn ngữ quy mô lớn, nhưng **cần warmup**: vài trăm bước đầu tăng $\eta$ dần từ 0 lên giá trị đích, vì lúc mới khởi tạo gradient đổi rất nhanh và giả định "gradient gần như không đổi" ở trên không còn đúng. Không warmup thì bước đầu quá dài, loss bay lên NaN.
+
+<CauHoi cau="sgd-mini-batch/q11" />
+
+## Nâng cao
+
+- **Gradient accumulation.** Muốn batch hiệu dụng 512 nhưng VRAM chỉ chứa 64? Chạy 8 mini-batch cỡ 64, **cộng dồn** gradient, rồi mới cập nhật một lần. Toán học giống hệt batch 512, chỉ chậm hơn. Đây là mẹo bắt buộc khi fine-tune mô hình ngôn ngữ trên một GPU.
+- **Lấy mẫu có hoàn lại hay không.** Công thức $\sigma^2/B$ ở trên giả định lấy có hoàn lại. Thực tế ai cũng xáo rồi cắt thành các nhóm rời nhau (random reshuffling): mỗi mẫu xuất hiện đúng một lần mỗi epoch. Cách này hội tụ nhanh hơn một chút và dễ cài hơn.
+- **Batch cuối bị lẻ.** $N = 1000$, $B = 128$ thì batch thứ 8 chỉ có 104 mẫu — gradient của nó nhiễu hơn. Thường bỏ qua được; PyTorch có `drop_last=True` nếu muốn bỏ hẳn.
+- **BatchNorm làm batch size thành tham số của mô hình.** BatchNorm chuẩn hoá theo thống kê **trong batch**, nên $B$ quá nhỏ (2–4) làm thống kê nhiễu và mô hình kém hẳn, không chỉ chậm hơn. Đây là ngoại lệ hiếm hoi mà $B$ ảnh hưởng tới chính mô hình chứ không chỉ tới optimizer.
+- **Batch quá lớn mất khả năng tổng quát hoá.** Vượt một ngưỡng nào đó (tuỳ bài toán), tăng $B$ vừa không nhanh thêm vừa làm accuracy trên tập test tệ đi, kể cả khi đã chỉnh $\eta$. Một cách hiểu: hết nhiễu thì cũng hết cơ chế ưu tiên cực tiểu phẳng.
+- **Tăng batch size thay cho giảm learning rate.** Vì cả hai đều làm giảm độ nhiễu, có thể thay lịch giảm $\eta$ bằng lịch **tăng dần $B$** trong quá trình huấn luyện, được kết quả tương đương mà tận dụng phần cứng tốt hơn.
+
+## Sai lầm hay gặp
+
+| Sai lầm | Triệu chứng nhìn thấy | Cách sửa |
+|---|---|---|
+| Không xáo dữ liệu | Loss dao động lên xuống theo **chu kỳ đúng bằng một epoch**; accuracy nhảy bậc thang | Xáo trước khi chia batch, xáo lại mỗi epoch |
+| Chỉ xáo một lần lúc nạp | Loss mượt nhưng chững sớm; kết quả gần như không đổi khi chạy lại | Xáo trong vòng lặp epoch |
+| Tăng $B$ mà giữ nguyên $\eta$ | Loss giảm **chậm hẳn** so với trước, mỗi epoch tiến bộ ít hơn | Nhân $\eta$ theo $k$ (tuyến tính) hoặc $\sqrt{k}$ |
+| Giảm $B$ mà giữ nguyên $\eta$ | Loss dao động mạnh, thỉnh thoảng bật lên, có khi ra NaN | Giảm $\eta$ theo, hoặc dùng optimizer thích nghi |
+| Đặt $B$ quá lớn "cho chính xác" | Hết VRAM (OOM), hoặc chạy được nhưng mỗi epoch cải thiện rất ít | Về khoảng 32–512, tăng $\eta$ bù lại |
+| Dùng $B = 1$ để "học kỹ từng mẫu" | GPU nhàn rỗi, một epoch chậm gấp hàng chục lần mà không tốt hơn | Về ít nhất 32 |
+| Nhầm epoch với bước cập nhật | Đặt "100 epoch" trên tập 50 triệu mẫu rồi chờ nhiều ngày | Tính $\lceil N/B \rceil$ trước, quy ra tổng số bước |
+| Quên chia cho $B$ khi tính gradient | Gradient lớn gấp $B$ lần ý định; loss phân kỳ ngay, và "learning rate tốt" thay đổi mỗi khi đổi $B$ | Dùng `np.mean`, không dùng `np.sum` |
+
+## Tra nhanh
+
+- **Cập nhật**: $w \leftarrow w - \eta\, \nabla L_{\mathcal{B}}(w)$, với $\nabla L_{\mathcal{B}} = \frac{1}{B}\sum_{i \in \mathcal{B}} \nabla \ell_i$.
+- **Không thiên lệch**: $\mathbb{E}[\nabla L_{\mathcal{B}}] = \nabla L$. **Nhiễu**: độ lệch chuẩn $\propto \sigma/\sqrt{B}$.
+- Gấp 4 lần $B$ → nhiễu còn một nửa, chi phí gấp 4.
+- **Iteration/epoch** $= \lceil N/B \rceil$. Epoch $\ne$ bước cập nhật.
+- **Xáo mỗi epoch**, không xáo một lần.
+- $B$ thường 32–512, luỹ thừa của 2. Chọn lớn nhất mà bộ nhớ chịu được.
+- Đổi $B$ thì **phải** đổi $\eta$: $\eta \propto B$ (kèm warmup) hoặc $\eta \propto \sqrt{B}$.
+- Nhiễu là tính năng: thoát yên ngựa, cao nguyên phẳng, ưu tiên cực tiểu rộng.
+- Bộ nhớ không đủ → gradient accumulation, không phải giảm batch hiệu dụng.
+- Tiếp theo: [Optimizer: momentum, RMSProp, Adam](/khai-niem/optimizer) — làm gì với gradient nhiễu để đi nhanh hơn nữa.

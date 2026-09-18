@@ -1,0 +1,345 @@
+---
+ten_vi: "Regularization L1/L2"
+ten_en: "Regularization (L1, L2, weight decay)"
+tang: 2
+thu_tu: 19
+tien_quyet: ["overfitting"]
+trang_thai: nhap
+dinh_nghia: >-
+  Điều chuẩn là cộng thêm vào hàm mất mát một khoản phạt theo độ lớn của trọng số, để mô hình
+  phải "trả giá" khi muốn dùng trọng số lớn. L2 (weight decay) phạt tổng bình phương và co mọi
+  trọng số về gần 0; L1 (lasso) phạt tổng trị tuyệt đối và đẩy hẳn một số trọng số về ĐÚNG 0,
+  tức là tự chọn đặc trưng.
+truc_giac: >-
+  Mô hình được phát một ngân sách "độ mạnh dạn". Muốn bẻ đường dự đoán cong hơn thì phải chi
+  trọng số lớn hơn, mà trọng số lớn thì bị thu thuế. Nó chỉ chịu chi khi dữ liệu thật sự đáng.
+  L2 thu thuế luỹ tiến theo bình phương nên bóp mạnh vài trọng số khổng lồ; L1 thu thuế đều tay
+  nên thà cắt hẳn những trọng số nhỏ về 0 còn hơn nuôi chúng.
+hieu_nham:
+  - "L1 tạo ra trọng số bằng ĐÚNG 0, còn L2 thì không bao giờ — L2 chỉ co về gần 0. Lý do nằm ở đạo hàm của phần phạt tại điểm 0: L2 có đạo hàm 2λw tự tắt khi w → 0, còn L1 có lực kéo không đổi bằng λ."
+  - "Phải chuẩn hoá đặc trưng TRƯỚC khi điều chuẩn. Đặc trưng đo bằng mét và đặc trưng đo bằng milimet cần trọng số lệch nhau 1000 lần, phần phạt sẽ trừng phạt oan cái nào có thang nhỏ."
+  - "Đừng phạt hệ số tự do (bias). Bias chỉ dịch toàn bộ dự đoán lên xuống, phạt nó là ép mô hình dự đoán quanh 0 mà không có lý do gì."
+  - "λ lớn hơn KHÔNG phải luôn tốt hơn. λ quá lớn đẩy mô hình thẳng vào chưa khớp: mọi trọng số về gần 0, mô hình dự đoán gần như một hằng số, train loss lẫn val loss đều cao."
+  - "weight_decay trong Adam KHÔNG giống hệt việc cộng λ‖w‖² vào loss: khoản phạt bị chia cho mẫu số thích ứng √v̂ nên mỗi tham số bị co một kiểu. AdamW tách riêng phép co ra khỏi gradient để nó lại đều tay."
+y_chinh:
+  - "Điều chuẩn = loss gốc + λ·(hình phạt theo độ lớn trọng số); λ là núm chỉnh mức đánh đổi"
+  - "L2 ⇔ tiên nghiệm Gauss, L1 ⇔ tiên nghiệm Laplace, cả hai suy ra từ ước lượng MAP"
+  - "L1 cho nghiệm thưa vì lực kéo về 0 không tắt khi w nhỏ; về hình học là hình thoi có góc nhọn nằm trên trục"
+  - "Nghiệm ridge dạng đóng w = (XᵀX + λI)⁻¹Xᵀy; cộng λ vào đường chéo làm ma trận luôn khả nghịch"
+  - "Chọn λ bằng lưới thang log trên tập validation, không bao giờ bằng train loss"
+  - "Early stopping có tác dụng gần giống L2; weight decay trong Adam cần tách rời (AdamW) mới đúng ý"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=Q81RR3yKn30
+    tieu_de: "Regularization Part 1: Ridge (L2) Regression"
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Vẽ tay vì sao thêm λ·(độ dốc)² lại làm mô hình bớt nhạy với tập train nhỏ. Nên xem đầu tiên.
+  - url: https://www.youtube.com/watch?v=Xm2C_gTAl8c
+    tieu_de: "Ridge vs Lasso Regression, Visualized!!!"
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Đúng phần hình học hình thoi và hình tròn trong bài này, nhìn thấy tận mắt vì sao L1 chạm trục còn L2 thì không.
+  - url: https://www.deeplearningbook.org/contents/regularization.html
+    tieu_de: "Deep Learning, Chapter 7: Regularization for Deep Learning"
+    tac_gia: Goodfellow, Bengio, Courville
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Bản HTML miễn phí. Mục 7.1 phân tích L1/L2 qua trị riêng, mục 7.8 chứng minh early stopping tương đương L2. Đọc khi muốn nền toán.
+  - url: https://arxiv.org/abs/1711.05101
+    tieu_de: Decoupled Weight Decay Regularization
+    tac_gia: Loshchilov & Hutter (ICLR 2019)
+    loai: bai_viet
+    muc_do: toan_nang
+    ngon_ngu: en
+    ghi_chu: Bài báo giới thiệu AdamW. Chỉ cần đọc Mục 2 và Algorithm 2 là thấy rõ chỗ L2 thuần khác weight decay tách rời.
+---
+
+import RangBuocL1L2 from '../../src/viz/RangBuocL1L2.tsx';
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Hai cột dữ liệu gần trùng nhau và một nghiệm điên rồ
+
+Bạn dự đoán doanh thu từ hai đặc trưng: "chi phí quảng cáo tuần này" và "chi phí quảng cáo 7 ngày gần nhất". Hai cột gần như trùng nhau, hệ số tương quan 0.999. Bình phương tối thiểu cho ra:
+
+$$
+w = (3.512,\; -0.632)
+$$
+
+Đọc ra thì vô lý: quảng cáo nhiều hơn làm doanh thu **giảm**? Thực ra mô hình đang làm một trò triệt tiêu — cộng một lượng khổng lồ từ cột 1 rồi trừ bớt bằng cột 2. Trên tập train nó khớp rất đẹp. Nhưng **bỏ đi đúng một mẫu** rồi khớp lại, cặp số nhảy sang $(-1.272,\ 4.152)$ — đổi cả dấu, mà vẫn khớp không kém. Đó chính là **phương sai cao** ở bài [Quá khớp](/khai-niem/overfitting), nhìn từ phía trọng số.
+
+Thêm một khoản phạt nhỏ, $\lambda = 0.1$:
+
+$$
+w = (1.478,\; 1.382)
+$$
+
+Hai cột giống nhau thì chia đều ảnh hưởng — đúng như trực giác, và ổn định hẳn khi dữ liệu đổi. Đó là **điều chuẩn** (regularization).
+
+## Ý tưởng: đánh thuế trọng số lớn
+
+Thay vì tối thiểu hoá riêng loss, ta tối thiểu hoá loss **cộng** thêm một hình phạt:
+
+$$
+J(\mathbf{w}) = \underbrace{L(\mathbf{w})}_{\text{fit}} + \lambda\,\underbrace{R(\mathbf{w})}_{\text{penalty}}
+$$
+
+- $R(\mathbf{w}) = \lVert \mathbf{w}\rVert_2^2 = \sum_j w_j^2$ → **L2**, còn gọi là ridge hoặc weight decay
+- $R(\mathbf{w}) = \lVert \mathbf{w}\rVert_1 = \sum_j \lvert w_j\rvert$ → **L1**, còn gọi là lasso
+
+$\lambda \ge 0$ là núm chỉnh: $\lambda = 0$ quay về bài toán gốc, $\lambda \to \infty$ ép mọi trọng số về 0.
+
+Vì sao phạt trọng số lớn lại chống quá khớp? Trọng số lớn nghĩa là đầu ra **nhạy** với đầu vào: đổi $x_j$ một chút thì dự đoán nhảy $w_j$ lần chừng đó. Mô hình bẻ cong để chạm từng điểm nhiễu buộc phải dùng trọng số lớn — nhớ lại ở bài trước, đa thức bậc 9 có hệ số lên tới 70.6 trong khi bậc 5 chỉ tới 5.19. Phạt độ lớn trọng số là chặn đúng cái cửa đó.
+
+## Dẫn công thức: từ đâu ra $\lVert w\rVert^2$ và $\lVert w\rVert_1$?
+
+Hai hình phạt này không phải chọn bừa. Chúng rơi ra từ **ước lượng MAP** (maximum a posteriori) — tức là hợp lý cực đại có kèm niềm tin ban đầu về trọng số.
+
+Theo Bayes, hậu nghiệm tỉ lệ với hợp lý nhân tiên nghiệm:
+
+$$
+p(\mathbf{w}\mid \mathcal{D}) \propto p(\mathcal{D}\mid \mathbf{w})\, p(\mathbf{w})
+$$
+
+Lấy $-\log$ (biến tích thành tổng, biến cực đại thành cực tiểu):
+
+$$
+\arg\max_{\mathbf{w}} p(\mathbf{w}\mid\mathcal{D})
+= \arg\min_{\mathbf{w}} \Big[ -\log p(\mathcal{D}\mid\mathbf{w}) \;-\; \log p(\mathbf{w}) \Big]
+$$
+
+Số hạng đầu, với giả thiết nhiễu Gauss phương sai $\sigma^2$, chính là MSE:
+
+$$
+-\log p(\mathcal{D}\mid\mathbf{w}) = \frac{1}{2\sigma^2}\lVert X\mathbf{w}-\mathbf{y}\rVert^2 + \text{const}
+$$
+
+Số hạng thứ hai là chỗ tiên nghiệm bước vào.
+
+**Tiên nghiệm Gauss → L2.** Nếu ta tin trước rằng mỗi trọng số quanh quẩn 0 với phương sai $\tau^2$, tức $w_j \sim \mathcal{N}(0, \tau^2)$:
+
+$$
+-\log p(\mathbf{w}) = \frac{1}{2\tau^2}\sum_j w_j^2 + \text{const} = \frac{1}{2\tau^2}\lVert\mathbf{w}\rVert_2^2 + \text{const}
+$$
+
+Nhân cả hai số hạng với $2\sigma^2$ (không đổi chỗ cực tiểu) ta được **đúng** công thức ridge:
+
+$$
+\min_{\mathbf{w}}\; \lVert X\mathbf{w}-\mathbf{y}\rVert^2 + \lambda \lVert\mathbf{w}\rVert_2^2,
+\qquad \boxed{\lambda = \frac{\sigma^2}{\tau^2}}
+$$
+
+Công thức $\lambda = \sigma^2/\tau^2$ rất đáng nhớ vì nó giải thích mọi trực giác về $\lambda$: dữ liệu **nhiễu nhiều** ($\sigma^2$ lớn) thì phạt mạnh; ta tin trọng số **có thể lớn** ($\tau^2$ lớn) thì phạt nhẹ.
+
+**Tiên nghiệm Laplace → L1.** Phân phối Laplace $p(w_j) = \frac{1}{2b}\exp(-\lvert w_j\rvert/b)$ có đỉnh nhọn tại 0 và đuôi dày hơn Gauss — nghĩa là "phần lớn trọng số đúng bằng 0, nhưng vài cái có thể rất lớn". Khi đó
+
+$$
+-\log p(\mathbf{w}) = \frac{1}{b}\lVert\mathbf{w}\rVert_1 + \text{const}
+\;\;\Longrightarrow\;\;
+\min_{\mathbf{w}}\; \lVert X\mathbf{w}-\mathbf{y}\rVert^2 + \lambda\lVert\mathbf{w}\rVert_1,
+\qquad \lambda = \frac{2\sigma^2}{b}
+$$
+
+**Nghiệm dạng đóng của ridge.** Với L2 ta còn giải thẳng ra được. Cho đạo hàm bằng 0:
+
+$$
+\frac{\partial J}{\partial \mathbf{w}} = 2X^{\top}(X\mathbf{w}-\mathbf{y}) + 2\lambda\mathbf{w} = 0
+\;\;\Longrightarrow\;\;
+\boxed{\mathbf{w} = \left(X^{\top}X + \lambda I\right)^{-1}X^{\top}\mathbf{y}}
+$$
+
+Chú ý chỗ $+\lambda I$: nó cộng $\lambda$ vào đường chéo, làm ma trận **luôn khả nghịch** khi $\lambda > 0$, kể cả khi hai cột trùng nhau hoặc số đặc trưng nhiều hơn số mẫu. Ridge không chỉ chống quá khớp, nó còn cứu những bài toán mà bình phương tối thiểu bó tay. L1 thì không có công thức đóng — phải giải bằng lặp (xem bài code).
+
+<CauHoi cau="regularization/q4" />
+
+## Vì sao L1 cho đúng số 0 mà L2 thì không
+
+Đây là chỗ hay bị học vẹt. Có ba cách nhìn, nên nắm ít nhất hai.
+
+**Cách 1 — nhìn lực kéo tại điểm 0.** Xét một trọng số $w_j$ đang ở gần 0. Đạo hàm của phần phạt:
+
+$$
+\frac{\partial}{\partial w_j}\,\lambda w_j^2 = 2\lambda w_j \xrightarrow{\;w_j\to 0\;} 0
+\qquad\text{vs}\qquad
+\frac{\partial}{\partial w_j}\,\lambda\lvert w_j\rvert = \lambda\,\operatorname{sign}(w_j)
+$$
+
+Lực kéo của **L2 tự tắt** đúng lúc cần nhất: càng gần 0 nó càng yếu, nên trọng số bò mãi về 0 mà không bao giờ tới. Lực kéo của **L1 không đổi**, luôn bằng $\lambda$ bất kể $w_j$ nhỏ cỡ nào. Nên nếu tại $w_j = 0$ mà phần MSE chỉ kéo ra với lực nhỏ hơn $\lambda$, trọng số **nằm lì ở 0** — đó là một cực tiểu thật sự.
+
+**Cách 2 — hình học.** Bài toán phạt tương đương bài toán ràng buộc: tối thiểu $L(\mathbf{w})$ với điều kiện $R(\mathbf{w}) \le t$. Vùng ràng buộc $\lVert\mathbf{w}\rVert_2 \le t$ là **hình tròn** (trơn khắp nơi), còn $\lVert\mathbf{w}\rVert_1 \le t$ là **hình thoi** có bốn **góc nhọn nằm đúng trên trục toạ độ** — mà nằm trên trục nghĩa là một toạ độ bằng 0.
+
+Đường đồng mức của $L$ là các ellipse. Nghiệm là chỗ ellipse **chạm** vùng ràng buộc lần đầu. Ellipse chạm hình tròn thì điểm chạm trượt khắp đường tròn, gần như không bao giờ rơi trúng trục. Ellipse chạm hình thoi thì các góc nhô ra nên rất dễ bị chạm trước — và chạm góc là có ngay một hệ số bằng 0.
+
+<RangBuocL1L2
+  client:visible
+  i0={0}
+  duDoan={{
+    de: "Bài toán 2 tham số, nghiệm không phạt là w* = (1.772, 0.056) — w₂ vốn đã bé. Kéo λ tăng dần, cái nào xảy ra TRƯỚC?",
+    lua_chon: ["Ridge đưa w₂ về đúng 0 trước", "Lasso đưa w₂ về đúng 0, ridge thì không bao giờ", "Cả hai cùng đưa w₂ về 0 tại một λ"],
+    dap_an: 1,
+    giai_thich: "Ngay từ λ = 10, lasso cho w = (1.6912, 0) — w₂ bằng ĐÚNG 0 và giữ nguyên như vậy tới λ = 170 thì cả hai cùng về 0. Trong khi đó ridge ở λ = 10 cho (1.19, 0.4141) — và lạ hơn nữa, w₂ của ridge còn TĂNG từ 0.056 lên 0.46 trước khi co lại, vì hai đặc trưng tương quan mạnh nên ridge thích chia đều hơn là dồn hết vào một cột. Ở λ = 400 ridge vẫn là (0.1563, 0.1216): nhỏ xíu, nhưng không cái nào bằng 0."
+  }}
+/>
+
+**Cách 3 — công thức đóng trong trường hợp đơn giản nhất.** Khi các đặc trưng trực giao, bài toán tách rời từng toạ độ và ta giải tay được. Xét $\min_w\,(w-a)^2 + \lambda\lvert w\rvert$ so với $\min_w\,(w-a)^2 + \lambda w^2$:
+
+$$
+w_{L1} = \operatorname{sign}(a)\max\!\left(\lvert a\rvert - \tfrac{\lambda}{2},\; 0\right)
+\qquad\qquad
+w_{L2} = \frac{a}{1+\lambda}
+$$
+
+$w_{L1}$ gọi là **ngưỡng mềm** (soft threshold): trừ đi một lượng cố định rồi **chặn ở 0**. $w_{L2}$ là phép **co tỉ lệ**: nhân với một số dương, nên nếu $a \ne 0$ thì kết quả cũng $\ne 0$, vĩnh viễn.
+
+## Tính tay
+
+**Ridge một chiều.** Dữ liệu $x = (1, 2, 3)$, $y = (2, 4, 6)$. Tối thiểu $\sum(wx_i - y_i)^2 + \lambda w^2$:
+
+$$
+w = \frac{\sum x_i y_i}{\sum x_i^2 + \lambda} = \frac{28}{14 + \lambda}
+$$
+
+| $\lambda$ | 0 | 1 | 6 | 14 | 42 | 126 |
+|---|---|---|---|---|---|---|
+| $w$ | 2.0 | 1.8667 | 1.4 | **1.0** | 0.5 | 0.2 |
+| còn lại $\frac{14}{14+\lambda}$ | 100% | 93.3% | 70% | **50%** | 25% | 10% |
+
+Hai điều đọc ra ngay: $\lambda$ bằng đúng $\sum x_i^2$ thì trọng số **giảm một nửa** — nên "λ lớn hay nhỏ" luôn là so với thang của dữ liệu, không phải so với 1. Và $w$ chỉ tiến về 0 theo kiểu tiệm cận, không bao giờ chạm.
+
+**L1 so với L2 trên cùng một điểm.** Lấy $\lambda = 1$, nên ngưỡng của L1 là $\lambda/2 = 0.5$:
+
+| $a$ (nghiệm không phạt) | $w_{L1} = \operatorname{sign}(a)\max(\lvert a\rvert - 0.5,\,0)$ | $w_{L2} = a/2$ |
+|---|---|---|
+| 0.8 | $0.8 - 0.5 = 0.3$ | 0.4 |
+| 0.4 | $\max(-0.1, 0) = \mathbf{0}$ | 0.2 |
+| −0.6 | $-(0.6 - 0.5) = -0.1$ | −0.3 |
+| 0.2 | $\max(-0.3, 0) = \mathbf{0}$ | 0.1 |
+
+Hai trong bốn trọng số bị L1 xoá **sạch**. L2 giữ cả bốn, chỉ nhỏ đi một nửa. Đó là lý do L1 được dùng để **chọn đặc trưng**: sau khi khớp, cứ nhìn hệ số nào bằng 0 là biết đặc trưng đó bị loại.
+
+## Code: kiểm lại cả hai bảng bằng NumPy
+
+```python
+import numpy as np
+
+# 1. Ridge mot chieu: w = 28 / (14 + lam)
+x = np.array([1.0, 2.0, 3.0]); y = np.array([2.0, 4.0, 6.0])
+X = x[:, None]                                  # (3, 1)
+for lam in (0.0, 6.0, 14.0, 42.0):
+    w = np.linalg.solve(X.T @ X + lam * np.eye(1), X.T @ y)
+    print(f"lam={lam:6.1f}  w={w[0]:.4f}  (cong thuc: {28 / (14 + lam):.4f})")
+
+# 2. Nguong mem cua L1 so voi phep co ti le cua L2, lam = 1
+lam = 1.0
+a = np.array([0.8, 0.4, -0.6, 0.2])
+w_l1 = np.sign(a) * np.maximum(np.abs(a) - lam / 2, 0)
+w_l2 = a / (1 + lam)
+print("L1:", w_l1, " so he so bang 0:", int((w_l1 == 0).sum()))
+print("L2:", w_l2, " so he so bang 0:", int((w_l2 == 0).sum()))
+```
+
+```
+lam=   0.0  w=2.0000  (cong thuc: 2.0000)
+lam=   6.0  w=1.4000  (cong thuc: 1.4000)
+lam=  14.0  w=1.0000  (cong thuc: 1.0000)
+lam=  42.0  w=0.5000  (cong thuc: 0.5000)
+L1: [ 0.3  0.  -0.1  0. ]  so he so bang 0: 2
+L2: [ 0.4  0.2 -0.3  0.1]  so he so bang 0: 0
+```
+
+Đúng từng ô của hai bảng trên.
+
+<CauHoi cau="regularization/q6" />
+
+## Nâng cao
+
+### Chọn λ thế nào
+
+1. **Chuẩn hoá đặc trưng trước.** Trừ trung bình, chia độ lệch chuẩn. Nếu không, đặc trưng có thang nhỏ cần trọng số lớn, và phần phạt sẽ trừng phạt nó oan. Đây là bước bị quên nhiều nhất.
+2. **Đừng phạt bias.** Phần phạt chỉ chạy trên trọng số, không chạy trên hệ số tự do. Phạt bias là ép dự đoán quanh 0 vô cớ. Trong mạng neuron, người ta thường cũng không phạt tham số của LayerNorm/BatchNorm.
+3. **Quét lưới theo thang log**, chẳng hạn $\lambda \in \{10^{-6}, 10^{-5}, \dots, 10^{2}\}$, chấm bằng **val loss** (hoặc k-fold cross-validation với dữ liệu ít). Đừng chấm bằng train loss: train loss luôn đẹp nhất tại $\lambda = 0$.
+4. **Vẽ val loss theo λ.** Đường này có dạng chữ U. Nhánh trái dốc lên = quá khớp, nhánh phải dốc lên = chưa khớp vì phạt quá tay. Nếu đáy rơi vào đúng mép lưới, nới lưới ra rồi quét lại.
+5. **λ phụ thuộc số mẫu.** Với dạng $\sum_i(\cdot)^2 + \lambda\lVert w\rVert^2$, phần loss lớn lên theo $n$ còn phần phạt thì không, nên $\lambda$ tốt cũng phải lớn lên theo $n$. Với dạng lấy trung bình $\frac{1}{n}\sum_i(\cdot)^2 + \lambda\lVert w\rVert^2$ thì $\lambda$ gần như không phụ thuộc $n$. Luôn kiểm xem thư viện dùng dạng nào.
+
+### Quan hệ với early stopping
+
+Hai thứ này gần như là một, nhìn từ góc khác.
+
+Chạy gradient descent từ $\mathbf{w}_0 = 0$ trên một hàm mất mát bậc hai: mỗi bước kéo $\mathbf{w}$ đi xa gốc thêm một chút. Dừng sau $\tau$ bước là **chặn** $\mathbf{w}$ không đi quá xa gốc — đúng thứ mà L2 làm bằng cách phạt. Goodfellow và cộng sự (Deep Learning, mục 7.8) chỉ ra rằng với learning rate $\eta$ nhỏ, nghiệm sau $\tau$ bước xấp xỉ nghiệm ridge với
+
+$$
+\lambda \approx \frac{1}{\eta\,\tau}
+$$
+
+Đọc ra: huấn luyện **lâu hơn** ⇔ $\lambda$ **nhỏ hơn** ⇔ điều chuẩn nhẹ hơn. Điều này giải thích vì sao early stopping là cách chống quá khớp rẻ nhất — nó không thêm siêu tham số nào, chỉ cần theo dõi val loss. (Xấp xỉ này chỉ đúng chặt cho hàm bậc hai; với mạng sâu nó là trực giác chứ không phải định lý.)
+
+### Weight decay trong Adam khác L2 thuần thế nào (AdamW)
+
+Với SGD thuần, hai cách sau **giống hệt nhau**:
+
+- Cộng phạt vào loss: $J = L + \tfrac{\lambda}{2}\lVert\mathbf{w}\rVert^2$, gradient thành $\nabla L + \lambda\mathbf{w}$.
+- Co trọng số sau mỗi bước: $\mathbf{w} \leftarrow (1 - \eta\lambda)\,\mathbf{w} - \eta\nabla L$.
+
+Vì thế "L2" và "weight decay" thường bị dùng lẫn lộn. Nhưng với **Adam** thì chúng khác nhau. Adam chia gradient cho một mẫu số thích ứng riêng cho từng tham số, đại khái $\sqrt{\hat{v}_j}$ — độ lớn gradient tích luỹ của tham số $j$. Nếu ta cộng $\lambda w_j$ vào gradient rồi để Adam chia:
+
+$$
+\Delta w_j \;\propto\; -\eta\,\frac{\hat{m}_j + \lambda w_j}{\sqrt{\hat{v}_j}+\epsilon}
+$$
+
+khoản phạt bị chia cho $\sqrt{\hat{v}_j}$. Tham số nào có gradient lịch sử lớn thì **bị co ít đi**, tham số nào ít được cập nhật thì bị co mạnh — trái hẳn ý định "phạt đều theo độ lớn". Ngoài ra $\lambda$ và $\eta$ dính chặt vào nhau, đổi cái này phải dò lại cái kia.
+
+Loshchilov & Hutter (2019) đề xuất **tách rời**: để Adam làm việc của nó với gradient gốc, rồi trừ riêng một khoản co:
+
+$$
+\mathbf{w} \leftarrow \mathbf{w} - \eta\,\frac{\hat{m}}{\sqrt{\hat{v}}+\epsilon} \;-\; \eta\,\lambda\,\mathbf{w}
+$$
+
+Đó là **AdamW**. Bài báo cho thấy cách này khôi phục hiệu quả điều chuẩn của weight decay với Adam và làm $\lambda$ với $\eta$ dò được gần như độc lập. Ngày nay AdamW là mặc định khi huấn luyện Transformer.
+
+Thực hành: trong PyTorch, `torch.optim.Adam(..., weight_decay=λ)` là bản **L2 thuần** (cộng vào gradient), còn `torch.optim.AdamW(..., weight_decay=λ)` là bản **tách rời**. Hai cái cùng tên tham số nhưng không cùng ý nghĩa, và giá trị λ tốt cho cái này thường không tốt cho cái kia.
+
+## Sai lầm hay gặp và triệu chứng nhận biết
+
+**1. Quên chuẩn hoá đặc trưng.** *Triệu chứng:* đổi đơn vị một cột (mét sang milimet) thì kết quả mô hình đổi hoàn toàn, dù dữ liệu y hệt. Hoặc đặc trưng có thang lớn nhất luôn là đặc trưng duy nhất sống sót sau L1. *Sửa:* `StandardScaler` (hoặc tự trừ mean, chia std) **khớp trên tập train**, rồi áp cho val/test.
+
+**2. Phạt luôn cả bias.** *Triệu chứng:* mô hình dự đoán lệch hẳn xuống dưới trung bình của $y$, và càng tăng λ càng lệch về 0. *Sửa:* tách bias ra khỏi vector bị phạt; trong ridge dạng đóng, đặt phần tử tương ứng của $\lambda I$ bằng 0.
+
+**3. Chọn λ bằng train loss.** *Triệu chứng:* mọi lần dò đều cho ra $\lambda = 0$ là tốt nhất. Đương nhiên — thêm phạt chỉ làm train loss xấu đi. *Sửa:* chấm bằng val, hoặc cross-validation.
+
+**4. Tăng λ để chữa chưa khớp.** *Triệu chứng:* train loss đang cao (dáng A ở bài trước), bạn thấy val > train nên tăng λ, và cả hai đường cùng đi lên. *Sửa:* nhìn độ cao train loss trước. Chưa khớp thì phải **giảm** λ.
+
+**5. Lẫn giữa `Adam(weight_decay=)` và `AdamW`.** *Triệu chứng:* chép λ từ một repo dùng AdamW sang code dùng Adam (hoặc ngược lại), và kết quả tệ đi rõ rệt mà không hiểu vì sao. *Sửa:* xác định bạn đang dùng optimizer nào, rồi dò lại λ.
+
+**6. Trông đợi L1 cho ra đúng 0 khi chạy gradient descent thường.** *Triệu chứng:* bạn thêm `lam * np.sign(w)` vào gradient, chạy xong `(w == 0).sum()` trả về 0, các trọng số chỉ lắc quanh $\pm 10^{-4}$. *Sửa:* trị tuyệt đối không khả vi tại 0, gradient thường sẽ nhảy qua nhảy lại. Phải dùng **ngưỡng mềm** (proximal / ISTA) như trong bài code, hoặc coordinate descent.
+
+## Tra nhanh
+
+| | L2 (ridge, weight decay) | L1 (lasso) |
+|---|---|---|
+| Hình phạt | $\lambda\sum w_j^2$ | $\lambda\sum \lvert w_j\rvert$ |
+| Tiên nghiệm tương ứng | Gauss $\mathcal{N}(0,\tau^2)$, $\lambda = \sigma^2/\tau^2$ | Laplace, $\lambda = 2\sigma^2/b$ |
+| Nghiệm 1 chiều | $a/(1+\lambda)$ — co tỉ lệ | $\operatorname{sign}(a)\max(\lvert a\rvert - \lambda/2, 0)$ — ngưỡng mềm |
+| Cho ra đúng số 0? | Không bao giờ | Có, đó là điểm mạnh chính |
+| Nghiệm dạng đóng? | Có: $(X^{\top}X+\lambda I)^{-1}X^{\top}\mathbf{y}$ | Không, phải giải lặp |
+| Hình vùng ràng buộc | Hình tròn (trơn) | Hình thoi (có góc trên trục) |
+| Dùng khi | Mặc định cho mạng neuron; đặc trưng tương quan | Muốn chọn đặc trưng, muốn mô hình thưa và đọc được |
+
+**Checklist trước khi chỉnh λ:** đã chuẩn hoá đặc trưng? đã bỏ bias ra khỏi phần phạt? đang chấm bằng val chứ không phải train? train loss đã đủ thấp để nói chuyện quá khớp chưa?
+
+**Ba cách nhớ vì sao L1 thưa:** lực kéo không tắt ($\lambda$ hằng số) · hình thoi có góc trên trục · công thức ngưỡng mềm chặn ở 0.
+
+**Ba khoản phạt tương đương nhau về tinh thần:** L2 · early stopping ($\lambda \approx 1/(\eta\tau)$) · weight decay tách rời trong AdamW.
+
+## Tự kiểm
+
+<CauHoi cau="regularization/q8" />
+
+<CauHoi cau="regularization/q10" />
+
+<CauHoi cau="regularization/q12" />
+
+Tiếp theo: [Dropout](/khai-niem/dropout) — một kiểu điều chuẩn hoàn toàn khác, không phạt trọng số mà tắt ngẫu nhiên neuron.

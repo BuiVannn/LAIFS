@@ -1,0 +1,125 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: Một vector số được gọi là phân phối xác suất rời rạc khi nào?
+    lua_chon:
+      - Mọi phần tử nằm trong [0, 1] và tổng các phần tử bằng 1
+      - Mọi phần tử nằm trong [0, 1], không ràng buộc tổng
+      - Tổng bằng 1, các phần tử có thể âm
+      - Phần tử lớn nhất bằng 1
+    dap_an: 0
+    giai_thich: "Hai điều kiện đi cùng nhau: không âm (và do đó ≤ 1 khi tổng bằng 1) VÀ tổng đúng bằng 1. Đây chính là hai điều kiện mà softmax luôn bảo đảm cho đầu ra của mô hình phân loại."
+
+  - id: q2
+    loai: so
+    do_kho: 1
+    de: "Một phân phối trên 3 lớp là [0.2, 0.5, x]. x bằng bao nhiêu?"
+    dap_an: 0.3
+    sai_so: 0.001
+    giai_thich: "Tổng phải bằng 1, nên x = 1 − 0.2 − 0.5 = 0.3. Đây là lý do một mô hình K lớp thực chất chỉ có K − 1 bậc tự do."
+
+  - id: q3
+    loai: so
+    do_kho: 1
+    de: "Tung một đồng xu lệch hai lần, các lần độc lập nhau, P(ngửa) = 0.6. Xác suất CẢ HAI lần đều ngửa là bao nhiêu?"
+    dap_an: 0.36
+    sai_so: 0.001
+    giai_thich: "Độc lập nên nhân: 0.6 × 0.6 = 0.36. Chính phép nhân này làm hàm hợp lý của n quan sát trở thành một TÍCH n thừa số."
+
+  - id: q4
+    loai: so
+    do_kho: 2
+    de: "Bộ lọc thư rác. P(spam) = 0.4. Xác suất thư chứa cụm 'khuyến mãi' là 0.6 nếu là spam, 0.05 nếu không. Một thư có chứa cụm đó. P(spam | có cụm đó) bằng bao nhiêu? (làm tròn 4 chữ số)"
+    dap_an: 0.8889
+    sai_so: 0.001
+    giai_thich: "Bayes: tử số 0.4 × 0.6 = 0.24; mẫu số 0.24 + 0.6 × 0.05 = 0.27. Kết quả 0.24/0.27 ≈ 0.8889."
+
+  - id: q5
+    loai: mot
+    do_kho: 2
+    de: "Trong ví dụ trên, P(có cụm 'khuyến mãi' | spam) = 0.6 nhưng P(spam | có cụm đó) ≈ 0.89. Vì sao hai số này khác nhau?"
+    lua_chon:
+      - Vì một trong hai số bị tính sai
+      - "Vì xác suất có điều kiện không đối xứng: đảo vế điều kiện là bài toán khác, phụ thuộc cả xác suất tiên nghiệm"
+      - Vì cộng lại phải bằng 1
+      - Vì chúng đo cùng một thứ ở hai thang đo khác nhau
+    dap_an: 1
+    giai_thich: "P(A|B) ≠ P(B|A). Lẫn hai chiều này là lỗi kinh điển (prosecutor's fallacy). Bayes chính là công thức đổi chiều, và nó cần thêm P(A) và P(B)."
+
+  - id: q6
+    loai: so
+    do_kho: 2
+    de: "P(mưa) = 0.3. P(kẹt xe | mưa) = 0.8, P(kẹt xe | không mưa) = 0.2. Xác suất kẹt xe (không biết trời thế nào) bằng bao nhiêu?"
+    dap_an: 0.38
+    sai_so: 0.001
+    giai_thich: "Xác suất biên = tổng theo mọi trường hợp: 0.3 × 0.8 + 0.7 × 0.2 = 0.24 + 0.14 = 0.38. Đây đúng là mẫu số trong công thức Bayes."
+
+  - id: q7
+    loai: mot
+    do_kho: 2
+    de: "Hàm mật độ của phân phối chuẩn N(0, 0.2²) tại điểm 0 có giá trị ≈ 1.99. Điều đó có mâu thuẫn với 'xác suất không vượt quá 1' không?"
+    lua_chon:
+      - Có, chắc chắn tính sai
+      - "Không: với biến liên tục, mật độ không phải xác suất; xác suất là DIỆN TÍCH dưới đường cong, còn mật độ có thể lớn tuỳ ý"
+      - Không, vì mật độ luôn được chia cho 2 khi dùng
+      - Có, trừ khi phương sai lớn hơn 1
+    dap_an: 1
+    giai_thich: "Mật độ có đơn vị 'xác suất trên một đơn vị x'. Phân phối càng hẹp thì đỉnh càng cao để tổng diện tích vẫn bằng 1. Xác suất tại đúng một điểm của biến liên tục luôn bằng 0."
+
+  - id: q8
+    loai: so
+    do_kho: 2
+    de: "Ba token được coi là độc lập với xác suất 0.1, 0.5 và 0.2. Xác suất của cả chuỗi bằng bao nhiêu?"
+    dap_an: 0.01
+    sai_so: 0.0001
+    giai_thich: "0.1 × 0.5 × 0.2 = 0.01. Với câu dài hàng trăm token, tích kiểu này tụt xuống dưới ngưỡng biểu diễn của số thực máy tính — nên người ta cộng logarit thay vì nhân."
+
+  - id: q9
+    loai: nhieu
+    do_kho: 2
+    de: Vì sao trong ML người ta hầu như luôn làm việc với logarit của xác suất thay vì xác suất? (chọn tất cả ý đúng)
+    lua_chon:
+      - Tích của nhiều số nhỏ tràn số dưới thành 0, còn tổng logarit thì không
+      - Logarit biến tích thành tổng, đạo hàm dễ hơn nhiều
+      - "Logarit tăng đơn điệu, nên điểm cực đại không đổi: argmax của likelihood cũng là argmax của log-likelihood"
+      - Logarit làm xác suất trở thành một phân phối chuẩn
+    dap_an: [0, 1, 2]
+    giai_thich: "Ba lý do đầu là toàn bộ câu chuyện. Ý cuối sai: lấy log không biến phân phối thành Gauss."
+
+  - id: q10
+    loai: mot
+    do_kho: 2
+    de: Đầu ra softmax của một mô hình phân loại 5 lớp tương ứng với phân phối nào?
+    lua_chon:
+      - Bernoulli
+      - Categorical (phân phối trên một tập hữu hạn nhãn)
+      - Gauss
+      - Đều
+    dap_an: 1
+    giai_thich: "Categorical là dạng tổng quát của Bernoulli cho K lớp. Bernoulli là trường hợp K = 2, khi đó chỉ cần một số p và sigmoid là đủ."
+
+  - id: q11
+    loai: nhieu
+    do_kho: 3
+    de: "Mô hình ngôn ngữ tính xác suất của câu bằng tích xác suất từng token: P(w₁)·P(w₂|w₁)·P(w₃|w₁,w₂)… Nhận định nào đúng? (chọn tất cả ý đúng)"
+    lua_chon:
+      - Đây là quy tắc dây chuyền của xác suất, luôn đúng, không cần giả định độc lập
+      - "Nếu bỏ hết điều kiện và viết P(w₁)·P(w₂)·P(w₃) thì đã thêm giả định độc lập — và giả định đó sai với ngôn ngữ tự nhiên"
+      - Tích này thường được tính bằng tổng log để tránh tràn số dưới
+      - Tích này luôn tăng khi câu dài ra
+    dap_an: [0, 1, 2]
+    giai_thich: "Quy tắc dây chuyền là đẳng thức, luôn đúng. Độc lập là giả định thêm vào (naive Bayes làm vậy) và nó sai với ngôn ngữ. Câu càng dài, tích càng NHỎ vì nhân thêm số < 1 — nên so sánh câu dài ngắn cần chuẩn hoá theo độ dài."
+
+  - id: q12
+    loai: mot
+    do_kho: 3
+    de: "Hai biến cố A và B được gọi là độc lập khi nào?"
+    lua_chon:
+      - Khi chúng không thể cùng xảy ra
+      - "Khi P(A ∩ B) = P(A)·P(B), tương đương P(A|B) = P(A)"
+      - Khi P(A) + P(B) = 1
+      - Khi P(A) = P(B)
+    dap_an: 1
+    giai_thich: "Độc lập nghĩa là biết B không làm thay đổi niềm tin về A. Ý đầu mô tả biến cố XUNG KHẮC — hai khái niệm khác hẳn nhau (xung khắc mà cả hai đều có xác suất dương thì chắc chắn KHÔNG độc lập)."

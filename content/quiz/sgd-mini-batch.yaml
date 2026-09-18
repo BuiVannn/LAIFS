@@ -1,0 +1,129 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: Mini-batch gradient descent khác full-batch gradient descent ở điểm nào?
+    lua_chon:
+      - Mỗi bước cập nhật chỉ dùng gradient tính trên một nhóm nhỏ mẫu lấy ngẫu nhiên
+      - Nó dùng một công thức cập nhật hoàn toàn khác
+      - Nó không cần learning rate
+      - Nó tính gradient bằng sai phân hữu hạn thay vì backprop
+    dap_an: 0
+    giai_thich: "Công thức cập nhật vẫn là w ← w − η∇L, vẫn cần learning rate, vẫn dùng backprop. Chỉ khác ở chỗ ∇L được ước lượng trên B mẫu thay vì cả N mẫu."
+
+  - id: q2
+    loai: mot
+    do_kho: 1
+    de: "Tập huấn luyện có 1.2 triệu ảnh. Vì sao không ai dùng full-batch gradient descent ở đây?"
+    lua_chon:
+      - Vì gradient toàn tập tính ra sẽ sai
+      - Vì mỗi bước cập nhật phải chạy qua cả 1.2 triệu ảnh, nên rất ít bước được thực hiện trong cùng thời gian
+      - Vì full-batch không hội tụ được với hàm không lồi
+      - Vì gradient toàn tập luôn bằng 0
+    dap_an: 1
+    giai_thich: "Gradient toàn tập chính xác nhất, đó không phải vấn đề. Vấn đề là giá: một lượt qua 1.2 triệu ảnh chỉ đổi lấy ĐÚNG MỘT bước cập nhật, trong khi cùng chi phí đó mini-batch cỡ 256 cho 4688 bước."
+
+  - id: q3
+    loai: so
+    do_kho: 1
+    de: "Tập huấn luyện có N = 50.000 mẫu, batch size B = 128. Một epoch gồm bao nhiêu iteration (bước cập nhật)?"
+    dap_an: 391
+    sai_so: 0.5
+    giai_thich: "⌈N/B⌉ = ⌈50000/128⌉ = ⌈390.625⌉ = 391. Batch cuối chỉ có 80 mẫu nhưng vẫn là một bước cập nhật."
+
+  - id: q4
+    loai: mot
+    do_kho: 2
+    de: Gradient tính trên một mini-batch lấy ngẫu nhiên có quan hệ thế nào với gradient trên toàn tập?
+    lua_chon:
+      - Luôn nhỏ hơn gradient toàn tập
+      - Bằng gradient toàn tập nhân với B/N
+      - "Có kỳ vọng đúng bằng gradient toàn tập (ước lượng không thiên lệch), nhưng từng lần thì lệch"
+      - Không có quan hệ gì, nó chỉ là xấp xỉ thô
+    dap_an: 2
+    giai_thich: "E[∇L_B] = ∇L. Từng mini-batch có thể lệch rất xa (trong ví dụ của bài là −10 và −50 so với sự thật −30), nhưng trung bình trên nhiều mini-batch thì đúng."
+
+  - id: q5
+    loai: so
+    do_kho: 2
+    de: "Bạn tăng batch size từ 8 lên 128. Độ lệch chuẩn của nhiễu gradient còn lại bao nhiêu PHẦN so với trước (ví dụ nếu còn một nửa thì trả lời 0.5)?"
+    dap_an: 0.25
+    sai_so: 0.001
+    giai_thich: "Nhiễu tỉ lệ với 1/√B. B tăng 16 lần nên nhiễu còn 1/√16 = 1/4 = 0.25. Chú ý chi phí mỗi bước thì tăng đúng 16 lần: trả gấp 16 để nhiễu còn 1/4."
+
+  - id: q6
+    loai: so
+    do_kho: 2
+    de: "Dữ liệu x = [1, 2, 3, 4], y = [2, 4, 6, 8]. Mô hình ŷ = wx, loss MSE trên mini-batch. Đang ở w = 0. Gradient trên mini-batch {x = 3, x = 4} bằng bao nhiêu?"
+    dap_an: -50
+    sai_so: 0.001
+    giai_thich: "Sai số = 0·3 − 6 = −6 và 0·4 − 8 = −8. Nhân với x: −18 và −32. Gradient = 2 × mean(−18, −32) = 2 × (−25) = −50. So với gradient toàn tập −30, mini-batch này lệch rất xa."
+
+  - id: q7
+    loai: so
+    do_kho: 3
+    de: "Vẫn dữ liệu đó, w = 0, η = 0.01, chạy MỘT epoch với hai mini-batch theo thứ tự {1, 2} rồi {3, 4}. w cuối epoch bằng bao nhiêu?"
+    dap_an: 0.575
+    sai_so: 0.001
+    giai_thich: "Bước 1 tại w = 0, gradient = −10, nên w = 0 + 0.1 = 0.1. Bước 2 tính tại w = 0.1 (không phải w = 0): sai số = −5.7 và −7.6, gradient = 2 × mean(−17.1, −30.4) = −47.5, nên w = 0.1 + 0.475 = 0.575. Full-batch cùng chi phí chỉ tới 0.3."
+
+  - id: q8
+    loai: mot
+    do_kho: 2
+    de: "Bạn huấn luyện trên corpus song ngữ gồm 200k câu tin tức nối tiếp 200k câu pháp luật, và quên xáo dữ liệu. Triệu chứng đặc trưng nhất là gì?"
+    lua_chon:
+      - Loss ra NaN ngay bước đầu
+      - "Loss dao động lên xuống theo chu kỳ đúng bằng một epoch"
+      - Loss giảm nhanh gấp đôi bình thường
+      - Không có triệu chứng gì, thứ tự dữ liệu không quan trọng
+    dap_an: 1
+    giai_thich: "Nửa đầu epoch mô hình chỉnh cho miền tin tức, nửa sau chỉnh cho miền pháp luật và quên miền trước. Mẫu hình lặp lại y hệt mỗi epoch, tạo ra đường loss răng cưa có chu kỳ bằng đúng một epoch."
+
+  - id: q9
+    loai: mot
+    do_kho: 2
+    de: "Tại một điểm yên ngựa, gradient toàn tập bằng 0. Vì sao mini-batch SGD vẫn thoát ra được còn full-batch thì kẹt?"
+    lua_chon:
+      - Vì mini-batch dùng learning rate lớn hơn
+      - "Vì gradient mini-batch chỉ có KỲ VỌNG bằng 0, từng lần vẫn khác 0 nên đẩy w trượt khỏi điểm đó"
+      - Vì mini-batch tính gradient bằng công thức khác
+      - Vì điểm yên ngựa không tồn tại khi dùng mini-batch
+    dap_an: 1
+    giai_thich: "∇L = 0 nhưng ∇L_B ≠ 0. Cú hích ngẫu nhiên đó đẩy w theo một hướng nào đó, và nếu hướng đó cong xuống thì w trượt tiếp. Full-batch thấy đúng 0 nên đứng im vô hạn."
+
+  - id: q10
+    loai: nhieu
+    do_kho: 2
+    de: Tăng batch size (giữ nguyên mọi thứ khác) gây ra những hệ quả nào? (chọn tất cả ý đúng)
+    lua_chon:
+      - Nhiễu của gradient giảm
+      - Bộ nhớ GPU cần nhiều hơn
+      - Số bước cập nhật trong một epoch giảm
+      - Learning rate tối ưu cũng tự động được điều chỉnh
+    dap_an: [0, 1, 2]
+    giai_thich: "Ba ý đầu là hệ quả trực tiếp. Ý cuối sai và là nguồn lỗi phổ biến nhất: learning rate KHÔNG tự chỉnh, phải tự nhân lên theo quy tắc tuyến tính hoặc căn bậc hai."
+
+  - id: q11
+    loai: mot
+    do_kho: 3
+    de: "Bạn tăng batch size gấp 4 và nhân learning rate lên 4 lần theo quy tắc tuyến tính. Kết quả: loss dao động mạnh và có lúc bật vọt lên trong vài trăm bước ĐẦU, sau đó thì chạy bình thường. Nên chỉnh gì?"
+    lua_chon:
+      - Bỏ quy tắc tuyến tính, quay về learning rate cũ
+      - "Thêm warmup: vài trăm bước đầu tăng dần learning rate từ 0 lên giá trị đích"
+      - Giảm batch size về như cũ
+      - Tắt xáo dữ liệu cho ổn định
+    dap_an: 1
+    giai_thich: "Triệu chứng chỉ ở giai đoạn ĐẦU là dấu hiệu kinh điển. Quy tắc tuyến tính dựa trên giả định 'gradient gần như không đổi qua k bước', giả định này sai lúc mới khởi tạo khi gradient đổi rất nhanh. Warmup đúng là cách chữa mà paper của Goyal và cộng sự đề ra."
+
+  - id: q12
+    loai: mot
+    do_kho: 2
+    de: "Bạn muốn batch hiệu dụng 512 nhưng GPU chỉ chứa nổi 64. Cách đúng là gì?"
+    lua_chon:
+      - Chịu thua, dùng batch 64 và giữ nguyên learning rate của batch 512
+      - "Gradient accumulation: chạy 8 mini-batch cỡ 64, cộng dồn gradient rồi mới cập nhật một lần"
+      - Giảm số epoch xuống 8 lần
+      - Dùng batch 64 nhưng nhân loss với 8
+    dap_an: 1
+    giai_thich: "Gradient accumulation cho kết quả toán học giống hệt batch 512, chỉ chậm hơn vì phải chạy 8 lượt xuôi/ngược trước mỗi lần cập nhật. Nhân loss với 8 chỉ nhân gradient lên 8 lần chứ không giảm nhiễu."

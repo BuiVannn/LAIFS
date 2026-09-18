@@ -1,0 +1,324 @@
+---
+ten_vi: "Vector & ma trận"
+ten_en: Vectors and Matrices
+tang: 1
+thu_tu: 1
+tien_quyet: []
+trang_thai: nhap
+dinh_nghia: >-
+  Vector là một dãy số có thứ tự (một điểm dữ liệu, một tham số, một hướng). Ma trận là một
+  bảng số hai chiều, thường dùng để xếp chồng nhiều vector lại. Trong NumPy cả hai đều là
+  `ndarray`, chỉ khác nhau ở `shape`.
+truc_giac: >-
+  Một khách hàng, một câu, một ảnh — mỗi thứ sau khi số hoá đều trở thành một dãy số: đó là
+  vector. Xếp cả nghìn dãy đó chồng lên nhau thành một bảng thì được ma trận. Máy tính không
+  xử lý từng dòng một, nó xử lý cả bảng cùng lúc, nên toàn bộ ML được viết bằng ngôn ngữ bảng số.
+hieu_nham:
+  - "Shape `(3,)` KHÁC shape `(3, 1)` và KHÁC `(1, 3)`: cái đầu là vector một chiều, hai cái sau là ma trận. NumPy không báo lỗi khi bạn nhầm, nó âm thầm broadcasting ra kết quả sai shape."
+  - "`X.T` không phải `X.reshape` đảo chiều: chuyển vị đổi vai trò hàng–cột (phần tử [i, j] thành [j, i]), còn reshape chỉ đọc lại cùng dãy số theo khuôn mới."
+  - "`axis=0` không có nghĩa là 'theo hàng'. Nó nghĩa là 'gộp dọc theo trục 0', tức là trục hàng BIẾN MẤT: `X.sum(axis=0)` của ma trận (3, 2) cho ra 2 số, mỗi số là tổng của một cột."
+  - "Cộng ma trận (3, 2) với vector (2,) không báo lỗi mà chạy được, vì NumPy tự nhân bản vector đó cho từng hàng (broadcasting). Đây là tính năng, không phải lỗi — nhưng nó cũng giấu lỗi của bạn."
+  - "`X[0]` trả về một VIEW, không phải bản sao. Sửa nó là sửa luôn `X` gốc."
+y_chinh:
+  - "Vector = dãy số có thứ tự; ma trận = bảng số 2 chiều; trong NumPy cả hai là `ndarray`, phân biệt bằng `shape`"
+  - "Quy ước ML: ma trận dữ liệu X có shape (số mẫu, số đặc trưng) — mỗi HÀNG là một mẫu"
+  - "Shape là thứ phải kiểm tra đầu tiên khi debug; `(n,)`, `(n, 1)`, `(1, n)` là ba thứ khác nhau"
+  - "Chuyển vị đổi [i, j] thành [j, i]; chuẩn L2 ‖v‖ = √(Σ vᵢ²) là độ dài, mở rộng từ định lý Pythagore"
+  - "`axis=k` nghĩa là trục k bị gộp và biến mất (trừ khi dùng `keepdims=True`)"
+  - "Broadcasting so shape từ PHẢI sang trái, chiều nào bằng 1 hoặc thiếu thì được nhân bản"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=fNk_zzaMoSs
+    tieu_de: "Vectors | Chapter 1, Essence of linear algebra"
+    tac_gia: 3Blue1Brown
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: 10 phút, giải thích vector theo ba góc nhìn (mũi tên, danh sách số, phần tử đại số). Xem đầu tiên, trước mọi thứ khác.
+  - url: https://www.youtube.com/watch?v=k7RM-ot2NWY
+    tieu_de: "Linear combinations, span, and basis vectors | Chapter 2, Essence of linear algebra"
+    tac_gia: 3Blue1Brown
+    loai: video
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Tổ hợp tuyến tính và không gian sinh — nền để hiểu vì sao nhân ma trận lại là "trộn các cột". Xem sau khi nắm bài này.
+  - url: https://jalammar.github.io/visual-numpy/
+    tieu_de: A Visual Intro to NumPy and Data Representation
+    tac_gia: Jay Alammar
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Mỗi thao tác NumPy một hình vẽ. Rất hợp để tra lại khi quên `axis` hay broadcasting làm gì.
+  - url: https://numpy.org/doc/stable/user/basics.broadcasting.html
+    tieu_de: "NumPy user guide: Broadcasting"
+    tac_gia: NumPy developers
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Tài liệu gốc về quy tắc broadcasting, có bảng ví dụ shape hợp lệ/không hợp lệ. Đây là trang nên bookmark.
+---
+
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Tình huống: 10.000 khách hàng, một mô hình
+
+Bạn có bảng dữ liệu 10.000 khách hàng, mỗi người 3 con số: tuổi, thu nhập, số năm dùng dịch vụ. Cần dự đoán họ có rời bỏ dịch vụ không.
+
+Cách nghĩ đầu tiên là viết vòng lặp: với mỗi khách hàng, lấy 3 số, nhân với 3 trọng số, cộng lại. 10.000 vòng lặp Python. Với mô hình thật (batch 256 câu, mỗi câu 512 token, mỗi token 768 chiều) thì đó là hơn 100 triệu vòng lặp **cho một bước huấn luyện**. Python chạy cỡ vài triệu vòng lặp mỗi giây. Không xong.
+
+Giải pháp của toàn ngành ML: **đừng lặp, hãy xếp thành bảng số rồi bảo thư viện làm một lần**. Bảng đó là ma trận, mỗi dòng của nó là một vector. Đây là lý do mọi thứ trong ML — dữ liệu, tham số, gradient, kết quả trung gian — đều là mảng nhiều chiều.
+
+## Trực giác: dãy số và bảng số
+
+**Vector** là một dãy số **có thứ tự**. Thứ tự quan trọng: nếu vị trí 0 là "tuổi" thì nó phải luôn là tuổi, ở mọi khách hàng. Một vector có thể là:
+
+- một **điểm dữ liệu**: `[35, 12.5, 3]` — một khách hàng
+- một bộ **tham số**: `[0.2, -0.1, 0.5]` — trọng số của mô hình
+- một **hướng** trong không gian: gradient chỉ hướng dốc lên
+
+**Ma trận** là nhiều vector xếp chồng thành bảng. Quy ước gần như phổ quát trong ML:
+
+> Ma trận dữ liệu $X$ có shape **(số mẫu, số đặc trưng)**. Mỗi **hàng** là một mẫu.
+
+Nhớ quy ước này, vì mọi công thức sau đó (kể cả `X @ W.T + b`) đều bám vào nó.
+
+Nhiều hơn 2 chiều thì gọi chung là **tensor**: một batch ảnh màu là `(số ảnh, cao, rộng, 3)`. Quy tắc không đổi, chỉ thêm trục.
+
+<CauHoi cau="vector-ma-tran/q1" />
+
+## Ba thứ phải đọc được ngay: shape, trục, chuyển vị
+
+### Shape
+
+`shape` là bộ số nói mảng có mấy chiều và mỗi chiều dài bao nhiêu. Nó là thứ **đầu tiên** cần in ra khi code sai.
+
+Ba shape dưới đây chứa cùng 3 con số nhưng là ba đối tượng khác nhau:
+
+| Biểu thức | Shape | Là gì |
+|---|---|---|
+| `np.array([1, 2, 3])` | `(3,)` | Vector 1 chiều. Không có khái niệm hàng hay cột |
+| `np.array([[1, 2, 3]])` | `(1, 3)` | Ma trận 1 hàng, 3 cột (vector hàng) |
+| `np.array([[1], [2], [3]])` | `(3, 1)` | Ma trận 3 hàng, 1 cột (vector cột) |
+
+Toán học viết $\mathbf{v} \in \mathbb{R}^3$ và không phân biệt. NumPy thì phân biệt, và đó là nguồn của phần lớn bug shape.
+
+### Trục (axis)
+
+Mảng 2 chiều có trục 0 (đi dọc theo hàng, từ trên xuống) và trục 1 (đi ngang theo cột, từ trái sang). Với `X` shape `(3, 2)`:
+
+$$
+X = \begin{pmatrix} 1 & 2 \\ 3 & 4 \\ 5 & 6 \end{pmatrix}
+$$
+
+Cách nhớ duy nhất cần thuộc: **`axis=k` là trục bị gộp và biến mất.**
+
+- `X.sum(axis=0)`: trục 0 (dài 3) biến mất, còn shape `(2,)` → `[9, 12]`, tổng của từng **cột**
+- `X.sum(axis=1)`: trục 1 (dài 2) biến mất, còn shape `(3,)` → `[3, 7, 11]`, tổng của từng **hàng**
+
+Muốn giữ trục lại (dài 1) thì thêm `keepdims=True`: `X.sum(axis=1, keepdims=True)` cho shape `(3, 1)`. Việc này quan trọng khi bạn muốn chia lại cho chính mảng gốc — sẽ gặp ngay ở phần chuẩn hoá bên dưới.
+
+### Chuyển vị
+
+Chuyển vị $X^\top$ đổi vai trò hàng và cột: phần tử ở $[i, j]$ chuyển sang $[j, i]$. Shape `(3, 2)` thành `(2, 3)`.
+
+$$
+X^\top = \begin{pmatrix} 1 & 3 & 5 \\ 2 & 4 & 6 \end{pmatrix}
+$$
+
+Chuyển vị **không** giống `reshape(2, 3)`. `reshape` giữ nguyên thứ tự đọc của các số (1, 2, 3, 4, 5, 6) rồi xếp lại thành khuôn mới, cho `[[1, 2, 3], [4, 5, 6]]`. Chuyển vị cho `[[1, 3, 5], [2, 4, 6]]`. Hai kết quả khác hẳn nhau.
+
+<CauHoi cau="vector-ma-tran/q4" />
+
+## Độ dài của vector: vì sao lại là căn của tổng bình phương
+
+Trong mặt phẳng, vector $\mathbf{v} = (3, 4)$ là mũi tên đi 3 đơn vị ngang rồi 4 đơn vị dọc. Độ dài của nó là cạnh huyền của tam giác vuông cạnh 3 và 4, tức $\sqrt{3^2 + 4^2} = 5$ theo định lý Pythagore.
+
+Với 3 chiều, áp Pythagore hai lần (một lần trong mặt phẳng đáy, một lần lên chiều cao) ra $\sqrt{v_1^2 + v_2^2 + v_3^2}$. Cứ thế, mỗi chiều mới thêm đúng một số hạng bình phương. Nên định nghĩa cho $n$ chiều là phần mở rộng tự nhiên:
+
+$$
+\|\mathbf{v}\|_2 = \sqrt{\sum_{i=1}^{n} v_i^2}
+$$
+
+Đây gọi là **chuẩn L2** (Euclidean norm). Chỉ số 2 là do số mũ 2. Bình phương xuất hiện vì Pythagore, không phải ngẫu nhiên — và nó cũng là lý do MSE, L2 regularization, phương sai đều dùng bình phương: tất cả đều đang đo "độ dài" của một vector sai số.
+
+Chuẩn L1 $\|\mathbf{v}\|_1 = \sum |v_i|$ là quãng đường đi theo lưới phố (không được đi chéo). Hai chuẩn cho hai hình học khác nhau, và đó là lý do L1 regularization đẩy tham số về đúng 0 còn L2 chỉ làm nó nhỏ lại.
+
+## Tính tay
+
+Lấy $X$ ở trên, shape `(3, 2)`, và $\mathbf{b} = (10, 20)$.
+
+**Chuẩn L2 của từng hàng:**
+
+| Hàng | Vector | Tính | Kết quả |
+|---|---|---|---|
+| 0 | (1, 2) | $\sqrt{1 + 4} = \sqrt{5}$ | 2.2361 |
+| 1 | (3, 4) | $\sqrt{9 + 16} = \sqrt{25}$ | 5.0000 |
+| 2 | (5, 6) | $\sqrt{25 + 36} = \sqrt{61}$ | 7.8102 |
+
+Kết quả là vector shape `(3,)`: mỗi mẫu một số.
+
+**Cộng bias bằng broadcasting.** $X$ shape `(3, 2)`, $\mathbf{b}$ shape `(2,)`. NumPy so shape từ **phải sang trái**:
+
+```
+X :  (3, 2)
+b :     (2)     ← thiếu chiều bên trái, coi như (1, 2)
+---------------
+     (3, 2)     ← chiều 1 được nhân bản lên 3
+```
+
+Nghĩa là $\mathbf{b}$ được cộng vào **từng hàng**:
+
+$$
+X + \mathbf{b} = \begin{pmatrix} 1{+}10 & 2{+}20 \\ 3{+}10 & 4{+}20 \\ 5{+}10 & 6{+}20 \end{pmatrix} = \begin{pmatrix} 11 & 22 \\ 13 & 24 \\ 15 & 26 \end{pmatrix}
+$$
+
+Đúng cái ta muốn: mỗi đặc trưng có bias riêng, mọi mẫu dùng chung bias đó. Đây chính xác là cách một lớp neuron cộng bias.
+
+## Code: chạy thử để thấy tận mắt
+
+```python
+import numpy as np
+
+X = np.array([[1., 2.],
+              [3., 4.],
+              [5., 6.]])        # 3 mẫu, 2 đặc trưng
+b = np.array([10., 20.])        # một bias cho mỗi đặc trưng
+
+print("shape X   ", X.shape)
+print("shape X.T ", X.T.shape)
+print("chuẩn hàng", np.round(np.sqrt((X ** 2).sum(axis=1)), 4))
+print("X + b     ", (X + b).tolist())
+print("sum axis=0", X.sum(axis=0))   # gộp các HÀNG lại -> còn 2 số
+print("sum axis=1", X.sum(axis=1))   # gộp các CỘT lại -> còn 3 số
+
+v = X[0]                             # lấy 1 hàng -> shape (2,), KHÔNG phải (1, 2)
+print("v.shape   ", v.shape, "| v[:, None].shape", v[:, None].shape)
+print("v + v[:, None] ->", (v + v[:, None]).shape, "  <- broadcasting âm thầm!")
+```
+
+Kết quả:
+
+```
+shape X    (3, 2)
+shape X.T  (2, 3)
+chuẩn hàng [2.2361 5.     7.8102]
+X + b      [[11.0, 22.0], [13.0, 24.0], [15.0, 26.0]]
+sum axis=0 [ 9. 12.]
+sum axis=1 [ 3.  7. 11.]
+v.shape    (2,) | v[:, None].shape (2, 1)
+v + v[:, None] -> (2, 2)   <- broadcasting âm thầm!
+```
+
+Dòng cuối là cái bẫy đắt nhất trong bài này: cộng hai vector 2 phần tử mà ra ma trận 2×2, không một lời cảnh báo. Ta sẽ mổ nó ngay dưới đây.
+
+<CauHoi cau="vector-ma-tran/q7" />
+
+## Nâng cao
+
+### Quy tắc broadcasting đầy đủ
+
+NumPy xếp hai shape thẳng hàng về **bên phải**, rồi duyệt từng cặp chiều:
+
+1. Hai chiều bằng nhau → giữ nguyên.
+2. Một trong hai bằng 1 → nhân bản chiều đó lên cho bằng chiều kia.
+3. Một bên thiếu chiều (shape ngắn hơn) → coi như chiều đó bằng 1.
+4. Ngược lại → `ValueError: operands could not be broadcast together`.
+
+| A | B | Kết quả | Vì sao |
+|---|---|---|---|
+| `(3, 2)` | `(2,)` | `(3, 2)` | `(2,)` → `(1, 2)` → nhân bản 3 hàng |
+| `(3, 2)` | `(3,)` | **lỗi** | so từ phải: 2 với 3, không ai bằng 1 |
+| `(3, 2)` | `(3, 1)` | `(3, 2)` | nhân bản cột: mỗi mẫu một số |
+| `(2,)` | `(2, 1)` | `(2, 2)` | cả hai cùng được nhân bản — thường là bug |
+| `(4, 1, 3)` | `(5, 3)` | `(4, 5, 3)` | chiều 1 nở ra 5, chiều thiếu nở ra 4 |
+
+Hai dòng đáng nhớ nhất: `(3, 2) + (3,)` **báo lỗi** (muốn cộng một số cho mỗi mẫu thì phải là `(3, 1)`), còn `(2,) + (2, 1)` **không** báo lỗi mà ra `(2, 2)`.
+
+### Mẹo thực chiến: chuẩn hoá từng hàng cần `keepdims`
+
+Việc rất hay làm với embedding: chia mỗi hàng cho chuẩn của nó để mọi vector dài 1.
+
+```python
+chuan = np.sqrt((X ** 2).sum(axis=1, keepdims=True))   # (3, 1)  ✔
+X_don_vi = X / chuan
+```
+
+Nếu quên `keepdims=True`, `chuan` có shape `(3,)`. Broadcasting so `(3, 2)` với `(3,)` từ phải: 2 với 3 → `ValueError`. Lần này bạn may, NumPy báo lỗi. Nhưng nếu ma trận tình cờ vuông, shape `(3, 3)` chia `(3,)` chạy ngon lành và **chia sai trục**: mỗi cột bị chia cho chuẩn của một hàng. Không lỗi, chỉ sai số. Đây là loại bug tốn nhiều giờ nhất.
+
+Quy tắc an toàn: hễ dùng `sum`/`mean`/`max` để rồi chia lại cho mảng gốc, luôn để `keepdims=True`.
+
+### View và copy
+
+`X[0]`, `X.T`, `X.reshape(...)`, `X[:, 1:]` đều trả về **view**: cùng vùng nhớ, chỉ khác cách đọc. Sửa view là sửa `X`.
+
+```python
+v = X[0]
+v[0] = 999        # X[0, 0] cũng thành 999
+```
+
+Muốn tách rời thì `X[0].copy()`. Ngược lại, chỉ mục nâng cao (`X[[0, 2]]`, `X[X > 3]`) luôn trả về bản sao. Đây là lý do `X[X > 3] = 0` hoạt động (gán có xử lý riêng) nhưng `y = X[X > 3]; y[:] = 0` thì không đụng tới `X`.
+
+### Kiểu dữ liệu
+
+`np.array([1, 2, 3])` cho `dtype=int64`. Chia nó ra float là ổn, nhưng `a /= 2` trên mảng int thì **lỗi** (không ép kiểu tại chỗ được). Deep learning dùng `float32` (một nửa bộ nhớ, GPU nhanh gấp đôi) và `bfloat16` cho mô hình lớn. Nếu bạn `np.array([...])` với toàn số nguyên rồi đưa vào công thức có chia, hãy viết `1.` thay vì `1` ngay từ đầu.
+
+### Liên hệ DL/NLP
+
+- **Embedding**: ma trận `(số_từ_vựng, số_chiều)`, ví dụ `(32000, 4096)`. Tra từ chỉ là lấy một hàng.
+- **Batch token**: một batch câu là tensor `(batch, seq_len, d_model)` — ba trục, và bạn sẽ liên tục phải nhớ trục nào là trục nào.
+- **Attention mask** cộng vào điểm attention qua đúng broadcasting: mask `(batch, 1, 1, seq)` cộng vào `(batch, heads, seq, seq)`. Các chiều 1 tự nở ra. Không có broadcasting thì phải copy mask ra kích thước đầy đủ, tốn bộ nhớ vô ích.
+
+## Sai lầm hay gặp
+
+**1. Nhầm `(n,)` với `(n, 1)`.**
+*Triệu chứng*: kết quả đột nhiên có shape bình phương — bạn mong `(64,)` nhưng in ra `(64, 64)`; hoặc loss là một số kỳ lạ lớn gấp $n$ lần bình thường.
+*Cách sửa*: in shape của cả hai vế ngay trước dòng phép toán. Dùng `v[:, None]` để biến `(n,)` thành `(n, 1)`, `v[None, :]` để thành `(1, n)`.
+
+**2. Quên `keepdims=True` khi chuẩn hoá.**
+*Triệu chứng*: `ValueError: operands could not be broadcast together with shapes (3,2) (3,)`. Hoặc tệ hơn, với ma trận vuông thì không lỗi gì cả, chỉ là model không học được.
+*Cách sửa*: thêm `keepdims=True` vào `sum`/`mean`/`max`; hoặc kiểm tra bằng một ma trận **không vuông** (ví dụ 3×5) để bug lộ ra thành lỗi thật.
+
+**3. Dùng `axis` ngược.**
+*Triệu chứng*: `X.mean(axis=0)` trên `(batch, features)` cho ra số phần tử bằng số **mẫu** thay vì số **đặc trưng** — dấu hiệu bạn đang tính trung bình sai chiều.
+*Cách sửa*: kiểm tra bằng độ dài kết quả, không bằng trực giác. Chuẩn hoá đặc trưng trên `(n, d)` phải cho vector độ dài $d$, tức `axis=0`.
+
+**4. Dùng `reshape` để chuyển vị.**
+*Triệu chứng*: không có lỗi, chỉ là số liệu bị trộn lung tung; loss không giảm hoặc giảm rồi dừng ở mức cao.
+*Cách sửa*: `reshape` chỉ dùng khi bạn muốn **nhóm lại** các trục (`(b, s, h*d)` ↔ `(b, s, h, d)`). Đổi vai trò trục thì dùng `.T`, `.transpose(...)` hoặc `np.swapaxes`.
+
+**5. Sửa view mà tưởng là bản sao.**
+*Triệu chứng*: một mảng bạn không hề gán lại tự nhiên đổi giá trị; kết quả khác nhau giữa hai lần chạy cùng code.
+*Cách sửa*: `.copy()` khi tách một phần mảng ra để sửa. Khi nghi ngờ: `np.shares_memory(a, b)`.
+
+## Tra nhanh
+
+| Việc | Cách viết | Shape vào → ra |
+|---|---|---|
+| Xem kích thước | `X.shape`, `X.ndim`, `X.dtype` | — |
+| Chuyển vị | `X.T` | `(n, d)` → `(d, n)` |
+| Chuẩn L2 từng hàng | `np.linalg.norm(X, axis=1)` | `(n, d)` → `(n,)` |
+| Chuẩn L2 giữ trục | `np.linalg.norm(X, axis=1, keepdims=True)` | `(n, d)` → `(n, 1)` |
+| Trung bình mỗi đặc trưng | `X.mean(axis=0)` | `(n, d)` → `(d,)` |
+| Trung bình mỗi mẫu | `X.mean(axis=1)` | `(n, d)` → `(n,)` |
+| `(n,)` → cột `(n, 1)` | `v[:, None]` | `(n,)` → `(n, 1)` |
+| `(n,)` → hàng `(1, n)` | `v[None, :]` | `(n,)` → `(1, n)` |
+| Bỏ chiều thừa | `v.squeeze()` hoặc `v.ravel()` | `(n, 1)` → `(n,)` |
+| Bản sao thật | `X.copy()` | — |
+
+**Broadcasting** — so shape từ **phải sang trái**; mỗi cặp chiều phải bằng nhau, hoặc có một bên bằng 1 (hoặc thiếu).
+
+| Cần | Shape phải có |
+|---|---|
+| Một số cho mỗi **đặc trưng** (bias) | `(d,)` hoặc `(1, d)` |
+| Một số cho mỗi **mẫu** | `(n, 1)` — **không phải** `(n,)` |
+
+**Lỗi hay gặp và nghĩa của nó**
+
+| Thông báo | Nghĩa |
+|---|---|
+| `operands could not be broadcast together with shapes (3,2) (3,)` | Thiếu `keepdims=True`, hoặc cần `v[:, None]` |
+| Kết quả ra shape vuông `(n, n)` ngoài dự kiến | Cộng nhầm `(n,)` với `(n, 1)` |
+| `ufunc output ... casting rule 'same_kind'` | Mảng đang là int, đừng `/=` — tạo mảng float từ đầu |
+
+**Quy ước phải thuộc**: $X$ shape `(số mẫu, số đặc trưng)`, mỗi hàng một mẫu; `axis=k` là trục **biến mất**.
+
+Tiếp theo: [Nhân ma trận, tích vô hướng](/khai-niem/nhan-ma-tran) — dùng bảng số này để tính cả batch một lần.

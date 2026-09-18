@@ -1,0 +1,334 @@
+---
+ten_vi: "Chia train/validation/test"
+ten_en: "Train / Validation / Test Splits, Cross-Validation and Data Leakage"
+tang: 2
+thu_tu: 9
+tien_quyet: ["ml-la-gi"]
+trang_thai: nhap
+dinh_nghia: >-
+  Cách tách dữ liệu thành ba phần có vai trò khác nhau: tập train để chỉnh tham số, tập validation
+  để chọn giữa các phương án (siêu tham số, kiến trúc, điểm dừng), tập test chỉ mở đúng một lần ở
+  cuối để ước lượng khách quan chất lượng trên dữ liệu chưa từng thấy. Mọi thông tin chảy ngược từ
+  val hoặc test về train đều gọi là rò rỉ dữ liệu và làm con số báo cáo mất giá trị.
+truc_giac: >-
+  Tập train là bài tập về nhà: được xem đáp án, được làm đi làm lại. Tập validation là đề thi thử:
+  làm nhiều lần để chọn cách ôn, nên sau vài chục lần thì điểm thi thử đã bị thổi phồng. Tập test
+  là đề thi thật, niêm phong tới phút cuối — mở ra xem trước một lần là nó vĩnh viễn không còn là
+  đề thi thật nữa.
+hieu_nham:
+  - "Hai tập là không đủ. Nếu bạn dùng cùng một tập để vừa chọn mô hình vừa báo cáo kết quả, con số báo cáo đã bị thổi phồng — chọn nhiều lần trên cùng một tập chính là một kiểu học trên tập đó."
+  - "Tập test không phải để \"kiểm tra xem đã đủ tốt chưa\". Mỗi lần bạn nhìn test rồi quay lại sửa mô hình, test tụt hạng thành một tập validation nữa và mất tư cách ước lượng khách quan."
+  - "Rò rỉ dữ liệu hiếm khi là lỗi copy dữ liệu. Phổ biến hơn nhiều: chuẩn hoá hoặc chọn đặc trưng TRƯỚC khi chia, mẫu trùng lặp, cùng một người/bệnh nhân/tài liệu nằm ở cả hai bên, hoặc đặc trưng chứa thông tin chỉ có sau khi sự việc đã xảy ra."
+  - "Chia ngẫu nhiên không phải lúc nào cũng đúng. Dữ liệu có thứ tự thời gian phải chia theo thời gian; dữ liệu có nhóm (người dùng, bệnh nhân, tài liệu) phải chia theo nhóm."
+  - "k-fold không thay thế tập test. k-fold chỉ chia đi chia lại phần train + val để chọn tốt hơn; vẫn cần một tập test niêm phong ở ngoài."
+y_chinh:
+  - "Train chỉnh tham số, validation chọn phương án, test ước lượng khách quan và chỉ mở một lần"
+  - "Chọn nhiều lần trên val làm val lạc quan: thử 20 mô hình đều thật sự đúng 80% thì mô hình tốt nhất trên val 200 mẫu trung bình đạt 85.1%"
+  - "Rò rỉ dữ liệu = thông tin từ val/test lọt vào quá trình huấn luyện; triệu chứng kinh điển là kết quả đẹp bất thường rồi sập khi chạy thật"
+  - "Các kiểu rò rỉ hay gặp: mẫu trùng, chuẩn hoá/chọn đặc trưng trước khi chia, nhóm bị tách đôi, đặc trưng từ tương lai, cân bằng lớp trước khi chia"
+  - "Chia theo thời gian khi dữ liệu có thứ tự; chia theo nhóm khi nhiều mẫu cùng một chủ thể"
+  - "k-fold dùng hết dữ liệu để chọn mô hình và cho biết độ dao động, nhưng không thay được tập test niêm phong"
+tai_lieu:
+  - url: https://www.youtube.com/watch?v=fSytzGwwBVw
+    tieu_de: "Machine Learning Fundamentals: Cross Validation"
+    tac_gia: StatQuest with Josh Starmer
+    loai: video
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: 6 phút, vẽ thẳng ra vì sao một lần chia là không đủ và k-fold sửa chuyện đó thế nào. Xem trước khi đọc phần k-fold trong bài.
+  - url: https://www.fast.ai/posts/2017-11-13-validation-sets.html
+    tieu_de: How (and why) to create a good validation set
+    tac_gia: Rachel Thomas (fast.ai)
+    loai: bai_viet
+    muc_do: nhap_mon
+    ngon_ngu: en
+    ghi_chu: Bài viết hay nhất về chuyện chia ngẫu nhiên là sai với dữ liệu thời gian và dữ liệu có nhóm, kèm ví dụ thật từ các cuộc thi Kaggle.
+  - url: https://scikit-learn.org/stable/modules/cross_validation.html
+    tieu_de: "Cross-validation: evaluating estimator performance"
+    tac_gia: scikit-learn
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Tài liệu tra cứu. Đọc mục về StratifiedKFold, GroupKFold và TimeSeriesSplit — có hình minh hoạ từng kiểu chia.
+  - url: https://arxiv.org/abs/2207.07048
+    tieu_de: "Leakage and the Reproducibility Crisis in ML-based Science"
+    tac_gia: Sayash Kapoor, Arvind Narayanan
+    loai: bai_viet
+    muc_do: sau
+    ngon_ngu: en
+    ghi_chu: Rà soát 294 bài báo trên 17 lĩnh vực và phân loại tám kiểu rò rỉ dữ liệu, kèm ví dụ thật ở từng kiểu. Đọc mục phân loại rò rỉ — nó chính là danh sách kiểm tra tốt nhất hiện có.
+---
+
+import CauHoi from '../../src/components/CauHoi.astro';
+
+## Tình huống: 94% trong báo cáo, 61% ngoài đời
+
+Một đội làm mô hình dự đoán khách hàng sắp rời bỏ dịch vụ. Báo cáo cuối dự án: **độ chính xác 94%**. Ban lãnh đạo duyệt, hệ thống lên chạy thật. Sau một tháng, đối chiếu lại: đúng **61%** — gần bằng đoán bừa theo tỉ lệ lớp.
+
+Không ai gian lận. Ba chuyện đã xảy ra, và cả ba đều rất thường:
+
+1. Bảng dữ liệu có **mẫu trùng** — cùng một khách hàng bị xuất ra hai lần từ hai truy vấn khác nhau. Chia ngẫu nhiên đẩy bản sao sang tập kiểm tra, mô hình chỉ cần nhớ là đúng.
+2. Người làm **chuẩn hoá đặc trưng trên toàn bộ bảng** rồi mới chia. Trung bình và độ lệch chuẩn dùng để chuẩn hoá đã chứa thông tin của tập test.
+3. Đội thử **hơn 40 cấu hình** và báo cáo cấu hình có điểm cao nhất — trên chính tập đã dùng để chọn.
+
+Mỗi lỗi ăn vài điểm phần trăm. Cộng lại thành 33 điểm. Bài này là về cách không để chuyện đó xảy ra.
+
+## Trực giác: bài tập, thi thử, thi thật
+
+| Tập | Vai trò | Mô hình được nhìn? | Bạn được nhìn? |
+|---|---|---|---|
+| **Train** | chỉnh tham số $w$ | có, rất nhiều lần | có |
+| **Validation** | chọn siêu tham số, kiến trúc, điểm dừng | không trực tiếp, nhưng gián tiếp qua mỗi lần bạn chọn | có, nhiều lần |
+| **Test** | ước lượng khách quan | không | **đúng một lần, ở cuối** |
+
+Tập train là bài tập về nhà. Tập validation là đề thi thử: bạn làm nhiều lần để biết nên ôn kiểu nào — nhưng vì thế, điểm thi thử ngày càng không phản ánh năng lực thật. Tập test là đề thi thật, niêm phong.
+
+Câu hỏi hay gặp: *sao không gộp val và test làm một cho đỡ phí dữ liệu?* Phần sau trả lời bằng số.
+
+## Vì sao phải tách val khỏi test
+
+Giả sử bạn có 20 cấu hình mô hình **đều thật sự đúng 80%** — không cái nào tốt hơn cái nào. Bạn đo cả 20 trên một tập validation 200 mẫu rồi lấy cái điểm cao nhất.
+
+Mỗi phép đo trên 200 mẫu có sai số ngẫu nhiên (độ lệch chuẩn khoảng $\sqrt{0.8 \times 0.2 / 200} \approx 0.028$). Lấy **giá trị lớn nhất** của 20 phép đo nhiễu không cho ra giá trị thật, nó cho ra *giá trị thật cộng một cú may*:
+
+| Số cấu hình đã thử | Điểm val của cấu hình "thắng" (trung bình) | Độ chính xác thật |
+|---|---|---|
+| 1 | 0.800 | 0.80 |
+| 20 | **0.851** | 0.80 |
+| 200 | **0.874** | 0.80 |
+
+Thử 20 cấu hình đã thổi con số lên hơn 5 điểm phần trăm, dù không cấu hình nào tốt hơn cấu hình nào. Đây không phải là overfitting theo nghĩa thông thường — đây là **overfitting lên tập validation qua việc chọn lựa**.
+
+Vậy nên quy tắc rất cứng:
+
+> **Tập nào bạn dùng để CHỌN thì tập đó không dùng để BÁO CÁO.**
+
+Validation trả lời "cấu hình nào tốt hơn?" — câu hỏi so sánh, chịu được lệch. Test trả lời "chạy thật thì đúng khoảng bao nhiêu?" — câu hỏi định lượng, không chịu được lệch. Hai câu hỏi khác nhau nên cần hai tập khác nhau.
+
+Hệ quả thực tế: **mở tập test là hành động một chiều**. Nhìn kết quả test rồi quay lại chỉnh mô hình thì test đã biến thành một tập validation nữa, và bạn không còn ước lượng khách quan nào cả.
+
+<CauHoi cau="train-val-test/q3" />
+
+## Tính tay: chia 10 mẫu
+
+Có 10 mẫu, đánh số 0..9. Quy trình chia đúng gồm hai bước: **xáo trộn**, rồi **cắt**.
+
+Giả sử phép xáo trộn cho thứ tự
+
+$$
+\pi = [\,3,\;7,\;0,\;9,\;4,\;1,\;8,\;2,\;6,\;5\,]
+$$
+
+Cắt theo tỉ lệ 60 / 20 / 20:
+
+| Tập | Lấy phần nào của $\pi$ | Chỉ số |
+|---|---|---|
+| Train (6 mẫu) | $\pi[0:6]$ | 3, 7, 0, 9, 4, 1 |
+| Validation (2 mẫu) | $\pi[6:8]$ | 8, 2 |
+| Test (2 mẫu) | $\pi[8:10]$ | 6, 5 |
+
+Vì sao **phải xáo trộn trước**? Bảng dữ liệu thật rất hay được sắp sẵn: theo nhãn, theo ngày, theo mã khách hàng. Cắt 20% cuối của một bảng sắp theo nhãn thì tập test chỉ có đúng một lớp.
+
+Vì sao **không xáo trộn lại giữa chừng**? Xáo lại là trộn mẫu test vào train. Trong code, nghĩa là cố định `seed` và chia đúng một lần, lưu lại chỉ số.
+
+### Kiểm rò rỉ: ba phép so tập hợp
+
+Sau khi chia, luôn kiểm ba điều — mất ba dòng code, cứu cả dự án:
+
+1. **Không giao nhau theo chỉ số.** $\text{train} \cap \text{val} = \varnothing$, $\text{train} \cap \text{test} = \varnothing$, $\text{val} \cap \text{test} = \varnothing$.
+2. **Đủ số mẫu.** $|{\text{train}}| + |{\text{val}}| + |{\text{test}}| = n$, không thiếu không thừa.
+3. **Không trùng nội dung.** Đây mới là phép kiểm quan trọng, vì phép 1 luôn đúng còn phép 3 thì hay sai.
+
+Giả sử bảng dữ liệu có hai cặp dòng giống hệt nhau: dòng 6 là bản sao của dòng 0, dòng 5 là bản sao của dòng 4. Nhìn lại bảng chia ở trên:
+
+- Dòng 0 ở **train**, bản sao của nó là dòng 6 ở **test**.
+- Dòng 4 ở **train**, bản sao của nó là dòng 5 ở **test**.
+
+Tập test có 2 mẫu và **cả 2 đều là bản sao của mẫu trong train**. Mô hình chỉ cần nhớ thuộc lòng là đạt 100% trên test. Phép kiểm 1 vẫn xanh — hai tập chỉ số không giao nhau. Chỉ phép kiểm 3 bắt được.
+
+### Chia k-fold trên cùng phép xáo trộn
+
+Với 10 mẫu và $k = 5$, mỗi fold có 2 mẫu. Cắt $\pi$ thành 5 đoạn liền nhau:
+
+| Vòng | Fold làm validation | Train (8 mẫu còn lại) |
+|---|---|---|
+| 1 | 3, 7 | 0, 9, 4, 1, 8, 2, 6, 5 |
+| 2 | 0, 9 | 3, 7, 4, 1, 8, 2, 6, 5 |
+| 3 | 4, 1 | 3, 7, 0, 9, 8, 2, 6, 5 |
+| 4 | 8, 2 | 3, 7, 0, 9, 4, 1, 6, 5 |
+| 5 | 6, 5 | 3, 7, 0, 9, 4, 1, 8, 2 |
+
+Mỗi mẫu làm validation **đúng một lần** và làm train $k-1$ lần. Kết quả cuối là trung bình 5 điểm, và **độ lệch chuẩn của 5 điểm đó cũng là thông tin**: nếu 5 vòng cho 0.71 / 0.89 / 0.62 / 0.85 / 0.70, thì "trung bình 0.754" gần như vô nghĩa — dữ liệu quá ít hoặc quá không đồng nhất để kết luận.
+
+## Code: chia, kiểm rò rỉ, k-fold
+
+```python
+import numpy as np
+
+n, pi = 10, np.array([3, 7, 0, 9, 4, 1, 8, 2, 6, 5])   # phép xáo trộn đã cố định
+train, val, test = pi[:6], pi[6:8], pi[8:]
+print(train, val, test)          # [3 7 0 9 4 1] [8 2] [6 5]
+
+# kiểm 1 + 2: không giao nhau theo chỉ số, và đủ n mẫu
+assert not (set(train) & set(val) | set(train) & set(test) | set(val) & set(test))
+assert len(set(train) | set(val) | set(test)) == n
+
+# kiểm 3: trùng NỘI DUNG — dòng 6 sao chép dòng 0, dòng 5 sao chép dòng 4
+X = np.array([[1., 0], [2, 1], [3, 0], [4, 1], [5, 0],
+              [5, 0], [1, 0], [6, 1], [7, 0], [8, 1]])
+chuoi = [X[i].tobytes() for i in range(n)]               # mỗi dòng thành một khoá
+ro_ri = sorted(int(i) for i in test if chuoi[i] in {chuoi[j] for j in train})
+print("mẫu test trùng nội dung với train:", ro_ri)       # [5, 6]
+
+# k-fold: cắt cùng phép xáo trộn thành k đoạn
+for v, fold in enumerate(np.array_split(pi, 5), 1):
+    print(v, "val =", fold, "| train =", np.setdiff1d(pi, fold, assume_unique=True))
+```
+
+Ba dòng `assert` và một phép so tập hợp. Đó là toàn bộ chi phí để không bao giờ báo cáo một con số 94% giả.
+
+<CauHoi cau="train-val-test/q5" />
+
+## Rò rỉ dữ liệu: các kiểu thật hay gặp
+
+**Rò rỉ dữ liệu** (data leakage) là khi thông tin mà mô hình lẽ ra không được biết lúc dự đoán lại lọt vào quá trình huấn luyện. Kapoor và Narayanan (2022) rà 294 bài báo trên 17 lĩnh vực và thấy rò rỉ là nguyên nhân hàng đầu khiến kết quả không lặp lại được. Dưới đây là các kiểu gặp nhiều nhất, kèm **triệu chứng nhận biết**.
+
+### 1. Mẫu trùng hoặc gần trùng
+
+Dữ liệu thật đầy bản sao: cùng một bản ghi xuất ra hai lần, cùng một bài viết đăng lại, cùng một ảnh lưu hai độ phân giải. Chia ngẫu nhiên tách bản sao sang hai bên và mô hình chỉ cần nhớ.
+
+Đo thử: lấy 200 mẫu, nhân đôi 60 mẫu trong số đó thành 260 dòng, rồi chạy 1-NN (mô hình học thuộc lòng thuần tuý), chia 70/30 ngẫu nhiên, trung bình 20 lần chia:
+
+| Dữ liệu | Độ chính xác trên test |
+|---|---|
+| Có 60 mẫu trùng | **0.779** |
+| Đã khử trùng | **0.650** |
+
+Chỉ riêng 23% dòng trùng đã thổi kết quả lên 13 điểm phần trăm.
+
+*Triệu chứng:* kết quả tốt bất thường với một mô hình đơn giản; khử trùng lặp xong thì điểm tụt mạnh. *Cách kiểm:* băm từng dòng (hoặc từng câu, từng ảnh) và đếm; với văn bản thì so gần đúng bằng MinHash hoặc n-gram chồng lấp.
+
+### 2. Chuẩn hoá / chọn đặc trưng trước khi chia
+
+Đây là lỗi im lặng nhất.
+
+```python
+X = (X - X.mean(0)) / X.std(0)      # SAI: trung bình tính trên CẢ tập test
+train, test = chia(X)
+```
+
+Trung bình và độ lệch chuẩn là thống kê của toàn bộ dữ liệu, trong đó có test. Cùng loại lỗi: chọn 50 đặc trưng tương quan cao nhất với nhãn **trên toàn bộ bảng**, điền giá trị thiếu bằng trung bình toàn bảng, hoặc học bộ mã hoá PCA / tokenizer / embedding trên toàn bảng.
+
+Đúng phải là: chia trước, **ước lượng mọi thống kê chỉ trên train**, rồi áp cùng thống kê đó lên val và test.
+
+*Triệu chứng:* khoảng cách train–test nhỏ bất thường, và kết quả tụt ngay khi bạn viết lại pipeline theo đúng thứ tự. Với dữ liệu nhỏ và nhiều đặc trưng, riêng lỗi chọn đặc trưng đã đủ tạo ra 90% accuracy từ dữ liệu hoàn toàn ngẫu nhiên.
+
+### 3. Nhóm bị tách đôi
+
+Nhiều mẫu cùng một **chủ thể**: 20 ảnh của cùng một bệnh nhân, 50 câu từ cùng một tài liệu, 300 phiên của cùng một người dùng, nhiều câu tiếng Việt lấy từ cùng một bài báo.
+
+Chia ngẫu nhiên theo dòng đẩy mẫu của cùng chủ thể sang cả hai bên. Mô hình học "nhận ra bệnh nhân" thay vì "nhận ra bệnh", và điểm test cao vì nó đã gặp đúng bệnh nhân đó trong train.
+
+Đúng phải là **chia theo nhóm**: bốc ngẫu nhiên ở mức *chủ thể*, rồi mọi mẫu của chủ thể đó đi cùng nhau về một tập.
+
+*Triệu chứng:* mô hình rất tốt trên test nhưng sập với người dùng/bệnh nhân mới. *Cách kiểm:* `set(nhom[train]) & set(nhom[test])` phải rỗng.
+
+### 4. Đặc trưng từ tương lai
+
+Đặc trưng chỉ tồn tại **sau** khi điều cần dự đoán đã xảy ra.
+
+- Dự đoán khách rời bỏ, mà đặc trưng có `ngày_huỷ_hợp_đồng` hoặc `số_lần_gọi_tổng_đài_tháng_này` (họ gọi vì đã quyết định huỷ).
+- Dự đoán bệnh nhân có nhiễm trùng huyết, mà đặc trưng có `đã_dùng_kháng_sinh` (chỉ dùng sau khi bác sĩ đã nghi ngờ).
+- Dự đoán vỡ nợ, mà đặc trưng có `số_dư_cuối_kỳ` — số dư bằng 0 vì tài khoản đã bị đóng do vỡ nợ.
+
+Đây là **target leakage**, và nó thường cho ra độ chính xác 99%+.
+
+*Triệu chứng:* một đặc trưng duy nhất giải thích gần hết; bỏ nó ra thì mô hình rơi về mức đoán bừa. *Cách kiểm:* với từng đặc trưng, hỏi đúng một câu — *"lúc tôi cần ra quyết định, giá trị này đã có chưa?"* Nếu chưa chắc, bỏ.
+
+### 5. Chia ngẫu nhiên dữ liệu có thời gian
+
+Dữ liệu chuỗi thời gian chia ngẫu nhiên nghĩa là mô hình được huấn luyện trên tháng 12 để dự đoán tháng 6 — chuyện không bao giờ xảy ra khi chạy thật.
+
+Đúng phải là **chia theo mốc thời gian**: train là quá khứ, val là đoạn kế tiếp, test là đoạn mới nhất.
+
+```
+|---------- train ----------|-- val --|-- test --|
+2023-01                  2024-06   2024-10   2025-01
+```
+
+Với k-fold cũng vậy: dùng kiểu "cửa sổ tiến" — fold 1 train 1–6 val 7, fold 2 train 1–7 val 8, ... Không bao giờ có fold nào train ở tương lai của val.
+
+*Triệu chứng:* mô hình giỏi đến khó tin trên dữ liệu cũ nhưng kết quả tụt đều theo thời gian khi chạy thật.
+
+### 6. Cân bằng lớp trước khi chia
+
+Dữ liệu lệch lớp, bạn nhân bản lớp thiểu số (oversampling / SMOTE) rồi mới chia. Bản gốc ở train, bản nhân ở test. Đây là kiểu 1 nhưng do chính bạn tự tạo ra.
+
+Đúng phải là: chia trước, **chỉ cân bằng trên train**.
+
+*Triệu chứng:* recall trên lớp thiểu số đẹp bất thường; bỏ oversampling thì tụt hẳn.
+
+### 7. Tập test lọt vào dữ liệu huấn luyện của mô hình nền
+
+Với LLM và mô hình lớn tải sẵn: tập benchmark bạn dùng để đánh giá có thể đã nằm trong kho pre-training. Điểm số không nói gì về khả năng tổng quát hoá. Đây là chuyện có thật và khó kiểm; bài [đánh giá bản dịch](/khai-niem/danh-gia-dich) cũng nhắc tới ở phần "tập test phải sạch". Cách phòng thực tế: tự làm một tập test mới sau ngày cắt dữ liệu của mô hình.
+
+<CauHoi cau="train-val-test/q8" />
+
+## Nâng cao
+
+**Chia tỉ lệ bao nhiêu?** Không có con số thần thánh. Quy tắc dùng được: tập test phải **đủ lớn để sai số ước lượng nhỏ hơn mức chênh lệch bạn quan tâm**. Sai số chuẩn của accuracy khoảng $\sqrt{p(1-p)/n}$; muốn phân biệt được 2 điểm phần trăm thì $n = 200$ là không đủ (sai số $\approx 2.8\%$), cần vài nghìn. Với dữ liệu lớn, 98/1/1 vẫn cho tập test hàng chục nghìn mẫu — hợp lý hơn 60/20/20 rất nhiều.
+
+**Phân tầng (stratified).** Khi lớp hiếm, chia ngẫu nhiên có thể cho tập val không có mẫu dương nào. `StratifiedKFold` giữ nguyên tỉ lệ lớp trong từng fold. Bắt buộc dùng khi lớp dương dưới khoảng 10%.
+
+**k bằng bao nhiêu?** $k = 5$ hoặc $10$ là mặc định hợp lý. $k$ lớn → mỗi lần train dùng nhiều dữ liệu hơn (ít lệch) nhưng chạy $k$ lần nên đắt, và các fold chồng lấp nhiều nên ước lượng phương sai không đáng tin. $k = n$ (leave-one-out) hiếm khi đáng.
+
+**k-fold lồng nhau (nested CV).** Khi dữ liệu quá ít để cắt riêng một tập test: vòng ngoài chia train/test, vòng trong chia lại phần train thành train/val để chọn siêu tham số. Đắt (số fold vòng ngoài × số fold vòng trong lần huấn luyện) nhưng đây là cách duy nhất vừa chọn được siêu tham số vừa có ước lượng không thiên lệch trên dữ liệu nhỏ.
+
+**k-fold không thay thế test.** k-fold vẫn là chọn lựa lặp lại trên cùng dữ liệu, nên vẫn dính đúng hiệu ứng "lấy max của nhiều phép đo nhiễu" ở đầu bài. Nếu có đủ dữ liệu: cắt test ra trước, k-fold bên trong phần còn lại.
+
+<CauHoi cau="train-val-test/q11" />
+
+**Mọi bước tiền xử lý phải nằm trong pipeline.** Lý do kỹ thuật khiến lỗi kiểu 2 xảy ra hoài là vì tiền xử lý thường được viết thành script riêng chạy trước. Gói chuẩn hoá, điền giá trị thiếu, chọn đặc trưng vào **một đối tượng được `fit` trên train rồi `transform` lên val/test** thì lỗi đó không thể xảy ra nữa.
+
+## Sai lầm hay gặp
+
+**Gộp val và test.** *Triệu chứng:* trong báo cáo, con số "tốt nhất" và con số "cuối cùng" là một. Hỏi lại: *"con số này là cái tốt nhất trong bao nhiêu lần thử?"* — nếu nhiều hơn một, nó đã bị thổi.
+
+**Mở test nhiều lần.** *Triệu chứng:* trong nhật ký công việc có nhiều dòng "chạy test lần 2, 3, 4...". Cách chữa: ghi lại số lần đã mở test và báo cáo con số đó cùng với kết quả. Người đọc cần biết.
+
+**Chia trước khi khử trùng lặp.** *Triệu chứng:* accuracy cao lạ với mô hình đơn giản, và khoảng cách train–test gần bằng 0. Khử trùng lặp **trước** khi chia, luôn luôn.
+
+**Chuẩn hoá trên toàn bộ dữ liệu.** *Triệu chứng:* trong code, dòng `scaler.fit(X)` đứng trước dòng chia. Tìm trong repo mọi chỗ `fit` và kiểm xem nó nhận vào gì.
+
+**Chia ngẫu nhiên dữ liệu có nhóm.** *Triệu chứng:* mô hình tốt trên test, kém hẳn với người dùng mới. Kiểm bằng một dòng: giao của tập nhóm ở train và ở test phải rỗng.
+
+**Đổi cách chia giữa các lần thí nghiệm.** *Triệu chứng:* hai thí nghiệm lệch nhau 3 điểm và bạn không biết do mô hình hay do chia lại. Cố định `seed`, **lưu chỉ số chia ra file**, và dùng đúng file đó cho mọi thí nghiệm của dự án.
+
+## Tra nhanh
+
+| Câu hỏi | Trả lời 30 giây |
+|---|---|
+| Ba tập để làm gì? | Train chỉnh tham số · val chọn phương án · test ước lượng khách quan, mở một lần |
+| Vì sao không gộp val và test? | Tập dùng để chọn thì bị thổi phồng: 20 cấu hình đều đúng 80% → cái tốt nhất trên val 200 mẫu trung bình 85.1% |
+| Chia bao nhiêu phần trăm? | Không có số cố định. Test phải đủ lớn để sai số $\sqrt{p(1-p)/n}$ nhỏ hơn chênh lệch bạn quan tâm |
+| Bước bắt buộc trước khi cắt | Khử trùng lặp, rồi xáo trộn (trừ dữ liệu thời gian), rồi cố định seed |
+| Ba phép kiểm sau khi chia | Chỉ số không giao nhau · tổng đủ $n$ · **không trùng nội dung** giữa các tập |
+| Khi nào chia theo thời gian? | Khi dữ liệu có thứ tự thời gian: train quá khứ, val kế tiếp, test mới nhất |
+| Khi nào chia theo nhóm? | Khi nhiều mẫu cùng một chủ thể (người dùng, bệnh nhân, tài liệu, bài báo) |
+| Khi nào dùng stratified? | Khi lớp hiếm (dưới ~10%) — để mọi fold đều có mẫu dương |
+| k-fold cho gì? | Dùng hết dữ liệu để chọn + **độ lệch chuẩn giữa các fold** cho biết kết quả có đáng tin không |
+| k-fold có thay được test không? | Không. Vẫn cần một tập test niêm phong ở ngoài |
+| Rò rỉ là gì? | Thông tin mà mô hình lẽ ra chưa được biết lúc dự đoán lại lọt vào huấn luyện |
+| Bảy kiểu rò rỉ | Mẫu trùng · chuẩn hoá/chọn đặc trưng trước khi chia · nhóm bị tách · đặc trưng từ tương lai · chia ngẫu nhiên dữ liệu thời gian · cân bằng lớp trước khi chia · test lọt vào pre-training |
+| Câu hỏi vàng cho mỗi đặc trưng | "Lúc tôi cần ra quyết định, giá trị này đã có chưa?" |
+| Triệu chứng chung của rò rỉ | Kết quả đẹp bất thường, train–test gần như không chênh, và sập khi chạy thật |
+| Bước tiếp theo | [Accuracy, precision, recall, confusion matrix](/khai-niem/danh-gia-mo-hinh) — chia đúng rồi thì đo bằng gì |
+
+## Tóm tắt
+
+- Train chỉnh tham số, validation chọn phương án, test mở đúng một lần để ước lượng khách quan.
+- Chọn nhiều lần trên cùng một tập làm tập đó lạc quan: 20 cấu hình đều thật sự đúng 80% cho ra 85.1% trên val 200 mẫu.
+- Chia = khử trùng lặp → xáo trộn (cố định seed) → cắt → kiểm ba điều, trong đó phép kiểm **trùng nội dung** là phép quan trọng nhất.
+- Bảy kiểu rò rỉ hay gặp; câu hỏi vàng cho mọi đặc trưng là *"lúc ra quyết định, giá trị này đã có chưa?"*.
+- Dữ liệu có thời gian thì chia theo thời gian; có nhóm thì chia theo nhóm; lớp hiếm thì phân tầng.
+- k-fold dùng hết dữ liệu và cho biết độ dao động, nhưng không thay thế tập test niêm phong.

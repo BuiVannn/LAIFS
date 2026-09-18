@@ -1,0 +1,129 @@
+trang_thai: nhap
+cau_hoi:
+  - id: q1
+    loai: mot
+    do_kho: 1
+    de: Precision và recall khác nhau ở chỗ nào?
+    lua_chon:
+      - "Ở mẫu số: precision chia cho số lần mô hình báo dương, recall chia cho số mẫu thật sự dương"
+      - "Ở tử số: precision đếm TP, recall đếm TN"
+      - Precision dùng cho hồi quy, recall dùng cho phân loại
+      - Chúng luôn bằng nhau khi dữ liệu cân bằng
+    dap_an: 0
+    giai_thich: "Cả hai đều có tử số TP. Precision = TP/(TP+FP) — mẫu số là số lần mô hình kêu. Recall = TP/(TP+FN) — mẫu số là số ca thật sự có. Cả hai đều bỏ qua hoàn toàn ô TN."
+
+  - id: q2
+    loai: so
+    do_kho: 1
+    de: "Ma trận nhầm lẫn: TP = 6, FP = 3, FN = 4, TN = 87. Precision bằng bao nhiêu?"
+    dap_an: 0.6667
+    sai_so: 0.001
+    giai_thich: "Precision = TP/(TP+FP) = 6/(6+3) = 6/9 = 0.6667. Mô hình gắn cờ 9 thư, 6 trong số đó đúng là rác."
+
+  - id: q3
+    loai: so
+    do_kho: 1
+    de: "Vẫn ma trận đó (TP = 6, FP = 3, FN = 4, TN = 87). Recall bằng bao nhiêu?"
+    dap_an: 0.6
+    sai_so: 0.001
+    giai_thich: "Recall = TP/(TP+FN) = 6/(6+4) = 6/10 = 0.6. Có 10 thư rác thật, mô hình bắt được 6."
+
+  - id: q4
+    loai: so
+    do_kho: 2
+    de: "Vẫn ma trận đó. F1 bằng bao nhiêu?"
+    dap_an: 0.6316
+    sai_so: 0.001
+    giai_thich: "F1 = 2PR/(P+R) = 2(0.6667)(0.6)/1.2667 = 0.6316. Tính nhanh không sai số làm tròn: F1 = 2TP/(2TP+FP+FN) = 12/(12+3+4) = 12/19 = 0.6316."
+
+  - id: q5
+    loai: mot
+    do_kho: 2
+    de: "Dữ liệu test có 99% lớp âm và mô hình đạt accuracy 99%. Điều này nghĩa là gì?"
+    lua_chon:
+      - "Gần như chắc chắn mô hình đang đoán \"âm\" cho mọi thứ — phải mở ma trận nhầm lẫn ra kiểm"
+      - Mô hình rất tốt, chỉ sai 1% số ca
+      - Mô hình bắt được 99% số ca dương
+      - Không kết luận được gì nếu chưa biết learning rate
+    dap_an: 0
+    giai_thich: "Một dòng `return \"âm\"` cũng đạt đúng 99%. Đây là đường cơ sở bắt buộc phải tính trước khi khoe bất kỳ con số accuracy nào: nếu accuracy của bạn xấp xỉ tỉ lệ lớp đa số thì nó chưa chứng minh được gì. Recall trên lớp dương mới là con số cần nhìn."
+
+  - id: q6
+    loai: mot
+    do_kho: 2
+    de: "Hạ ngưỡng quyết định từ t = 0.7 xuống t = 0.4. Điều gì chắc chắn xảy ra?"
+    lua_chon:
+      - "Recall tăng hoặc giữ nguyên, không bao giờ giảm"
+      - "Precision tăng hoặc giữ nguyên, không bao giờ giảm"
+      - Cả precision và recall cùng tăng
+      - Accuracy chắc chắn tăng
+    dap_an: 0
+    giai_thich: "Hạ ngưỡng chỉ làm tập bị gắn cờ NỞ RA, nên TP không thể giảm mà FN không thể tăng — recall đơn điệu tăng. Precision thì không đơn điệu: nó dao động tuỳ mẫu tiếp theo được thêm vào là dương hay âm. Accuracy có thể giảm nếu thêm nhiều FP."
+
+  - id: q7
+    loai: nhieu
+    do_kho: 2
+    de: Nhận định nào về F1 là ĐÚNG? (chọn tất cả ý đúng)
+    lua_chon:
+      - "Là trung bình điều hoà nên bị kéo về phía số nhỏ hơn: P = 1.0, R = 0.01 cho F1 ≈ 0.0198"
+      - "Tính được trực tiếp từ ma trận nhầm lẫn bằng 2TP/(2TP+FP+FN)"
+      - Hoàn toàn bỏ qua ô TN
+      - "Là trung bình cộng của precision và recall: P = 1.0, R = 0.01 cho F1 ≈ 0.505"
+    dap_an: [0, 1, 2]
+    giai_thich: "Ba ý đầu đúng. Ý cuối là hiểu nhầm phổ biến nhất về F1 — nếu dùng trung bình cộng thì một mô hình chỉ báo đúng 1 ca trong 100 ca thật vẫn được 0.505 và trông như dùng tạm được."
+
+  - id: q8
+    loai: mot
+    do_kho: 3
+    de: "Một mô hình phát hiện gian lận có ROC-AUC 0.95 nhưng PR-AUC chỉ 0.10 trên tập 1010 giao dịch (10 vụ gian lận). Giải thích đúng nhất?"
+    lua_chon:
+      - "FPR có mẫu số là toàn bộ 1000 mẫu âm nên vài chục báo động giả gần như không làm ROC xê dịch; precision có mẫu số nhỏ hơn nhiều nên bị nghiền nát. Với lệch lớp, PR-AUC mới phản ánh trải nghiệm thật"
+      - Một trong hai con số chắc chắn tính sai
+      - "ROC-AUC luôn cao hơn PR-AUC, đây là chuyện bình thường không cần quan tâm"
+      - Mô hình bị overfitting nên hai thước đo mâu thuẫn
+    dap_an: 0
+    giai_thich: "ROC-AUC không phụ thuộc tỉ lệ lớp — nghe như ưu điểm, nhưng ở đây chính là nhược điểm, vì tỉ lệ lớp quyết định trải nghiệm của người trực cảnh báo. Để bắt hết 10 vụ, họ phải xem 100 giao dịch với 90 báo động giả. Đường cơ sở của PR-AUC là tỉ lệ lớp dương (0.0099), nên 0.10 vẫn gấp 10 lần đoán bừa — nhưng xa mức dùng được."
+
+  - id: q9
+    loai: so
+    do_kho: 3
+    de: "Bốn mẫu dương có điểm 0.95, 0.80, 0.70, 0.40; sáu mẫu âm có điểm 0.90, 0.60, 0.50, 0.30, 0.20, 0.10. ROC-AUC bằng bao nhiêu?"
+    dap_an: 0.7917
+    sai_so: 0.001
+    giai_thich: "ROC-AUC = tỉ lệ cặp (dương, âm) mà mẫu dương được chấm cao hơn. Có 4 × 6 = 24 cặp. Dương 0.95 thắng 6, dương 0.80 thắng 5 (thua 0.90), dương 0.70 thắng 5, dương 0.40 thắng 3. Tổng 19/24 = 0.7917."
+
+  - id: q10
+    loai: mot
+    do_kho: 2
+    de: "Xây hệ sàng lọc ung thư: bỏ sót bệnh nhân là thảm hoạ, còn báo động giả chỉ dẫn tới một lần xét nghiệm lại. Nên tối ưu thước đo nào?"
+    lua_chon:
+      - "Recall (hoặc F-beta với beta = 2), kèm ràng buộc precision tối thiểu để không ngập báo động giả"
+      - "Precision, vì báo động giả làm bệnh nhân lo lắng"
+      - Accuracy, vì nó tính cả bốn ô nên công bằng nhất
+      - "F1, vì nó luôn là lựa chọn an toàn cho mọi bài toán"
+    dap_an: 0
+    giai_thich: "FN đắt hơn FP hàng nghìn lần nên ưu tiên recall, và F-beta với beta = 2 coi recall nặng gấp đôi. Accuracy sai vì nó coi hai loại lỗi ngang giá. F1 cũng coi chúng ngang giá — nó là thứ dùng khi bạn KHÔNG biết chi phí từng loại lỗi."
+
+  - id: q11
+    loai: mot
+    do_kho: 2
+    de: "Vì sao không dùng precision/recall để chấm một hệ dịch máy?"
+    lua_chon:
+      - "Vì một câu nguồn có nhiều bản dịch đều đúng, nên không đếm được TP/FP — phải chuyển sang thước đo độ giống như BLEU, chrF, COMET"
+      - Vì dịch máy không phải bài toán machine learning
+      - Vì precision và recall chỉ dùng được khi có trên hai lớp
+      - Vì bản dịch là chuỗi nên phải tính accuracy trên từng ký tự
+    dap_an: 0
+    giai_thich: "Mọi thước đo phân loại đứng trên giả định có một đáp án đúng duy nhất để đối chiếu. Với sinh văn bản giả định đó sụp: `cuộc họp được dời sang tuần sau` không phải TP cũng không phải FP so với `cuộc họp đã bị hoãn sang tuần sau`. Xem bài Đánh giá bản dịch."
+
+  - id: q12
+    loai: mot
+    do_kho: 2
+    de: "Mô hình chưa từng dự đoán lớp dương lần nào, tức TP + FP = 0. Precision bằng bao nhiêu?"
+    lua_chon:
+      - "Không xác định — mẫu số bằng 0, nên phải báo là không xác định thay vì lặng lẽ gán 0"
+      - "0, vì mô hình không bắt được ca dương nào"
+      - "1, vì trong số 0 lần báo dương thì không có lần nào sai"
+      - Bằng accuracy của mô hình
+    dap_an: 0
+    giai_thich: "Gán 0 làm mất một thông tin quan trọng: \"chưa từng báo dương lần nào\" là một thất bại hoàn toàn khác với \"báo dương nhưng sai\". scikit-learn mặc định trả 0 KÈM một cảnh báo, và cảnh báo đó mới là phần đáng đọc. Luôn kiểm TP + FP trước khi đọc precision."
