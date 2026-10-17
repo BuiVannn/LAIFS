@@ -1,0 +1,36 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection, render } from 'astro:content';
+import { hienThi } from '../../lib';
+
+export async function getStaticPaths() {
+  const ds = (await getCollection('nghienCuu')).filter(hienThi);
+  return ds.map((b) => ({ params: { id: b.id }, props: { b } }));
+}
+
+const { b } = Astro.props;
+const { Content, headings } = await render(b);
+const mucLuc = headings.filter((h) => h.depth === 2);
+---
+<Layout tieuDe={b.data.tieu_de} trang="nghien-cuu">
+  <div class="trang-hep">
+    <p class="duong-dan"><a href="/nghien-cuu">Nghiên cứu</a></p>
+    <h1>{b.data.tieu_de}</h1>
+    <p class="mo">{b.data.mo_ta}</p>
+    {b.data.trang_thai === 'nhap' && <p class="nhan-nhap">Bản nháp — chưa soát lại</p>}
+    {mucLuc.length > 2 && (
+      <nav class="the" aria-label="Mục lục" style="margin: 16px 0">
+        <p class="nhan-muc">Mục lục</p>
+        <ol style="margin: 8px 0 0; padding-left: 22px">
+          {mucLuc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}
+        </ol>
+      </nav>
+    )}
+    <article class="bai-checklist"><Content /></article>
+  </div>
+</Layout>
+
+<script>
+  // Cho tick ô checklist trong lúc đọc; tải lại trang là về trắng để dùng cho paper tiếp theo
+  document.querySelectorAll<HTMLInputElement>('.bai-checklist input[type=checkbox]').forEach((o) => (o.disabled = false));
+</script>

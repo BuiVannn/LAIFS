@@ -3,7 +3,7 @@ import 'katex/dist/katex.min.css';
 import '../styles.css';
 import { hienNhap } from '../lib';
 
-type Props = { tieuDe?: string; trang?: 'hom-nay' | 'lo-trinh' | 'on-tap' | 'luyen-code' | 'ke-hoach' | 'thu-vien' | 'khac'; tapTrung?: boolean };
+type Props = { tieuDe?: string; trang?: 'hom-nay' | 'lo-trinh' | 'on-tap' | 'luyen-code' | 'ke-hoach' | 'thu-vien' | 'nghien-cuu' | 'khac'; tapTrung?: boolean };
 const { tieuDe, trang = 'khac', tapTrung = false } = Astro.props as Props;
 const hienTai = (t: Props['trang']) => (t === trang ? 'page' : undefined);
 ---
@@ -39,7 +39,7 @@ const hienTai = (t: Props['trang']) => (t === trang ? 'page' : undefined);
         <div class="nhom-nav">
           <div class="nhan-nhom">Khám phá</div>
           <span class="muc-nav sap-co">Blog <span class="nhan-nho">sắp có</span></span>
-          <span class="muc-nav sap-co">Nghiên cứu <span class="nhan-nho">sắp có</span></span>
+          <a class="muc-nav" href="/nghien-cuu" aria-current={hienTai('nghien-cuu')}>Nghiên cứu</a>
           <span class="muc-nav sap-co">AI Engineering <span class="nhan-nho">sắp có</span></span>
         </div>
         <div class="nhom-nav phan-cuoi" style="margin-top: auto">

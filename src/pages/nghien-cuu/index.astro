@@ -1,0 +1,25 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import { hienThi } from '../../lib';
+
+const tatCa = (await getCollection('nghienCuu')).filter(hienThi).sort((a, b) => a.data.thu_tu - b.data.thu_tu);
+---
+<Layout tieuDe="Nghiên cứu" trang="nghien-cuu">
+  <div class="trang-hep">
+    <p class="nhan-muc">Nghiên cứu</p>
+    <h1>Kỹ năng làm nghiên cứu</h1>
+    <p class="mo">Đọc paper, tìm câu hỏi nghiên cứu, kiểm chứng. Mở lại mỗi lần bắt đầu một vòng nghiên cứu.</p>
+    <ul class="danh-sach-bai">
+      {tatCa.map((b) => (
+        <li>
+          <div>
+            <a href={`/nghien-cuu/${b.id}`}><b>{b.data.tieu_de}</b></a>
+            <div class="mo" style="font-size: 14px">{b.data.mo_ta}</div>
+          </div>
+          {b.data.trang_thai === 'nhap' && <span class="muc-do">Nháp</span>}
+        </li>
+      ))}
+    </ul>
+  </div>
+</Layout>

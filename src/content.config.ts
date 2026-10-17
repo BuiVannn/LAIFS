@@ -94,4 +94,16 @@ const taiLieu = defineCollection({
   }),
 });
 
-export const collections = { khaiNiem, quiz, baiTap, taiLieu };
+// Khu Nghiên cứu: kỹ năng làm nghiên cứu, không có tiền quyết toán nên không nằm trong lộ trình
+const nghienCuu = defineCollection({
+  loader: glob({ pattern: '*.md', base: './content/nghien-cuu' }),
+  schema: z.object({
+    tieu_de: z.string(),
+    mo_ta: z.string(),
+    thu_tu: z.number().int(),
+    trang_thai: trangThai,
+    nguoi_duyet: z.string().optional(),
+  }),
+});
+
+export const collections = { khaiNiem, quiz, baiTap, taiLieu, nghienCuu };
